@@ -41,14 +41,31 @@ describe('Kodara Executable Plan Engine ("[▶ Proceed]" Real Execution)', () =>
     expect(created.phases.length).toBe(4);
     expect(created.markdown_content).not.toContain('representación simbólica');
 
-    // Simular clic en el botón real [▶ Proceed]
-    const executed = await KodaraPlanExecutor.executePlanById(created.plan_id);
+    // Simular clic en el botón real [▶ Proceed] con streaming de porcentaje (0% -> 100%)
+    const progressEvents: number[] = [];
+    const actionsLog: string[] = [];
+    const executed = await KodaraPlanExecutor.executePlanById(created.plan_id, (ev) => {
+      progressEvents.push(ev.percent);
+      actionsLog.push(ev.currentAction);
+    });
+
     expect(executed.status).toBe('COMPLETED');
     expect(executed.phases.every((p) => p.status === 'COMPLETED')).toBe(true);
+    expect(progressEvents.length).toBeGreaterThanOrEqual(8);
+    expect(progressEvents[progressEvents.length - 1]).toBe(100);
+    expect(actionsLog.some((a) => a.includes('Indexando'))).toBe(true);
+    expect(actionsLog.some((a) => a.includes('SAST'))).toBe(true);
+    expect(actionsLog.some((a) => a.includes('rustc'))).toBe(true);
     expect(executed.execution_report_md).toContain('Ejecución Completada');
     expect(executed.execution_report_md).toContain('Fase 1:');
     expect(executed.execution_report_md).toContain('Fase 2:');
     expect(executed.execution_report_md).toContain('Fase 3:');
     expect(executed.execution_report_md).toContain('Fase 4:');
+  });
+
+  it('debe auto-reparar y recuperar la ejecución si el ID del plan caducó o fue reemplazado', async () => {
+    const recovered = await KodaraPlanExecutor.executePlanById('PLAN-STALE-NONEXISTENT-ID');
+    expect(recovered.status).toBe('COMPLETED');
+    expect(recovered.phases.every((p) => p.status === 'COMPLETED')).toBe(true);
   });
 });

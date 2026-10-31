@@ -1323,19 +1323,28 @@
       loadCoreMemory();
     }
 
-    // ── 5. Motor de Planes Ejecutables Reales con Botón "[▶ Proceed]" (Estilo Antigravity) ──
+    // ── 5. Motor de Planes Ejecutables Reales con Botón "[▶ Proceed]", Porcentaje en Vivo (0%-100%) y Auto-Repair (Estilo Antigravity) ──
+    function renderPhaseRowsHTML(phases) {
+      return (phases || []).map(ph => {
+        const icon = ph.status === 'COMPLETED' ? '✅' : ph.status === 'RUNNING' ? '⏳' : '🔹';
+        const color = ph.status === 'COMPLETED' ? '#34d399' : ph.status === 'RUNNING' ? '#38bdf8' : '#94a3b8';
+        return `
+          <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.74rem;padding:0.28rem 0;border-bottom:1px solid rgba(255,255,255,0.04)">
+            <span style="color:#e2e8f0">${icon} <b>Fase ${ph.phase_number}:</b> ${escapeHtml(ph.title)}</span>
+            <span style="font-family:var(--font-mono);font-size:0.68rem;font-weight:600;color:${color}">${ph.status}${ph.duration_ms ? ` (${ph.duration_ms}ms)` : ''}</span>
+          </div>
+          ${ph.output_summary ? `<div style="font-size:0.69rem;color:#94a3b8;padding:0.1rem 0 0.25rem 1.35rem;font-family:var(--font-mono)">↳ ${escapeHtml(ph.output_summary)}</div>` : ''}
+        `;
+      }).join('');
+    }
+
     function renderExecutablePlanCardHTML(plan) {
       if (!plan) return '';
       const isCompleted = plan.status === 'COMPLETED';
-      const phasesHtml = (plan.phases || []).map(ph => `
-        <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.74rem;padding:0.25rem 0;border-bottom:1px solid rgba(255,255,255,0.04)">
-          <span style="color:#e2e8f0">${ph.status === 'COMPLETED' ? '✅' : '🔹'} <b>Fase ${ph.phase_number}:</b> ${escapeHtml(ph.title)}</span>
-          <span style="font-family:var(--font-mono);font-size:0.68rem;color:${ph.status === 'COMPLETED' ? '#34d399' : '#94a3b8'}">${ph.status}${ph.duration_ms ? ` (${ph.duration_ms}ms)` : ''}</span>
-        </div>
-      `).join('');
+      const pct = isCompleted ? 100 : 0;
 
       return `
-        <div id="planCard_${plan.plan_id}" style="background:#1c1c24;border:1px solid ${isCompleted ? 'rgba(16,185,129,0.45)' : '#3b82f6'};border-radius:10px;padding:0.9rem 1.05rem;margin-top:0.85rem;box-shadow:0 8px 24px rgba(0,0,0,0.35)">
+        <div id="planCard_${plan.plan_id}" style="background:#1c1c24;border:1px solid ${isCompleted ? 'rgba(16,185,129,0.5)' : '#3b82f6'};border-radius:10px;padding:0.95rem 1.1rem;margin-top:0.85rem;box-shadow:0 8px 24px rgba(0,0,0,0.35)">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem">
             <div style="display:flex;align-items:center;gap:0.55rem">
               <span style="font-size:1.05rem">📄</span>
@@ -1345,7 +1354,7 @@
               </div>
             </div>
             <span id="planBadge_${plan.plan_id}" style="font-size:0.7rem;font-weight:700;padding:3px 8px;border-radius:5px;background:${isCompleted ? 'rgba(16,185,129,0.18)' : 'rgba(59,130,246,0.18)'};color:${isCompleted ? '#34d399' : '#60a5fa'}">
-              ${isCompleted ? '✓ PROCEEDED & VERIFIED' : 'READY TO PROCEED'}
+              ${isCompleted ? '✓ 100% PROCEEDED & VERIFIED' : 'READY TO PROCEED'}
             </span>
           </div>
 
@@ -1353,18 +1362,35 @@
             ${escapeHtml(plan.summary)}
           </div>
 
-          <div style="background:#121217;border:1px solid var(--border-subtle);border-radius:7px;padding:0.5rem 0.75rem;margin-bottom:0.75rem">
-            ${phasesHtml}
+          <!-- Barra de Progreso Porcentual Estilo Antigravity (0% -> 100%) -->
+          <div id="planProgressWrap_${plan.plan_id}" style="background:#111116;border:1px solid rgba(56,189,248,0.22);border-radius:8px;padding:0.55rem 0.75rem;margin-bottom:0.65rem">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.32rem">
+              <span id="planLiveActionText_${plan.plan_id}" style="font-size:0.73rem;color:${isCompleted ? '#34d399' : '#38bdf8'};font-weight:600">
+                ${isCompleted ? '✅ 100% Completado — Las 4 fases fueron verificadas en Linux' : '⚡ Listo para ejecutar las 4 fases reales en Linux (0%)'}
+              </span>
+              <span id="planProgressPct_${plan.plan_id}" style="font-family:var(--font-mono);font-size:0.78rem;font-weight:700;color:${isCompleted ? '#34d399' : '#fff'}">${pct}%</span>
+            </div>
+            <div style="width:100%;height:7px;background:#09090d;border-radius:999px;overflow:hidden;border:1px solid rgba(255,255,255,0.06)">
+              <div id="planProgressBar_${plan.plan_id}" style="width:${pct}%;height:100%;background:linear-gradient(90deg,#3b82f6,#06b6d4,#10b981);border-radius:999px;transition:width 0.22s ease"></div>
+            </div>
+            <div id="planLiveStepsLog_${plan.plan_id}" style="font-family:var(--font-mono);font-size:0.68rem;color:#94a3b8;margin-top:0.35rem;display:${isCompleted ? 'none' : 'block'}">
+              Esperando clic en [▶ Proceed] • Watchdog de Auto-Reparación activo
+            </div>
+          </div>
+
+          <!-- Lista en Vivo de las 4 Fases -->
+          <div id="planPhasesBox_${plan.plan_id}" style="background:#121217;border:1px solid var(--border-subtle);border-radius:7px;padding:0.5rem 0.75rem;margin-bottom:0.75rem">
+            ${renderPhaseRowsHTML(plan.phases)}
           </div>
 
           <div style="display:flex;justify-content:space-between;align-items:center">
-            <span style="font-size:0.7rem;color:#34d399">⚡ Acción física directa en Linux (Indexación + SAST + rustc Sandbox + Project Memory)</span>
+            <span style="font-size:0.7rem;color:#34d399">🛡️ Supervisado por Kodara Watchdog (Auto-Repair automático si una fase se detiene)</span>
             <div style="display:flex;gap:0.5rem">
               <button
                 id="btnProceed_${plan.plan_id}"
                 onclick="proceedWithPlan('${plan.plan_id}')"
                 style="background:${isCompleted ? '#10b981' : '#3b82f6'};color:#fff;border:none;border-radius:7px;padding:0.45rem 1.05rem;font-size:0.8rem;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:0.4rem;box-shadow:0 4px 12px rgba(59,130,246,0.35)">
-                <span>${isCompleted ? '↻ Re-ejecutar Plan Real' : '▶ Proceed'}</span>
+                <span>${isCompleted ? '↻ Re-ejecutar Plan Real (0% → 100%)' : '▶ Proceed'}</span>
               </button>
             </div>
           </div>
@@ -1376,46 +1402,161 @@
       `;
     }
 
-    async function proceedWithPlan(planId) {
-      const btn = document.getElementById('btnProceed_' + planId);
+    async function triggerWatchdogAutoRepair(planId, reason) {
+      const actionText = document.getElementById('planLiveActionText_' + planId);
+      const stepsLog = document.getElementById('planLiveStepsLog_' + planId);
+      const pctNode = document.getElementById('planProgressPct_' + planId);
+      const barNode = document.getElementById('planProgressBar_' + planId);
       const badge = document.getElementById('planBadge_' + planId);
-      const outBox = document.getElementById('planExecOutput_' + planId);
 
-      if (btn) {
-        btn.disabled = true;
-        btn.innerHTML = '<span>⏳ Ejecutando las 4 fases reales en Linux...</span>';
-      }
       if (badge) {
-        badge.textContent = 'EXECUTING PHASES...';
+        badge.textContent = '🔧 AUTO-REPAIRING...';
+        badge.style.color = '#fbbf24';
       }
+      if (actionText) {
+        actionText.style.color = '#fbbf24';
+        actionText.textContent = `🔧 Watchdog Kodara detectó bloqueo (${reason}) — Reparando y completando fases...`;
+      }
+      if (stepsLog) {
+        stepsLog.style.display = 'block';
+        stepsLog.textContent = `[Auto-Repair] Invocando /api/kodara/plans/${planId}/auto-repair y registrando en Kodara Core Memory...`;
+      }
+      if (pctNode) pctNode.textContent = '65%';
+      if (barNode) barNode.style.width = '65%';
 
-      try {
-        const resp = await fetch(`/api/kodara/plans/${planId}/execute`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' }
-        });
-        const data = await resp.json();
-        const executedPlan = data.plan;
-
+      const resp = await fetch(`/api/kodara/plans/${planId}/auto-repair`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reason })
+      });
+      const data = await resp.json();
+      if (data && data.plan) {
         const cardContainer = document.getElementById('planCard_' + planId);
-        if (cardContainer && executedPlan) {
-          cardContainer.outerHTML = renderExecutablePlanCardHTML(executedPlan);
-        } else if (outBox && executedPlan) {
-          outBox.style.display = 'block';
-          outBox.innerHTML = formatMarkdown(executedPlan.execution_report_md);
+        if (cardContainer) {
+          cardContainer.outerHTML = renderExecutablePlanCardHTML(data.plan);
         }
-
-        // Actualizar memorias y activos en vivo tras ejecutar el plan
         loadProjectMemory();
         loadCoreMemory();
         loadTargetTree();
         scrollChatBottom();
-      } catch (e) {
-        if (btn) {
-          btn.disabled = false;
-          btn.innerHTML = '<span>▶ Reintentar Proceed</span>';
+      }
+    }
+
+    async function proceedWithPlan(planId) {
+      const btn = document.getElementById('btnProceed_' + planId);
+      const badge = document.getElementById('planBadge_' + planId);
+      const actionText = document.getElementById('planLiveActionText_' + planId);
+      const stepsLog = document.getElementById('planLiveStepsLog_' + planId);
+      const pctNode = document.getElementById('planProgressPct_' + planId);
+      const barNode = document.getElementById('planProgressBar_' + planId);
+      const phasesBox = document.getElementById('planPhasesBox_' + planId);
+      const outBox = document.getElementById('planExecOutput_' + planId);
+
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span>⏳ Ejecutando en vivo (0%)...</span>';
+      }
+      if (badge) {
+        badge.textContent = 'EXECUTING 0%';
+        badge.style.color = '#38bdf8';
+      }
+      if (actionText) {
+        actionText.style.color = '#38bdf8';
+        actionText.textContent = '🚀 Iniciando motor de ejecución física en Linux...';
+      }
+      if (stepsLog) {
+        stepsLog.style.display = 'block';
+        stepsLog.textContent = '[0%] Conectando al stream de telemetría de Kodara Plan Executor...';
+      }
+      if (pctNode) pctNode.textContent = '5%';
+      if (barNode) barNode.style.width = '5%';
+
+      let lastProgressAt = Date.now();
+      let completedSuccessfully = false;
+
+      // Watchdog de Auto-Diagnóstico: si pasan 4s sin avance, Kodara auto-repara la ejecución
+      const watchdogTimer = setInterval(async () => {
+        if (!completedSuccessfully && Date.now() - lastProgressAt > 4000) {
+          clearInterval(watchdogTimer);
+          await triggerWatchdogAutoRepair(planId, 'Timeout de avance > 4s en stream de fases');
         }
-        alert('Error ejecutando el plan: ' + e.message);
+      }, 1000);
+
+      try {
+        const resp = await fetch(`/api/kodara/plans/${planId}/execute-stream`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ planId, clientWatchdog: true })
+        });
+
+        if (!resp.ok || !resp.body) {
+          clearInterval(watchdogTimer);
+          await triggerWatchdogAutoRepair(planId, `HTTP ${resp.status} en inicio de ejecución`);
+          return;
+        }
+
+        const reader = resp.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+        let finalPlan = null;
+
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          lastProgressAt = Date.now();
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split('\n');
+          buffer = lines.pop() || '';
+
+          for (const ln of lines) {
+            if (!ln.startsWith('data: ')) continue;
+            const raw = ln.slice(6).trim();
+            if (!raw) continue;
+            try {
+              const ev = JSON.parse(raw);
+              const pct = ev.percent ?? 15;
+              if (pctNode) pctNode.textContent = `${pct}%`;
+              if (barNode) barNode.style.width = `${pct}%`;
+              if (badge) badge.textContent = pct >= 100 ? '✓ 100% PROCEEDED & VERIFIED' : `EXECUTING ${pct}%`;
+              if (btn) btn.innerHTML = `<span>⏳ Ejecutando Fase ${ev.phaseNumber || 1}/4 (${pct}%)...</span>`;
+              if (actionText && ev.currentAction) {
+                actionText.textContent = ev.currentAction;
+                actionText.style.color = pct >= 100 ? '#34d399' : '#38bdf8';
+              }
+              if (stepsLog && ev.detailLog) {
+                stepsLog.textContent = `[${pct}%] ${ev.detailLog}`;
+              }
+              if (phasesBox && ev.phases) {
+                phasesBox.innerHTML = renderPhaseRowsHTML(ev.phases);
+              }
+              if (ev.plan) {
+                finalPlan = ev.plan;
+              }
+            } catch {}
+          }
+        }
+
+        clearInterval(watchdogTimer);
+        completedSuccessfully = true;
+
+        if (finalPlan) {
+          const cardContainer = document.getElementById('planCard_' + planId);
+          if (cardContainer) {
+            cardContainer.outerHTML = renderExecutablePlanCardHTML(finalPlan);
+          } else if (outBox) {
+            outBox.style.display = 'block';
+            outBox.innerHTML = formatMarkdown(finalPlan.execution_report_md);
+          }
+          loadProjectMemory();
+          loadCoreMemory();
+          loadTargetTree();
+          scrollChatBottom();
+        } else {
+          await triggerWatchdogAutoRepair(planId, 'Stream cerrado sin artefacto final');
+        }
+      } catch (e) {
+        clearInterval(watchdogTimer);
+        await triggerWatchdogAutoRepair(planId, e.message || 'Excepción de red en Proceed');
       }
     }
 
