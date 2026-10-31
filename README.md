@@ -1,158 +1,105 @@
-<div align="center">
-  <br />
-  <img src=".github/assets/shorter_logo.svg" width="250" />
-  <br />
-  <h1>🌌 Open Velocity</h1>
+# 🛡️ KODARA — Autonomous Cybersecurity, Secure Development & Evolution IDE
+> **"Your Code. Your AI. Your Rules."**
 
-  <p><b>The Open-Source, Universal AI Gateway for Agentic Development</b></p>
-  <p>
-    <i>An open, community-driven effort to build a truly model-agnostic alternative to proprietary agentic coding platforms.</i>
-  </p>
-  
-  <p>
-    <a href="#"><img alt="Build Status" src="https://img.shields.io/badge/build-passing-brightgreen?style=for-the-badge"></a>
-    <a href="#"><img alt="License" src="https://img.shields.io/badge/license-MIT-blue?style=for-the-badge"></a>
-    <a href="#"><img alt="PRs Welcome" src="https://img.shields.io/badge/PRs-welcome-orange?style=for-the-badge"></a>
-    <a href="https://discord.gg/jc4xtF58Ve"><img alt="Discord" src="https://img.shields.io/discord/123456789?label=discord&style=for-the-badge&logo=discord&logoColor=white"></a>
-    <a href="https://github.com/ishandutta2007">
-      <img alt="GitHub followers" src="https://img.shields.io/github/followers/ishandutta2007?label=Follow&style=for-the-badge&logo=github&logoColor=white" alt="Github"/>
-    </a>
-  </p>
-</div>
+**Kodara** es un entorno local 100% offline para Linux diseñado para **Desarrollo Seguro, Ciberseguridad Táctica (Red/Blue Team) y Evolución Autónoma**. Combina una interfaz limpia centrada en **Proyectos** (inspirada en Antigravity), ejecución directa en **Modo `🛡️ Turbo`** para ambientes autorizados, un **Puente MCP de Ciberseguridad** y el motor **Kodara Evolution Engine** en **Rust + TypeScript**.
 
 ---
 
-**Open Velocity** 🌌 is not just another code editor or AI assistant. It's an ambitious open-source project to build a web-native, **agent-first** integrated development environment (IDE). Unlike proprietary platforms that lock you into a single AI ecosystem, Open Velocity is designed from the ground up to be a **universal gateway to any LLM**. Our goal is to create a platform where developers can delegate complex tasks to autonomous AI agents, powered by the models of their choice. 🤖✨
+## ✨ Características Principales
 
-### 🌟 Why Open Velocity?
-- **🔓 True Model Freedom:** Building a future that isn't tied to a single AI provider.
-- **🗳️ Democratizing AI:** Making state-of-the-art agentic development accessible to everyone.
-- **🛠️ Transparency & Extensibility:** An open core that the community can shape, extend, and trust.
-- **🏠 Self-Hosting & Privacy:** Full control over your code, your data, and your AI connections.
-
----
-
-## ✨ Core Features (The Vision)
-
-- **🌌 Best of All Worlds:** Fusing the best features of Cursor, Windsurf, Trae, and Velocity into a single, cohesive experience.
-- **🧠 Google's Cutting Edge:** Incorporating the powerful capabilities of **Google CodeMender** and **Google Jules** for state-of-the-art code generation.
-- **🔒 Privacy First:** No code or environment info is sent to third parties without your consent. Your data stays yours!
-- **🔌 Universal LLM Gateway:** Connect to GPT-4, Claude 3.5, Gemini 1.5 Pro, Llama 3, Deepseek, and more. A unified interface for all your agents.
-- **🤖 Agent-First Workflow:** Delegate high-level tasks to autonomous agents that plan, write, and verify code.
-- **🤝 Multi-Agent Collaboration:** Spawn multiple agents to work in parallel on different parts of your project.
-- **🖼️ Verifiable Artifacts:** Agents generate tangible artifacts (Task Lists, Screenshots, Test Results) so you can trust their work.
-- **🔄 Interactive Feedback:** Provide real-time feedback to agents as they work.
+### 1. Arquitectura de Dos Memorias Independientes (SQLite)
+Kodara separa física y lógicamente el aprendizaje de tus aplicaciones del diagnóstico interno del propio IDE:
+* **🧠 `Kodara Project Memory` (`src/kodara/evolution/project-memory.ts`)**:
+  * Aprende exclusivamente de los errores de compilación, fallos de pruebas, dependencias y hallazgos CWE que encuentra al **desarrollar y auditar aplicaciones** (Rust, TypeScript, Python).
+  * Incrementa automáticamente el contador de reutilización (`times_reused`) e inyecta las soluciones verificadas en el contexto del proyecto activo.
+* **⚙️ `Kodara Core Memory` (`src/kodara/evolution/core-memory.ts`)**:
+  * Registra exclusivamente problemas internos del propio motor Kodara (latencia de inferencia, parsers, concurrencia SQLite) y genera **propuestas de mejora supervisadas** en ramas aisladas (`~/.local/share/kodara/self-patches/`).
 
 ---
 
-## 🧬 OpenCentravity v0.2.0 Backend Core (Implemented)
-
-The underlying core engine (`newcore/`) has been completely upgraded to support enterprise-grade, concurrent multi-agent coordination. Key capabilities include:
-
-- **💾 Sequential Migrations & Schema**: A robust 14-table SQLite database layer (`src/db/`) supporting Write-Ahead Logging (WAL) and sequential schema migrations (0001–0014).
-- **🔒 Connection Safety**: A module-level promise mechanism blocks concurrent read/write queries from running on a partially-migrated database, eliminating race condition locks.
-- **🤝 Hierarchical Swarms**: Database tracking of parent-child relationships between agents, allowing complex workflows to branch out cleanly into swarms.
-- **💬 Whiteboard Message Bus**: A shared communication whiteboard (`src/orchestrator/messagebus.ts`) that enables sub-agents to broadcast statuses and coordinates their efforts.
-- **🗝️ Distributed Lock Manager**: File-level mutexes (`src/orchestrator/locks.ts`) that prevent overlapping writes or edit collisions by parallel agents on the same files.
-- **📸 LWM Memory Snapshots**: Snapshotting engine (`src/memory/snapshot.ts`) that saves agent memory states periodically, allowing agents to restore state and self-heal from failures.
-- **💸 Cost Recorder & Caps**: Monitors and persists input/output token counts and real-time API cost per LLM call, enabling strict swarm-level cost ceiling rules (`MAX_COST_USD`).
-- **📟 Consolidated CLI Commands**: Clean command suite including `swarms`, `swarms inspect`, `swarms cancel`, `cost`, `db:status`, `db:backup`, and `db:backups`.
+### 2. Interfaz de Proyectos Estilo Antigravity + Modo `🛡️ Turbo` Sin Fricción
+* **Columna Izquierda (`Projects`)**: Gestión multiproyecto (`SamulibreLinux`, `WiSharkOpen`, `Ollama`, `CLI Project`) con historial persistente de conversaciones en SQLite.
+* **Columna Central (Flujo de Trabajo + Selector `🛡️ Turbo ⌄`)**:
+  * Dado que Kodara opera en **ambientes con permisos explícitos**, el modo **`🛡️ Turbo`** está activo por defecto para ejecutar auditorías, escaneos, compilaciones y reparaciones en sandbox **de forma directa e inmediata sin bloqueos ni tarjetas intermedias**.
+  * Incluye **Selector de Perfiles de Modelos con Consejero Integrado**:
+    1. `Qwen2.5-Coder 7B / Qwen3-Coder-30B-A3B` — Desarrollo Seguro, Scripting y Herramientas MCP.
+    2. `GLM-4.7-Flash` — Perfil Balanceado y Agentes Rápidos.
+    3. `Gemma-4-26B-A4B` — Análisis de Logs, Nmap, SIEM y Triaje.
+    4. `Devstral-Small-24B / DeepSeek-R1-14B` — Auditoría de Código (SAST) y Razonamiento Profundo.
+* **Columna Derecha (Workbench con Pestañas)**:
+  * Acceso en un clic a **`🧠 Kodara Project Memory`**, **`⚙️ Kodara Core Memory`** y **`🛡️ Arsenal & Activos`**.
 
 ---
 
-## 🏛️ High-Level Architecture
+### 3. Motor de Inferencia Local Optimizado para Hardware Linux
+* **100% Offline sobre Ollama / OpenAI Local API**:
+  * Fuerza automáticamente `num_ctx: 32768` (ventana de 32k tokens para evitar truncamiento silencioso en bucles de herramientas) y `num_threads: 8` (mapeado a los núcleos físicos del procesador AMD Ryzen 9 con aceleración en GPU NVIDIA RTX).
+* **Indexador Profundo de Proyectos (`src/indexer/project-indexer.ts`)**:
+  * Escanea recursivamente workspaces multi-crate en Rust (`Cargo.toml`, `src/lib.rs`) y proyectos TypeScript para alimentar al modelo con firmas reales.
 
-Open Velocity is a modular, container-native application designed for flexibility and scale. 🏗️
+---
 
-```mermaid
-graph TD
-    UI[Web UI / Editor] --> GW[Gateway & Orchestrator]
-    GW --> WM[Workspace Manager]
-    GW --> AG[AI Model Gateway]
-    WM --> Docker[Isolated Containers]
-    AG --> LLMs[Gemini, Claude, GPT-4, Llama]
+### 4. Puente MCP de Ciberseguridad y Pre-procesador Anti-Desbordamiento
+* **Puente MCP (`src/kodara/mcp-bridge.ts`)**:
+  * Envuelve bajo esquemas JSON Schema validados 9 herramientas: `nmap`, `semgrep`, `trivy`, `whatweb`, `nuclei`, `tshark`, `whois`, `ffuf` y `gobuster`.
+  * Detecta binarios instalados en Linux y cuenta con analizador SAST/SCA y Web nativo integrado de respaldo.
+* **Compresor Anti-Desbordamiento (`src/kodara/output-preprocessor.ts`)**:
+  * Intercepta salidas extensas (> 200 líneas) y extrae únicamente puertos abiertos, servicios, hallazgos CWE/CVE y notas críticas en un resumen estructurado (`llmDigest`) antes de pasarlo al LLM.
+* **Árbol de Objetivos en Vivo y Exportador Markdown (`src/kodara/workspace-db.ts`)**:
+  * Construye automáticamente el mapa `Proyecto/IP ➔ Puertos ➔ Servicios ➔ Vulnerabilidades ➔ Notas` y exporta informes ejecutivos en Markdown con un solo clic (`/api/kodara/report`).
+
+---
+
+### 5. Kodara Evolution Engine (Módulos 1 al 8 en Rust + TypeScript)
+
+| Módulo | Componente | Descripción |
+| :--- | :--- | :--- |
+| **Núcleo Rust** | `rust-evolution-core/src/main.rs` | Normalización determinista de firmas (`RUSTC_E0308`, etc.), clasificación en las 5 categorías y sanitización de secretos. |
+| **Módulo 1** | `src/kodara/evolution/telemetry-otel.ts` | Telemetría local basada en **OpenTelemetry** con los 13 campos obligatorios, métricas de CPU/RAM/latencia/tokens y redacción PII (`PrivacyScrubber`). |
+| **Módulo 2** | `src/kodara/evolution/diagnostic-agent.ts` | **Kodara Diagnostic Agent**: distingue las 5 categorías (`PROJECT_CODE_ERROR`, `KODARA_ENGINE_ERROR`, `EXTERNAL_TOOL_ERROR`, `CONFIG_DEPENDENCY_ERROR`, `AI_AGENT_FAILURE`), naturaleza (`DETERMINISTIC`, `INTERMITTENT`, `ENVIRONMENTAL`) y traza de decisión. |
+| **Módulo 3** | `src/kodara/evolution/repair-agent.ts` | **Kodara Repair Agent**: ciclo de autocorrección en sandbox aislado (máx. 3 intentos), compilación real con `rustc` y ejecución de `rustc --test` / `bun test`, con reversión automática si falla la verificación. |
+| **Módulo 4** | `src/kodara/evolution/evolution-db.ts` | **Kodara Experience Memory**: persistencia SQLite con estados `VERIFIED`, `FAILED` y `PENDING_REVALIDATION` ante cambios de versión de herramientas. |
+| **Módulo 5** | `src/kodara/evolution/learning-agent.ts` | **Kodara Learning Agent**: bloqueo automático de estrategias que fallan reiteradamente (*Negative Knowledge*) y mejora de prompts. |
+| **Módulo 6** | `src/kodara/evolution/self-improvement-agent.ts` | **Kodara Self-Improvement Agent**: generación aislada de parches candidatos para el IDE con protección frente a *Prompt Injection*. |
+| **Módulo 7 & 8** | `src/kodara/evolution/index.ts` | Suite de evaluación reproducible (MTTR, tasa de éxito, cero regresiones) y Panel de Observabilidad en tiempo real. |
+
+---
+
+## 🚀 Instalación y Ejecución Rápida en Linux
+
+### 1. Compilar el Núcleo de Evolución en Rust
+```bash
+cd rust-evolution-core
+cargo test
+cargo build --release
+cd ..
+```
+
+### 2. Instalar Dependencias y Ejecutar Pruebas Automatizadas
+```bash
+bun install
+bun test src/kodara/evolution/
+```
+
+### 3. Iniciar el Servidor Kodara
+```bash
+bun run src/cli.ts serve
+# Servidor activo en http://127.0.0.1:3777
 ```
 
 ---
 
-## 🚀 Roadmap
+## 🔌 Endpoints Principales de la API
 
-We have an ambitious journey ahead! 🗺️ Check out [**ROADMAP.md**](./ROADMAP.md) for the full details.
-
-- **Phase 1:** 🏗️ Core Platform & Universal Gateway
-- **Phase 2:** 🤖 Single-Agent Workflow & Tooling
-- **Phase 3:** 🌌 Advanced Agentic Features (Multi-Agent)
-- **Phase 4:** 🌈 Community & Extensibility
-
----
-
-## 🛠️ Getting Started (Development)
-
-Ready to build the future? 🛠️ Here’s how to get started locally.
-
-**Prerequisites:**
-- 🐳 Docker & Docker Compose
-- 🟢 Node.js (v20+)
-- 🐍 Python (v3.11+)
-
-**Installation:**
-
-1.  **Clone the repository:**
-    ```bash
-    git clone https://github.com/ishandutta2007/open-velocity.git
-    cd open-velocity
-    ```
-
-2.  **Setup environment variables:**
-    ```bash
-    cp .env.example .env
-    ```
-    *Fill in your API keys in the `.env` file.* 🔑
-
-3.  **Launch the environment:**
-    ```bash
-    docker-compose up --build
-    ```
-    Access the platform at `http://localhost:3000`. 🌐
+* `GET /api/projects` — Árbol de proyectos y conversaciones en SQLite.
+* `POST /chat/stream` — Streaming SSE con modo `turbo` directo, `num_ctx: 32768`, `num_threads: 8` e inyección automática de `Kodara Project Memory`.
+* `GET /api/kodara/memory/project` & `POST /api/kodara/memory/project` — Consulta y registro en **Kodara Project Memory**.
+* `GET /api/kodara/memory/core` & `POST /api/kodara/memory/core` — Consulta y propuestas supervisadas en **Kodara Core Memory**.
+* `GET /api/kodara/arsenal`, `POST /api/kodara/propose`, `POST /api/kodara/execute` — Puente MCP de Ciberseguridad.
+* `GET /api/kodara/targets` & `GET /api/kodara/report` — Mapa de activos en vivo e informe técnico en Markdown.
+* `GET /api/kodara/evolution/state` & `POST /api/kodara/evolution/benchmark` — Estado de observabilidad y benchmark reproducible de **Kodara Evolution Engine**.
 
 ---
 
-## 🙌 How to Contribute
-
-We welcome contributions from everyone! 💖 Whether you're a developer, designer, or writer, there's a place for you.
-
-- 📖 Check out the [**Contribution Guide**](./CONTRIBUTING.md).
-- 🐛 Look at the [**Open Issues**](https://github.com/ishandutta2007/open-velocity/issues).
-- 💬 Join our [**Discord Server**](https://discord.gg/jc4xtF58Ve).
-
-## 🙌 Contributors
-
-<a href="https://github.com/ishandutta2007/open-velocity/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=ishandutta2007/open-velocity" />
-</a>
-
-
----
-
-## 📜 Disclaimer
-
-**IMPORTANT: Please Read Carefully**
-
-1. **Independent Project:** Open Velocity is an independent, community-driven open-source project. It is **NOT** an official product of Google LLC, Alphabet Inc., or any of its affiliates. This project is not endorsed, sponsored, or supported by Google.
-2. **Trademarks:** "velocity", "Gemini", "Google", and all related logos and brand names are trademarks or registered trademarks of Google LLC. The use of these names in this project is strictly for identification and descriptive purposes and does not imply any affiliation with or endorsement by the trademark owners.
-3. **Experimental Software:** This tool is currently in an experimental/beta stage. It is provided "as is" without any warranties of any kind, express or implied. The authors and contributors are not responsible for any data loss, security vulnerabilities, or other issues arising from the use of this software.
-4. **Research & Development:** Open Velocity is intended for research and development purposes only. It should not be used in production environments without thorough independent verification.
-5. **Third-Party Services:** Users are responsible for their own use of third-party AI models and APIs (including but not limited to Google Gemini, OpenAI, and Anthropic). You must comply with the respective Terms of Service and Privacy Policies of those providers.
-
-## ⚖️ License
-
-This project is licensed under the **MIT License**. See the [**LICENSE**](./LICENSE) file for details. 📄
-
-## ⭐ Star History
-
-<a href="https://star-history.com/#ishandutta2007/Velocity&Timeline" align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="assets/ishandutta2007_Velocity_growth.svg">
-    <img alt="Star History Chart" src="assets/ishandutta2007_Velocity_growth.svg">
-  </picture>
-</a>
+## 📄 Licencia
+MIT — *"Your Code. Your AI. Your Rules."*
