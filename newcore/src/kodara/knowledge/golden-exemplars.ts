@@ -323,6 +323,31 @@ export class GoldenExemplarsEngine {
   }
 
   /**
+   * Reporte canónico de física matemática de redes y sockets para la Lección Maestra de Pai Mei.
+   */
+  public static getTcpHandshakePhysicsReport(): {
+    syn_seq: string;
+    syn_ack_seq: string;
+    ack_seq: string;
+    rst_behavior: string;
+    drop_behavior: string;
+    time_wait_equation: string;
+    fd_limit_math: string;
+    sandbox_verified_ports: number[];
+  } {
+    return {
+      syn_seq: 'Client envía paquete TCP con flag SYN=1 y número de secuencia aleatorio ISN_c de 32 bits (RFC 6528)',
+      syn_ack_seq: 'Server abierto responde con SYN=1, ACK=1, Seq=ISN_s y Ack_Num = ISN_c + 1',
+      ack_seq: 'Client confirma con ACK=1, Seq=ISN_c + 1 y Ack_Num = ISN_s + 1 (Conexión Establecida)',
+      rst_behavior: 'Server cerrado responde inmediatamente con RST=1, Seq=0, Ack=ISN_c + 1 (Liberación instantánea)',
+      drop_behavior: 'Firewall con regla DROP descarta el paquete sin emitir RST, forzando retransmisiones (RTO exponencial)',
+      time_wait_equation: 'TIME_WAIT = 2 * MSL (aprox. 60s en Linux) para garantizar drenaje de paquetes errantes',
+      fd_limit_math: 'ulimit -n = 1024; un semáforo acota a N <= 100 descriptores concurrentes impidiendo Errno 24 (EMFILE)',
+      sandbox_verified_ports: [3777, 11434, 18888],
+    };
+  }
+
+  /**
    * Genera un bloque formativo Few-Shot para afianzar el estándar de excelencia en Kodara.
    */
   public static buildFewShotPromptBlock(): string {

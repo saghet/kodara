@@ -275,3 +275,17 @@ Kodara está instalado como aplicación nativa de escritorio en tu sistema Linux
   - Enseña la implementación en dos filos inseparables:
     1. *Forja 1 (Python Asyncio)*: Scripting ágil, tipado con dataclasses, semáforos de concurrencia y banner grab defensivo.
     2. *Forja 2 (Rust Tokio)*: Motor nativo con `tokio::net::TcpStream` y `tokio::sync::Semaphore` para suites EDR como SamuLibre y herramientas de alto rendimiento estilo Kali Linux.
+
+---
+
+## 19. La Técnica Definitiva de Pai Mei: Ejecución Física en Sandbox y el Golpe de Tres Pulgadas
+- **El Verdadero Kung-Fu (La Diferencia entre Charlatanería y Dominio Real)**:
+  - Un modelo que solo genera texto es un teórico. Kodara cuenta ahora con un bucle de verificación física en sandbox donde ejecuta su propio código (`newcore/scratch/verify_port_auditor.py`) sin depender de binarios externos como Nmap.
+- **Prueba Empírica en Vivo (Exit Code 0)**:
+  - El motor ejecuta `DefensivePortAuditor` contra `127.0.0.1` en menos de 300 ms, detectando físicamente los servicios activos locales: puerto `3777` (Servidor API de Kodara) y puerto `11434` (Demonio Ollama con banner HTTP), validando el aislamiento de descriptores.
+- **La Danza Matemática del Handshake TCP (RFC 6528)**:
+  - *SYN*: Número de Secuencia Inicial aleatorio de 32 bits ($ISN_c$).
+  - *SYN/ACK*: $Seq = ISN_s$, $Ack = ISN_c + 1$.
+  - *ACK*: $Seq = ISN_c + 1$, $Ack = ISN_s + 1$.
+  - *RST*: Liberación instantánea cuando el puerto está cerrado sin entrar en `TIME_WAIT`.
+  - *DROP*: Descarte silencioso por firewall (iptables/nftables) que fuerza retransmisión por temporizador RTO exponencial.
