@@ -810,6 +810,9 @@
         <button class="ag-chip-btn" style="color:#34d399;border-color:rgba(16,185,129,0.35)" onclick="runTurboAutoRepairDemo()">
           <span>🔧 Auto-Repair Sandbox</span>
         </button>
+        <button class="ag-chip-btn" style="color:#a78bfa;border-color:rgba(167,139,250,0.35)" onclick="openKodaraAcademy()">
+          <span>🎓 Academia Ciberseguridad</span>
+        </button>
         <button class="ag-chip-btn" style="color:#f472b6;border-color:rgba(244,114,182,0.35)" onclick="openKodaraManual()">
           <span>📖 Manual</span>
         </button>
@@ -2050,6 +2053,64 @@
         scrollChatBottom();
       } catch (e) {
         aiNode.innerHTML = `<span style="color:#ef4444">Error cargando manual: ${e.message}</span>`;
+      }
+    }
+
+    // ── 8.B. Academia Universitaria de Ciberseguridad Kodara (Pregrado) ──
+    async function openKodaraAcademy() {
+      appendUserBubble('🎓 Consultar Plan de Estudios de la Academia Universitaria de Ciberseguridad Kodara');
+      const aiNode = appendAiBlock('⏳ Conectando con la Academia Universitaria de Ciberseguridad...');
+      try {
+        const resp = await fetch('/api/kodara/academy');
+        const data = await resp.json();
+        const modules = data.curriculum || [];
+        const modulesHtml = modules.map((m, idx) => `
+          <div style="background:#13141c;border:1px solid rgba(167,139,250,0.25);border-radius:8px;padding:0.75rem 0.9rem;margin-bottom:0.6rem">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.25rem">
+              <span style="font-size:0.78rem;font-weight:700;color:#c4b5fd">${escapeHtml(m.name)}</span>
+              <span style="font-size:0.65rem;font-mono;color:#38bdf8;background:rgba(56,189,248,0.1);padding:0.15rem 0.4rem;border-radius:4px">${escapeHtml(m.semester)}</span>
+            </div>
+            <div style="font-size:0.72rem;color:#94a3b8;margin-bottom:0.35rem">
+              <b>Herramientas Kali de Referencia:</b> <code style="color:#f472b6">${escapeHtml(m.kaliArchetype)}</code>
+            </div>
+            <p style="font-size:0.74rem;color:#e2e8f0;margin-bottom:0.45rem">${escapeHtml(m.pedagogicalObjective)}</p>
+            <div style="font-size:0.7rem;color:#a78bfa;margin-bottom:0.35rem">
+              <b>Bibliotecas en Rust / TS:</b> ${escapeHtml(m.rustTsLibraries.join(', '))}
+            </div>
+            <button onclick="requestLectureOnModule('${escapeHtml(m.id)}', '${escapeHtml(m.name)}')" style="font-size:0.7rem;background:rgba(167,139,250,0.15);border:1px solid rgba(167,139,250,0.4);color:#ddd6fe;padding:0.25rem 0.6rem;border-radius:5px;cursor:pointer;font-weight:600">
+              👨‍🏫 Tomar Clase con el Profesor Mentor sobre este módulo →
+            </button>
+          </div>
+        `).join('');
+
+        aiNode.innerHTML = `
+          <div style="background:#181822;border:1px solid rgba(167,139,250,0.4);border-radius:12px;padding:1.1rem 1.3rem">
+            <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.5rem">
+              <span style="font-size:1.1rem">🎓</span>
+              <div>
+                <h4 style="font-size:0.92rem;font-weight:700;color:#fff;margin:0">Academia Universitaria de Ciberseguridad Kodara</h4>
+                <span style="font-size:0.68rem;color:#a78bfa">Nivel: ${escapeHtml(data.level)} • ${data.total_modules} Módulos Activos</span>
+              </div>
+            </div>
+            <p style="font-size:0.76rem;color:#cbd5e1;line-height:1.45;margin-bottom:0.8rem">
+              Currículo universitario diseñado para que la IA comprenda la ingeniería detrás de todas las herramientas de Kali Linux y suites como SamuLibre EDR, capacitándola para crearlas desde cero en Rust, TypeScript y Python.
+            </p>
+            <div style="max-height:480px;overflow-y:auto;padding-right:0.3rem">
+              ${modulesHtml}
+            </div>
+          </div>
+        `;
+        scrollChatBottom();
+      } catch (e) {
+        aiNode.innerHTML = `<span style="color:#ef4444">Error cargando academia: ${e.message}</span>`;
+      }
+    }
+
+    function requestLectureOnModule(moduleId, moduleName) {
+      const input = document.getElementById('promptInput');
+      if (input) {
+        input.value = `Profesor, enséñame a profundidad los conceptos teóricos, la arquitectura de software y cómo programaríamos desde cero en Rust una herramienta equivalente a las de Kali Linux para el "${moduleName}" (${moduleId}).`;
+        sendChatMessage();
       }
     }
 

@@ -21,6 +21,7 @@ import { KodaraPlanExecutor } from './kodara/plan-executor.js';
 import { KodaraVisionEngine, type AttachedImageInput } from './kodara/vision-engine.js';
 import { KodaraOrderCompiler } from './kodara/order-compiler.js';
 import { AntivirusKnowledgeEngine } from './kodara/knowledge/antivirus-architecture.js';
+import { CybersecurityAcademyEngine } from './kodara/knowledge/cybersecurity-academy.js';
 import {
   KodaraEvolutionEngine,
   KodaraEvolutionDB,
@@ -371,6 +372,19 @@ export async function startServer(orchestrator?: AgentOrchestrator) {
   );
 
   // ── Módulos de Ciberseguridad Táctica KODARA ("Your code, Your IA, Your Rules") ──
+  app.get('/api/kodara/academy', async () => {
+    return {
+      curriculum: CybersecurityAcademyEngine.getAllModules(),
+      level: 'Grado Universitario / Pregrado en Ingeniería de Ciberseguridad',
+      total_modules: CybersecurityAcademyEngine.getAllModules().length,
+      next_stages: [
+        'Especialización en Red/Blue Team',
+        'Maestría en Detección Heurística e IA',
+        'Doctorado en Autonomía y Defensa de Sistemas',
+      ],
+    };
+  });
+
   app.get('/api/kodara/arsenal', async () => {
     return CybersecurityMCPBridge.getCatalog();
   });
@@ -942,18 +956,23 @@ export async function startServer(orchestrator?: AgentOrchestrator) {
       })}\n\n`
     );
 
-    // 3. Inyección de Base de Conocimiento de Antivirus + Memorias de Proyecto
+    // 3. Inyección de Base de Conocimiento de Antivirus + Academia Universitaria de Ciberseguridad + Memorias de Proyecto
     const antivirusContext = AntivirusKnowledgeEngine.buildAntivirusArchitecturePromptBlock(message);
-    const systemPrompt = `Eres KODARA ("Your Code. Your AI. Your Rules."), el asistente de inteligencia artificial local de desarrollo, arquitectura y ciberseguridad defensiva.
+    const academyContext = CybersecurityAcademyEngine.buildTeacherPromptBlock(message);
+    const systemPrompt = `Eres KODARA ("Your Code. Your AI. Your Rules."), el asistente de inteligencia artificial local de desarrollo, arquitectura y ciberseguridad defensiva, actuando en este momento como Profesor Mentor de Ingeniería de Ciberseguridad (Nivel Pregrado).
 ${resolvedProfile.rolePersona}
 
-PAUTAS DE COMUNICACIÓN EN LENGUAJE NATURAL (ESTILO GOOGLE ANTIGRAVITY):
-• Comunícate siempre en español con naturalidad, empatía, calidez y solvencia técnica. Conversa con el usuario como un ingeniero senior de clase mundial y compañero de programación, escuchando atentamente lo que te pide y comprendiendo intenciones coloquiales.
-• Evita sonar como un script o un autómata rígido. No repitas muletillas de plantilla si no aportan valor.
-• Cuando hables de arquitectura de antivirus, desarrollo seguro o diseño de software (como SamuLibre), explica el *por qué* y el *cómo* con claridad didáctica, señalando archivos y componentes concretos.
+PAUTAS PEDAGÓGICAS Y DE COMUNICACIÓN EN LENGUAJE NATURAL (ESTILO GOOGLE ANTIGRAVITY):
+• Comunícate siempre en español con naturalidad, empatía, calidez y solvencia técnica. Conversa con el usuario como un profesor mentor e ingeniero senior de clase mundial y compañero de programación, escuchando atentamente lo que te pide y comprendiendo intenciones coloquiales.
+• Metodología de enseñanza en 3 capas progresivas:
+  1. El 'Por Qué' (Concepto y lógica): Explica la física de la red o la vulnerabilidad con una analogía clara y humana.
+  2. El 'Cómo' (Arquitectura de Software): Detalla qué estructuras de datos, sockets, hilos y protocolos se necesitan para implementarlo.
+  3. La 'Construcción' (Código Real): Muestra cómo se programa en Rust, TypeScript o Python de forma limpia, explicada paso a paso.
+• Fomenta el pensamiento crítico para que el alumno supere al maestro.
 • NOTA DE INTERFAZ: Kodara genera automáticamente la tarjeta visual interactiva para ejecutar acciones físicas; finaliza tus explicaciones de forma limpia y directa sin redactar botones falsos ni enlaces javascript.
 
 ${antivirusContext}
+${academyContext}
 ${compiledOrders.history_ledger_prompt_block}
 ${memoryContext}
 ${projectMemoryBlock}`;

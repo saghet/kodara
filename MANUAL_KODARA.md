@@ -152,3 +152,26 @@ Kodara está instalado como aplicación nativa de escritorio en tu sistema Linux
     3. **Escudo Endpoint y Blindaje de Memoria**: Prevención de volcados `PROCESS_VM_READ` en LSASS y protección de cookies/tokens DPAPI contra troyanos InfoStealers (RedLine, Vidar, Lumma).
     4. **Centinela de Vulnerabilidades (Virtual Patching)**: Mitigación en caliente de CVEs en memoria sin reiniciar el sistema operativo.
     5. **GUI Nativa Translúcida Estilo Apple**: Integración de WebKitGTK / Tao + Wry en Rust con Tailwind CSS offline, telemetría en tiempo real y consumo menor a 40 MB de RAM.
+
+
+---
+
+## 13. Academia Universitaria de Ciberseguridad Kodara (Nivel Pregrado)
+- **Metodología Pedagógica del Profesor Mentor**:
+  - Enseña la arquitectura de herramientas de ciberseguridad en tres capas progresivas:
+    1. **El 'Por Qué' (Concepto y Matemáticas)**: La lógica fundamental de red, protocolos o vulnerabilidades explicada de forma clara y humana.
+    2. **El 'Cómo' (Arquitectura de Software)**: Estructuras de datos, sockets asíncronos (`tokio`), descriptores de kernel (`epoll`/`inotify`), paralelización y gestión de memoria.
+    3. **La 'Construcción' (Código Real)**: Implementación limpia y funcional en Rust, TypeScript y Python para que el alumno pueda crear sus propias herramientas.
+- **Los 10 Módulos Curriculares Universitarios (Mapeo de Mercado Kali Linux)**:
+  1. `recon-osint`: Escaneo SYN, banner grabbing y consultas DNS asíncronas (`pnet`, `hickory-resolver`).
+  2. `vuln-assessment`: Parsers AST de código seguro y motores de firmas (`tree-sitter`, `syn`, `regex`).
+  3. `web-security`: Proxies MITM, TLS dinámico y mitigación de OWASP Top 10 (`hyper`, `rustls`).
+  4. `network-traffic`: Captura de paquetes a alta velocidad con buffers circulares y filtros BPF (`pcap`, `etherparse`).
+  5. `cryptography-audit`: Funciones de derivación lenta (Argon2id) y comparaciones en tiempo constante (`ring`, `subtle`).
+  6. `reverse-engineering`: Desensamblado de binarios x86_64/ARM64 y tracing con syscalls (`capstone`, `goblin`, `ptrace`).
+  7. `digital-forensics`: File carving y análisis de líneas temporales de incidentes (`memmap2`, `sha2`).
+  8. `wireless-iot`: Análisis de tramas 802.11 y auditoría de protocolos IoT (`radiotap`, `tokio`).
+  9. `endpoint-edr`: Agentes defensivos invisibles con monitoreo de persistencias y firmas YARA-X (`notify`, `yara-x`).
+  10. `reporting-mitre`: Mapeo matricial a MITRE ATT&CK y generación de reportes ejecutivos estructurados.
+- **Botón y Vista Rápida en la Interfaz**:
+  - Botón `🎓 Academia Ciberseguridad` en la cabecera superior para explorar el currículo y solicitar clases personalizadas al Profesor Mentor sobre cualquier módulo.
