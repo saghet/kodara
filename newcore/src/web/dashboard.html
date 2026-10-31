@@ -813,6 +813,9 @@
         <button class="ag-chip-btn" style="color:#a78bfa;border-color:rgba(167,139,250,0.35)" onclick="openKodaraAcademy()">
           <span>🎓 Academia Ciberseguridad</span>
         </button>
+        <button class="ag-chip-btn" style="color:#fbbf24;border-color:rgba(251,191,36,0.35)" onclick="openKodaraSchooling()">
+          <span>🎒 Cimientos Escolares</span>
+        </button>
         <button class="ag-chip-btn" style="color:#f472b6;border-color:rgba(244,114,182,0.35)" onclick="openKodaraManual()">
           <span>📖 Manual</span>
         </button>
@@ -2110,6 +2113,66 @@
       const input = document.getElementById('promptInput');
       if (input) {
         input.value = `Profesor, enséñame a profundidad los conceptos teóricos, la arquitectura de software y cómo programaríamos desde cero en Rust una herramienta equivalente a las de Kali Linux para el "${moduleName}" (${moduleId}).`;
+        sendChatMessage();
+      }
+    }
+
+    // ── 8.C. Cimientos Escolares y Pedagogía de Bachillerato Kodara ──
+    async function openKodaraSchooling() {
+      appendUserBubble('🎒 Consultar Cimientos Escolares y Pedagogía de Bachillerato Kodara');
+      const aiNode = appendAiBlock('⏳ Conectando con los Cimientos Escolares y Pedagogía Docente...');
+      try {
+        const resp = await fetch('/api/kodara/schooling');
+        const data = await resp.json();
+        const pillars = data.pillars || [];
+        const pillarsHtml = pillars.map((p, idx) => `
+          <div style="background:#13141c;border:1px solid rgba(251,191,36,0.25);border-radius:8px;padding:0.75rem 0.9rem;margin-bottom:0.6rem">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.25rem">
+              <span style="font-size:0.78rem;font-weight:700;color:#fde68a">${escapeHtml(p.title)}</span>
+              <span style="font-size:0.65rem;font-mono;color:#fbbf24;background:rgba(251,191,36,0.1);padding:0.15rem 0.4rem;border-radius:4px">${escapeHtml(p.gradeLevel)}</span>
+            </div>
+            <div style="font-size:0.72rem;color:#94a3b8;margin-bottom:0.35rem">
+              <b>Objetivo Docente:</b> ${escapeHtml(p.teacherGoal)}
+            </div>
+            <div style="font-size:0.72rem;color:#cbd5e1;background:rgba(255,255,255,0.03);padding:0.4rem 0.6rem;border-radius:6px;border-left:2px solid #fbbf24;margin-bottom:0.4rem">
+              <b>Metáfora Cotidiana:</b> ${escapeHtml(p.everydayMetaphor)}
+            </div>
+            <div style="font-size:0.7rem;color:#38bdf8;margin-bottom:0.35rem">
+              <b>Vínculo con Ciberseguridad:</b> ${escapeHtml(p.connectionToCybersecurity)}
+            </div>
+            <button onclick="requestLessonOnPillar('${escapeHtml(p.id)}', '${escapeHtml(p.title)}')" style="font-size:0.7rem;background:rgba(251,191,36,0.15);border:1px solid rgba(251,191,36,0.4);color:#fef08a;padding:0.25rem 0.6rem;border-radius:5px;cursor:pointer;font-weight:600">
+              🍎 Tomar Clase con el Profesor de Bachillerato →
+            </button>
+          </div>
+        `).join('');
+
+        aiNode.innerHTML = `
+          <div style="background:#181822;border:1px solid rgba(251,191,36,0.4);border-radius:12px;padding:1.1rem 1.3rem">
+            <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.5rem">
+              <span style="font-size:1.1rem">🎒</span>
+              <div>
+                <h4 style="font-size:0.92rem;font-weight:700;color:#fff;margin:0">Cimientos Escolares y Pedagogía de Bachillerato Kodara</h4>
+                <span style="font-size:0.68rem;color:#fbbf24">Nivel: ${escapeHtml(data.level)} • ${data.total_pillars} Pilares Fundacionales</span>
+              </div>
+            </div>
+            <p style="font-size:0.76rem;color:#cbd5e1;line-height:1.45;margin-bottom:0.8rem">
+              Bases científicas, lógicas y metodológicas diseñadas con docentes de secundaria y bachillerato para afianzar los puntos elementales necesarios antes de la ciberseguridad universitaria, utilizando el Método George Pólya y metáforas cotidianas.
+            </p>
+            <div style="max-height:480px;overflow-y:auto;padding-right:0.3rem">
+              ${pillarsHtml}
+            </div>
+          </div>
+        `;
+        scrollChatBottom();
+      } catch (e) {
+        aiNode.innerHTML = `<span style="color:#ef4444">Error cargando cimientos escolares: ${e.message}</span>`;
+      }
+    }
+
+    function requestLessonOnPillar(pillarId, pillarTitle) {
+      const input = document.getElementById('promptInput');
+      if (input) {
+        input.value = `Profesor, enséñame desde las bases escolares con metáforas cotidianas y el método George Pólya el "${pillarTitle}" (${pillarId}), y cómo se conecta directamente con la ciberseguridad defensiva.`;
         sendChatMessage();
       }
     }

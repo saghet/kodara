@@ -175,3 +175,28 @@ Kodara está instalado como aplicación nativa de escritorio en tu sistema Linux
   10. `reporting-mitre`: Mapeo matricial a MITRE ATT&CK y generación de reportes ejecutivos estructurados.
 - **Botón y Vista Rápida en la Interfaz**:
   - Botón `🎓 Academia Ciberseguridad` en la cabecera superior para explorar el currículo y solicitar clases personalizadas al Profesor Mentor sobre cualquier módulo.
+
+---
+
+## 14. Cimientos Escolares y Pedagogía de Bachillerato de Kodara
+- **Propósito y Alianza Docente**:
+  - Base de conocimiento diseñada junto a profesores expertos de secundaria y bachillerato para afianzar los conceptos fundamentales de matemáticas, física, lógica y ética que sustentan la ciberseguridad universitaria.
+  - Elimina los puntos ciegos o "lagunas conceptuales" que suelen llevar a las IA a cometer errores en razonamiento de bajo nivel o generar código sin comprender la causa raíz.
+- **Los 5 Pilares Fundacionales de Bachillerato (`FOUNDATIONAL_SCHOOLING_PILLARS`)**:
+  1. **Matemáticas Binarias, Potencias de 2 y Lógica Booleana (`binary-math-logic`)**:
+     - *Metáfora*: Fila de 8 interruptores de bombillos en la habitación para formar un byte del 0 al 255.
+     - *Vínculo*: Cálculo exacto de máscaras de subred IP (operación AND bit a bit) y cifrado invertible con XOR.
+  2. **Física Elemental de la Computación y Hardware Tangible (`physics-hardware`)**:
+     - *Metáfora*: Envío de cartas postales (IP = dirección de la casa, Puerto TCP = número de habitación, Checksum = sello de lacre).
+     - *Vínculo*: Entender por qué el Wi-Fi es interceptable al ser ondas de radio en el aire y por qué la memoria RAM se evapora al cortar la energía en análisis forenses.
+  3. **Pensamiento Computacional y Método George Pólya (`polya-problem-solving`)**:
+     - *Metáfora*: La receta de cocina (no hornear antes de batir; comprender ingredientes, planificar, cocinar y probar).
+     - *Vínculo*: Descomposición en 4 fases (Comprender -> Planificar -> Construir -> Verificar) antes de tocar una sola línea de código en parches y herramientas de seguridad.
+  4. **Comprensión Lectora, Expresión Clara y Metáforas Didácticas (`reading-clarity-metaphors`)**:
+     - *Metáfora*: El gran maestro que explica la gravedad a un niño sin usar palabras complejas innecesarias.
+     - *Vínculo*: Informes de seguridad empáticos, constructivos y claros que logran que desarrolladores corrijan fallas de inmediato sin fricción.
+  5. **Ciudadanía Digital, Ética y Propósito Protector del Software (`ethics-digital-citizenship`)**:
+     - *Metáfora*: Las pruebas de choque de laboratorio para diseñar cinturones de seguridad que salvan vidas.
+     - *Vínculo*: El hacker ético como médico y guardián; suites defensivas transparentes como SamuLibre y Kodara sin telemetría invasiva.
+- **Botón y Vista en la Interfaz**:
+  - Botón táctico `🎒 Cimientos Escolares` en la cabecera del dashboard con acceso directo a los 5 pilares, sus objetivos didácticos, metáforas y solicitud de clases guiadas al Profesor Mentor.
