@@ -343,9 +343,63 @@ export async function startServer(orchestrator?: AgentOrchestrator) {
     return await projectsTable.listProjectsWithConversations();
   });
 
+  app.post<{ Body: { name: string; path?: string; description?: string } }>('/api/projects', async (req, reply) => {
+    const { name, path, description } = req.body || {};
+    if (!name || !name.trim()) {
+      return reply.code(400).send({ error: 'El nombre del proyecto/carpeta es obligatorio' });
+    }
+    const finalPath = path && path.trim() ? path.trim() : `/home/saghet/Documents/${name.trim().replace(/\s+/g, '')}`;
+    const project = await projectsTable.createProject(name, finalPath, description || '');
+    return reply.code(201).send(project);
+  });
+
+  app.patch<{ Params: { id: string }; Body: { name?: string; path?: string; description?: string } }>(
+    '/api/projects/:id',
+    async (req, reply) => {
+      const updated = await projectsTable.updateProject(req.params.id, req.body || {});
+      if (!updated) return reply.code(404).send({ error: 'Proyecto no encontrado' });
+      return updated;
+    }
+  );
+
+  app.delete<{ Params: { id: string } }>('/api/projects/:id', async (req, reply) => {
+    const ok = await projectsTable.deleteProject(req.params.id);
+    if (!ok) return reply.code(404).send({ error: 'Proyecto no encontrado' });
+    return { success: true, deletedProjectId: req.params.id };
+  });
+
   app.post<{ Params: { id: string }; Body: { title: string } }>('/api/projects/:id/conversations', async (req) => {
     const title = req.body?.title || 'Nueva Conversación';
     return await projectsTable.createConversation(req.params.id, title);
+  });
+
+  app.patch<{ Params: { id: string }; Body: { title: string } }>('/api/conversations/:id', async (req, reply) => {
+    const { title } = req.body || {};
+    if (!title || !title.trim()) {
+      return reply.code(400).send({ error: 'El nuevo título es obligatorio' });
+    }
+    const updated = await projectsTable.renameConversation(req.params.id, title);
+    if (!updated) return reply.code(404).send({ error: 'Conversación no encontrada' });
+    return updated;
+  });
+
+  app.patch<{ Params: { id: string }; Body: { targetProjectId: string } }>(
+    '/api/conversations/:id/move',
+    async (req, reply) => {
+      const { targetProjectId } = req.body || {};
+      if (!targetProjectId) {
+        return reply.code(400).send({ error: 'targetProjectId es obligatorio' });
+      }
+      const moved = await projectsTable.moveConversation(req.params.id, targetProjectId);
+      if (!moved) return reply.code(404).send({ error: 'Conversación o proyecto destino no encontrado' });
+      return moved;
+    }
+  );
+
+  app.delete<{ Params: { id: string } }>('/api/conversations/:id', async (req, reply) => {
+    const ok = await projectsTable.deleteConversation(req.params.id);
+    if (!ok) return reply.code(404).send({ error: 'Conversación no encontrada' });
+    return { success: true, deletedConversationId: req.params.id };
   });
 
   app.get<{ Params: { id: string } }>('/api/conversations/:id/messages', async (req) => {

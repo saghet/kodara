@@ -161,57 +161,154 @@
       color: var(--text-tertiary);
     }
 
+    .ag-header-actions {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .ag-icon-btn {
+      background: transparent;
+      border: none;
+      color: #94a3b8;
+      cursor: pointer;
+      padding: 3px 5px;
+      border-radius: 4px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.12s ease;
+      font-size: 0.78rem;
+    }
+
+    .ag-icon-btn:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: #ffffff;
+    }
+
+    .ag-filter-bar {
+      padding: 0.25rem 0.75rem 0.45rem;
+      display: none;
+    }
+
+    .ag-filter-bar.open {
+      display: block;
+    }
+
+    .ag-filter-input {
+      width: 100%;
+      background: #14151b;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 5px;
+      color: #fff;
+      font-size: 0.75rem;
+      padding: 0.25rem 0.5rem;
+      outline: none;
+      font-family: inherit;
+    }
+
+    .ag-filter-input:focus {
+      border-color: #38bdf8;
+    }
+
     .ag-projects-scroll {
       flex: 1;
       overflow-y: auto;
       padding: 0.2rem 0.5rem;
       display: flex;
       flex-direction: column;
-      gap: 0.55rem;
+      gap: 0.45rem;
     }
 
     .ag-project-group {
       display: flex;
       flex-direction: column;
-      gap: 2px;
+      gap: 1px;
     }
 
     .ag-project-folder {
-      padding: 0.35rem 0.55rem;
-      border-radius: 6px;
-      display: flex;
-      align-items: center;
-      gap: 0.45rem;
-      color: var(--text-secondary);
-      font-weight: 500;
-      font-size: 0.8rem;
-      cursor: pointer;
-    }
-
-    .ag-project-folder:hover {
-      color: #fff;
-      background: rgba(255, 255, 255, 0.03);
-    }
-
-    .ag-conv-item {
-      padding: 0.42rem 0.65rem 0.42rem 1.35rem;
+      padding: 0.32rem 0.45rem;
       border-radius: 6px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       color: var(--text-secondary);
+      font-weight: 500;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.12s ease;
+    }
+
+    .ag-project-folder:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.035);
+    }
+
+    .ag-folder-main {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .ag-folder-chevron {
+      font-size: 0.65rem;
+      color: #64748b;
+      transition: transform 0.15s ease;
+      display: inline-block;
+      width: 12px;
+      text-align: center;
+    }
+
+    .ag-folder-chevron.collapsed {
+      transform: rotate(-90deg);
+    }
+
+    .ag-folder-icon {
+      font-size: 0.85rem;
+      opacity: 0.85;
+    }
+
+    .ag-folder-quick-add {
+      opacity: 0;
+      padding: 1px 4px;
+      font-size: 0.75rem;
+      color: #94a3b8;
+      border-radius: 3px;
+      transition: opacity 0.12s ease;
+    }
+
+    .ag-project-folder:hover .ag-folder-quick-add {
+      opacity: 1;
+    }
+
+    .ag-folder-quick-add:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #38bdf8;
+    }
+
+    .ag-conv-item {
+      padding: 0.36rem 0.55rem 0.36rem 1.45rem;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: #94a3b8;
       font-size: 0.79rem;
       cursor: pointer;
-      transition: all 0.12s;
+      transition: all 0.12s ease;
+      position: relative;
     }
 
     .ag-conv-item:hover {
       background: rgba(255, 255, 255, 0.05);
-      color: var(--text-primary);
+      color: #e2e8f0;
     }
 
     .ag-conv-item.active {
-      background: #272730;
+      background: #232530;
       color: #ffffff;
       font-weight: 500;
     }
@@ -220,13 +317,200 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      max-width: 155px;
+      max-width: 135px;
+    }
+
+    .ag-conv-meta-wrap {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex-shrink: 0;
     }
 
     .ag-conv-time {
-      font-size: 0.7rem;
-      color: var(--text-tertiary);
-      flex-shrink: 0;
+      font-size: 0.68rem;
+      color: #64748b;
+    }
+
+    .ag-conv-item.active .ag-conv-time,
+    .ag-conv-item:hover .ag-conv-time {
+      display: none;
+    }
+
+    .ag-conv-options-btn {
+      display: none;
+      background: transparent;
+      border: none;
+      color: #94a3b8;
+      cursor: pointer;
+      padding: 1px 4px;
+      border-radius: 3px;
+      font-size: 0.72rem;
+      letter-spacing: -1px;
+      line-height: 1;
+    }
+
+    .ag-conv-item.active .ag-conv-options-btn,
+    .ag-conv-item:hover .ag-conv-options-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .ag-conv-options-btn:hover {
+      background: rgba(255, 255, 255, 0.12);
+      color: #ffffff;
+    }
+
+    .ag-empty-convs {
+      padding: 0.28rem 0.65rem 0.28rem 1.45rem;
+      font-size: 0.75rem;
+      color: #64748b;
+      font-style: normal;
+    }
+
+    /* Menú Contextual Flotante de Conversación */
+    .ag-context-menu {
+      position: fixed;
+      z-index: 999999;
+      background: #181922;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 8px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.65);
+      padding: 4px;
+      display: none;
+      min-width: 175px;
+    }
+
+    .ag-context-menu-item {
+      padding: 0.42rem 0.65rem;
+      border-radius: 5px;
+      font-size: 0.76rem;
+      color: #cbd5e1;
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+      cursor: pointer;
+      transition: background 0.1s;
+    }
+
+    .ag-context-menu-item:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: #fff;
+    }
+
+    .ag-context-menu-item.danger:hover {
+      background: rgba(239, 68, 68, 0.18);
+      color: #f87171;
+    }
+
+    /* Modales Flotantes Estilizados */
+    .ag-modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(4px);
+      z-index: 99999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .ag-modal-backdrop.open {
+      display: flex;
+    }
+
+    .ag-modal-box {
+      background: #181924;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 10px;
+      width: 90%;
+      max-width: 440px;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.7);
+      padding: 1.1rem 1.25rem;
+    }
+
+    .ag-modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.85rem;
+    }
+
+    .ag-modal-title {
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .ag-modal-body {
+      margin-bottom: 1.1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .ag-modal-label {
+      font-size: 0.73rem;
+      color: #94a3b8;
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+      display: block;
+    }
+
+    .ag-modal-input, .ag-modal-select {
+      width: 100%;
+      background: #101118;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 6px;
+      color: #fff;
+      padding: 0.45rem 0.65rem;
+      font-size: 0.8rem;
+      outline: none;
+      font-family: inherit;
+    }
+
+    .ag-modal-input:focus, .ag-modal-select:focus {
+      border-color: #38bdf8;
+    }
+
+    .ag-modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.55rem;
+    }
+
+    .ag-modal-btn {
+      padding: 0.42rem 0.95rem;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.12s;
+    }
+
+    .ag-modal-btn.secondary {
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #cbd5e1;
+    }
+
+    .ag-modal-btn.secondary:hover {
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .ag-modal-btn.primary {
+      background: #3b82f6;
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.35);
+    }
+
+    .ag-modal-btn.primary:hover {
+      background: #2563eb;
     }
 
     .ag-sidebar-footer {
@@ -704,33 +988,49 @@
 
     <div class="ag-new-conv-wrap">
       <button class="ag-new-conv-btn" onclick="createNewProjectConversation()">
-        <span>+</span>
-        <span>Nueva Conversación</span>
+        <span style="font-size:1.05rem;line-height:1;margin-top:-1px">+</span>
+        <span>New Conversation</span>
       </button>
     </div>
 
     <div class="ag-nav-links">
-      <div class="ag-nav-item" onclick="runTurboBenchmarkSuite()">
-        <span>⚡</span>
-        <span>Automatizaciones (Benchmark)</span>
+      <div class="ag-nav-item" onclick="runTurboBenchmarkSuite()" title="Automatizaciones del Sistema y Benchmarks">
+        <span>🕒</span>
+        <span>Automations</span>
       </div>
-      <div class="ag-nav-item" onclick="switchWorkbenchTab('projectMemory')">
-        <span>🧠</span>
-        <span>Memorias &amp; Reglas</span>
-      </div>
-      <div class="ag-nav-item" onclick="openKodaraManual()">
-        <span>📖</span>
-        <span>Manual de Kodara</span>
+      <div class="ag-nav-item" onclick="switchWorkbenchTab('projectMemory')" title="Personalizaciones, Skills, MCP y Reglas">
+        <span>🧰</span>
+        <span>Customizations</span>
       </div>
     </div>
 
     <div class="ag-projects-header">
-      <span>Proyectos</span>
-      <span style="cursor:pointer;color:var(--text-secondary)" onclick="createNewProjectConversation()" title="Nueva conversación en proyecto activo">+</span>
+      <span>Projects</span>
+      <div class="ag-header-actions">
+        <button class="ag-icon-btn" id="btnToggleFilter" onclick="toggleProjectsFilterBar()" title="Filtrar proyectos o conversaciones">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="4" y1="6" x2="20" y2="6"></line>
+            <line x1="7" y1="12" x2="17" y2="12"></line>
+            <line x1="10" y1="18" x2="14" y2="18"></line>
+          </svg>
+        </button>
+        <button class="ag-icon-btn" onclick="openNewProjectModal()" title="Nueva Carpeta / Proyecto (Workspace)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+            <line x1="12" y1="11" x2="12" y2="17"></line>
+            <line x1="9" y1="14" x2="15" y2="14"></line>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Barra de Búsqueda y Filtro en Vivo -->
+    <div class="ag-filter-bar" id="agProjectsFilterBar">
+      <input type="text" class="ag-filter-input" id="agProjectsFilterInput" placeholder="Filtrar proyectos o chats..." oninput="filterProjectsTree(this.value)" />
     </div>
 
     <div class="ag-projects-scroll" id="agProjectsTree">
-      <!-- Renderizado dinámico con tus proyectos reales: Ollama, WiSharkOpen, SamulibreLinux, CLI Project -->
+      <!-- Renderizado dinámico jerárquico estilo Antigravity: Ollama, WiSharkOpen, SamulibreLinux, CLI Project -->
     </div>
 
     <!-- RECUADRO INFERIOR IZQUIERDO: MONITOR EN VIVO DE CPU, GPU Y MEMORIA RAM -->
@@ -972,6 +1272,73 @@
     </div>
   </aside>
 
+  <!-- ═══════════════════════════════════════════════════════════════
+       COMPONENTES FLOTANTES: MENÚ CONTEXTUAL Y MODALES (ESTÁNDAR ANTIGRAVITY)
+       ═══════════════════════════════════════════════════════════════ -->
+  <div id="agConversationContextMenu" class="ag-context-menu">
+    <div class="ag-context-menu-item" onclick="onContextRenameClick()">
+      <span>✏️</span>
+      <span>Renombrar conversación</span>
+    </div>
+    <div class="ag-context-menu-item" onclick="onContextMoveClick()">
+      <span>📁</span>
+      <span>Mover a otra carpeta...</span>
+    </div>
+    <div class="ag-context-menu-item danger" onclick="onContextDeleteClick()">
+      <span>🗑️</span>
+      <span>Eliminar conversación</span>
+    </div>
+  </div>
+
+  <!-- Modal: Nueva Carpeta / Proyecto -->
+  <div id="agNewProjectModal" class="ag-modal-backdrop" onclick="if(event.target===this)closeNewProjectModal()">
+    <div class="ag-modal-box">
+      <div class="ag-modal-header">
+        <span class="ag-modal-title">📁 Nueva Carpeta / Proyecto (Workspace)</span>
+        <button class="ag-icon-btn" onclick="closeNewProjectModal()">✕</button>
+      </div>
+      <div class="ag-modal-body">
+        <div>
+          <label class="ag-modal-label">Nombre de la Carpeta / Proyecto:</label>
+          <input type="text" id="newProjNameInput" class="ag-modal-input" placeholder="Ej: SamuLibreCore" oninput="autoSuggestProjectPath(this.value)" />
+        </div>
+        <div>
+          <label class="ag-modal-label">Ruta en Linux (Workspace):</label>
+          <input type="text" id="newProjPathInput" class="ag-modal-input" placeholder="/home/saghet/Documents/..." />
+        </div>
+        <div>
+          <label class="ag-modal-label">Descripción Opcional:</label>
+          <input type="text" id="newProjDescInput" class="ag-modal-input" placeholder="Módulo, framework o workspace..." />
+        </div>
+      </div>
+      <div class="ag-modal-actions">
+        <button class="ag-modal-btn secondary" onclick="closeNewProjectModal()">Cancelar</button>
+        <button class="ag-modal-btn primary" onclick="submitCreateProject()">Crear Proyecto</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Mover Conversación a Otra Carpeta -->
+  <div id="agMoveConvModal" class="ag-modal-backdrop" onclick="if(event.target===this)closeMoveConvModal()">
+    <div class="ag-modal-box">
+      <div class="ag-modal-header">
+        <span class="ag-modal-title">📁 Mover Conversación</span>
+        <button class="ag-icon-btn" onclick="closeMoveConvModal()">✕</button>
+      </div>
+      <div class="ag-modal-body">
+        <div style="font-size:0.77rem;color:#cbd5e1" id="moveConvPromptText">Mover conversación a otra carpeta de proyecto:</div>
+        <div style="margin-top:0.4rem">
+          <label class="ag-modal-label">Seleccionar Carpeta / Proyecto Destino:</label>
+          <select id="moveConvSelectProject" class="ag-modal-select"></select>
+        </div>
+      </div>
+      <div class="ag-modal-actions">
+        <button class="ag-modal-btn secondary" onclick="closeMoveConvModal()">Cancelar</button>
+        <button class="ag-modal-btn primary" onclick="submitMoveConversation()">Mover a Carpeta</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     let activeProjectId = 'proj_samulibre';
     let activeProjectName = 'SamulibreLinux';
@@ -1020,42 +1387,343 @@
       }
     }
 
-    // ── 1. Árbol de Proyectos Estilo Antigravity (Columna Izquierda) ──
+    // ── 1. Árbol de Proyectos y Conversaciones Estándar Antigravity (Columna Izquierda) ──
+    let cachedProjectsList = [];
+    let collapsedProjects = JSON.parse(localStorage.getItem('kodara_collapsed_projects') || '{}');
+    let currentContextConv = { id: '', title: '', projectId: '' };
+
+    function toggleProjectsFilterBar() {
+      const bar = document.getElementById('agProjectsFilterBar');
+      const input = document.getElementById('agProjectsFilterInput');
+      const isOpen = bar.classList.toggle('open');
+      if (isOpen) {
+        input.focus();
+      } else {
+        input.value = '';
+        renderProjectsTree(cachedProjectsList);
+      }
+    }
+
+    function filterProjectsTree(query) {
+      const q = (query || '').toLowerCase().trim();
+      if (!q) {
+        renderProjectsTree(cachedProjectsList);
+        return;
+      }
+      const filtered = cachedProjectsList.map(p => {
+        const matchProj = p.name.toLowerCase().includes(q) || (p.path && p.path.toLowerCase().includes(q));
+        const matchingConvs = (p.conversations || []).filter(c => c.title.toLowerCase().includes(q));
+        if (matchProj || matchingConvs.length > 0) {
+          return {
+            ...p,
+            conversations: matchProj ? p.conversations : matchingConvs
+          };
+        }
+        return null;
+      }).filter(Boolean);
+      renderProjectsTree(filtered);
+    }
+
+    function toggleProjectCollapse(projId, event) {
+      if (event) event.stopPropagation();
+      collapsedProjects[projId] = !collapsedProjects[projId];
+      localStorage.setItem('kodara_collapsed_projects', JSON.stringify(collapsedProjects));
+      renderProjectsTree(cachedProjectsList);
+    }
+
+    function renderProjectsTree(projects) {
+      const container = document.getElementById('agProjectsTree');
+      if (!container) return;
+
+      if (!projects || projects.length === 0) {
+        container.innerHTML = `<div style="font-size:0.75rem;color:#64748b;padding:0.6rem 0.75rem;text-align:center">No se encontraron proyectos</div>`;
+        return;
+      }
+
+      container.innerHTML = projects.map(p => {
+        const isCollapsed = !!collapsedProjects[p.id];
+        const convs = p.conversations || [];
+        const convCount = convs.length;
+
+        let convsHtml = '';
+        if (!isCollapsed) {
+          if (convCount === 0) {
+            convsHtml = `<div class="ag-empty-convs">No conversations yet</div>`;
+          } else {
+            convsHtml = convs.map((c, idx) => {
+              const isActive = (p.id === activeProjectId && (c.id === activeConversationId || idx === 0));
+              const relTime = c.timeAgo || (p.id === 'proj_ollama' ? '2m' : '2d');
+              const safeTitle = escapeHtml(c.title);
+              const escapedTitleAttr = c.title.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+              return `
+                <div class="ag-conv-item ${isActive ? 'active' : ''}"
+                     title="${safeTitle}"
+                     onclick="selectProjectConversation('${p.id}', '${escapeAttr(p.name)}', '${escapeAttr(p.path)}', '${c.id}', '${escapedTitleAttr}')">
+                  <span class="ag-conv-title">${safeTitle}</span>
+                  <div class="ag-conv-meta-wrap">
+                    <span class="ag-conv-time">${escapeHtml(relTime)}</span>
+                    <button class="ag-conv-options-btn"
+                            title="Opciones de conversación"
+                            onclick="openConversationContextMenu(event, '${c.id}', '${escapedTitleAttr}', '${p.id}')">
+                      •••
+                    </button>
+                  </div>
+                </div>
+              `;
+            }).join('');
+          }
+        }
+
+        return `
+          <div class="ag-project-group" id="projGroup_${p.id}">
+            <div class="ag-project-folder" onclick="selectProjectFolder('${p.id}', '${escapeAttr(p.name)}', '${escapeAttr(p.path)}')">
+              <div class="ag-folder-main">
+                <span class="ag-folder-chevron ${isCollapsed ? 'collapsed' : ''}" onclick="toggleProjectCollapse('${p.id}', event)" title="${isCollapsed ? 'Expandir' : 'Colapsar'}">▼</span>
+                <span class="ag-folder-icon">📁</span>
+                <span>${escapeHtml(p.name)}</span>
+              </div>
+              <button class="ag-icon-btn ag-folder-quick-add"
+                      title="Nueva conversación en ${escapeAttr(p.name)}"
+                      onclick="createConversationInProject('${p.id}', '${escapeAttr(p.name)}', event)">
+                +
+              </button>
+            </div>
+            ${convsHtml}
+          </div>
+        `;
+      }).join('');
+    }
+
     async function loadProjectsSidebar() {
       try {
         const resp = await fetch('/api/projects');
-        const projects = await resp.json();
-        const container = document.getElementById('agProjectsTree');
-
-        container.innerHTML = projects.map(p => {
-          const convs = p.conversations || [];
-          const convItems = convs.length > 0
-            ? convs.map((c, idx) => {
-                const isActive = (p.id === activeProjectId && (c.id === activeConversationId || idx === 0));
-                const relTime = p.id === 'proj_ollama' ? '2m' : '2d';
-                return `
-                  <div class="ag-conv-item ${isActive ? 'active' : ''}"
-                       onclick="selectProjectConversation('${p.id}', '${p.name}', '${p.path}', '${c.id}', '${c.title.replace(/'/g, "\\'")}')">
-                    <span class="ag-conv-title">${c.title}</span>
-                    <span class="ag-conv-time">${relTime}</span>
-                  </div>
-                `;
-              }).join('')
-            : `<div class="ag-conv-item" style="color:var(--text-tertiary);cursor:default">Sin conversaciones aún</div>`;
-
-          return `
-            <div class="ag-project-group">
-              <div class="ag-project-folder" onclick="selectProjectFolder('${p.id}', '${p.name}', '${p.path}')">
-                <span>📂</span>
-                <span>${p.name}</span>
-              </div>
-              ${convItems}
-            </div>
-          `;
-        }).join('');
+        cachedProjectsList = await resp.json();
+        const filterInput = document.getElementById('agProjectsFilterInput');
+        if (filterInput && filterInput.value.trim()) {
+          filterProjectsTree(filterInput.value);
+        } else {
+          renderProjectsTree(cachedProjectsList);
+        }
       } catch (e) {
         console.error('Error cargando proyectos:', e);
       }
+    }
+
+    // Menú Contextual de Conversaciones (:: / Opciones)
+    function openConversationContextMenu(event, convId, convTitle, projId) {
+      if (event) {
+        event.stopPropagation();
+        event.preventDefault();
+      }
+      currentContextConv = { id: convId, title: convTitle, projectId: projId };
+      const menu = document.getElementById('agConversationContextMenu');
+      if (!menu) return;
+
+      const x = Math.min(event.clientX, window.innerWidth - 190);
+      const y = Math.min(event.clientY, window.innerHeight - 130);
+      menu.style.left = `${x}px`;
+      menu.style.top = `${y}px`;
+      menu.style.display = 'block';
+    }
+
+    function closeConversationContextMenu() {
+      const menu = document.getElementById('agConversationContextMenu');
+      if (menu) menu.style.display = 'none';
+    }
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('#agConversationContextMenu')) {
+        closeConversationContextMenu();
+      }
+    });
+
+    async function onContextRenameClick() {
+      closeConversationContextMenu();
+      const current = currentContextConv;
+      if (!current.id) return;
+      const newTitle = prompt('Renombrar conversación:', current.title);
+      if (!newTitle || !newTitle.trim() || newTitle.trim() === current.title) return;
+
+      try {
+        const resp = await fetch(`/api/conversations/${current.id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title: newTitle.trim() })
+        });
+        if (resp.ok) {
+          if (activeConversationId === current.id) {
+            document.getElementById('centerBreadcrumb').innerHTML = `<span>${escapeHtml(activeProjectName)}</span> <span>/</span> <b>${escapeHtml(newTitle.trim())}</b>`;
+          }
+          await loadProjectsSidebar();
+        }
+      } catch (err) {
+        alert('Error renombrando conversación: ' + err.message);
+      }
+    }
+
+    function onContextMoveClick() {
+      closeConversationContextMenu();
+      const current = currentContextConv;
+      if (!current.id) return;
+
+      const modal = document.getElementById('agMoveConvModal');
+      const select = document.getElementById('moveConvSelectProject');
+      const promptText = document.getElementById('moveConvPromptText');
+      if (!modal || !select) return;
+
+      promptText.innerHTML = `Mover conversación "<b>${escapeHtml(current.title)}</b>" a otro proyecto:`;
+      select.innerHTML = cachedProjectsList.map(p => {
+        const isCurrent = p.id === current.projectId;
+        return `<option value="${p.id}" ${isCurrent ? 'disabled' : ''}>${escapeHtml(p.name)} (${escapeHtml(p.path)})${isCurrent ? ' [Actual]' : ''}</option>`;
+      }).join('');
+
+      modal.classList.add('open');
+    }
+
+    function closeMoveConvModal() {
+      const modal = document.getElementById('agMoveConvModal');
+      if (modal) modal.classList.remove('open');
+    }
+
+    async function submitMoveConversation() {
+      const current = currentContextConv;
+      const select = document.getElementById('moveConvSelectProject');
+      const targetProjectId = select ? select.value : '';
+      if (!current.id || !targetProjectId) return;
+
+      try {
+        const resp = await fetch(`/api/conversations/${current.id}/move`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ targetProjectId })
+        });
+        if (resp.ok) {
+          closeMoveConvModal();
+          const targetProj = cachedProjectsList.find(p => p.id === targetProjectId);
+          if (targetProj && activeConversationId === current.id) {
+            activeProjectId = targetProj.id;
+            activeProjectName = targetProj.name;
+            activeProjectPath = targetProj.path;
+            document.getElementById('centerBreadcrumb').innerHTML = `<span>${escapeHtml(targetProj.name)}</span> <span>/</span> <b>${escapeHtml(current.title)}</b>`;
+          }
+          await loadProjectsSidebar();
+        }
+      } catch (err) {
+        alert('Error moviendo conversación: ' + err.message);
+      }
+    }
+
+    async function onContextDeleteClick() {
+      closeConversationContextMenu();
+      const current = currentContextConv;
+      if (!current.id) return;
+
+      if (!confirm(`¿Deseas eliminar permanentemente la conversación "${current.title}"?`)) {
+        return;
+      }
+
+      try {
+        const resp = await fetch(`/api/conversations/${current.id}`, {
+          method: 'DELETE'
+        });
+        if (resp.ok) {
+          if (activeConversationId === current.id) {
+            activeConversationId = '';
+            await renderProjectWorkspaceCleanState(activeProjectId, activeProjectName, activeProjectPath, 'Workspace Activo');
+          }
+          await loadProjectsSidebar();
+        }
+      } catch (err) {
+        alert('Error eliminando conversación: ' + err.message);
+      }
+    }
+
+    // Modal: Nueva Carpeta / Proyecto
+    function openNewProjectModal() {
+      const modal = document.getElementById('agNewProjectModal');
+      const nameInput = document.getElementById('newProjNameInput');
+      const pathInput = document.getElementById('newProjPathInput');
+      const descInput = document.getElementById('newProjDescInput');
+      if (nameInput) nameInput.value = '';
+      if (pathInput) pathInput.value = '/home/saghet/Documents/';
+      if (descInput) descInput.value = '';
+      if (modal) modal.classList.add('open');
+      if (nameInput) nameInput.focus();
+    }
+
+    function closeNewProjectModal() {
+      const modal = document.getElementById('agNewProjectModal');
+      if (modal) modal.classList.remove('open');
+    }
+
+    function autoSuggestProjectPath(name) {
+      const pathInput = document.getElementById('newProjPathInput');
+      if (!pathInput) return;
+      const clean = (name || '').trim().replace(/[^a-zA-Z0-9_\-]/g, '');
+      pathInput.value = `/home/saghet/Documents/${clean}`;
+    }
+
+    async function submitCreateProject() {
+      const nameInput = document.getElementById('newProjNameInput');
+      const pathInput = document.getElementById('newProjPathInput');
+      const descInput = document.getElementById('newProjDescInput');
+      const name = nameInput ? nameInput.value.trim() : '';
+      const path = pathInput ? pathInput.value.trim() : '';
+      const description = descInput ? descInput.value.trim() : '';
+
+      if (!name) {
+        alert('Ingresa el nombre del proyecto / carpeta.');
+        if (nameInput) nameInput.focus();
+        return;
+      }
+
+      try {
+        const resp = await fetch('/api/projects', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, path, description })
+        });
+        const created = await resp.json();
+        if (resp.ok && created) {
+          closeNewProjectModal();
+          activeProjectId = created.id;
+          activeProjectName = created.name;
+          activeProjectPath = created.path;
+          await loadProjectsSidebar();
+          await selectProjectFolder(created.id, created.name, created.path);
+        } else {
+          alert('Error creando proyecto: ' + (created.error || 'Respuesta inválida'));
+        }
+      } catch (err) {
+        alert('Error de red creando proyecto: ' + err.message);
+      }
+    }
+
+    async function createConversationInProject(projId, projName, event) {
+      if (event) event.stopPropagation();
+      activeProjectId = projId;
+      activeProjectName = projName;
+      const title = prompt(`Nueva conversación en ${projName}:`, `Desarrollo en ${projName}`);
+      if (!title || !title.trim()) return;
+
+      try {
+        const resp = await fetch(`/api/projects/${projId}/conversations`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title: title.trim() })
+        });
+        const created = await resp.json();
+        activeConversationId = created.id;
+        document.getElementById('centerBreadcrumb').innerHTML = `<span>${escapeHtml(projName)}</span> <span>/</span> <b>${escapeHtml(title.trim())}</b>`;
+        await loadProjectsSidebar();
+        await selectProjectConversation(projId, projName, activeProjectPath, created.id, title.trim());
+      } catch (err) {
+        console.error('Error creando conversación:', err);
+      }
+    }
+
+    function escapeAttr(str) {
+      return (str || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
     }
 
     async function selectProjectFolder(projId, projName, projPath) {

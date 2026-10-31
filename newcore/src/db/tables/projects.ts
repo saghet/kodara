@@ -249,3 +249,156 @@ export async function saveProjectMessage(
 
   return { id, conversationId, role, content, meta, createdAt: now };
 }
+
+export async function createProject(
+  name: string,
+  path: string,
+  description: string = ''
+): Promise<ProjectRecord> {
+  await initProjectsSchema();
+  const db = await getDb();
+  const id = 'proj_' + nanoid(8);
+  const now = new Date().toISOString();
+
+  await db.execute({
+    sql: 'INSERT INTO projects (id, name, path, description, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)',
+    args: [id, name.trim(), path.trim(), description.trim(), now, now]
+  });
+
+  return {
+    id,
+    name: name.trim(),
+    path: path.trim(),
+    description: description.trim(),
+    createdAt: now,
+    updatedAt: now,
+    conversations: []
+  };
+}
+
+export async function updateProject(
+  id: string,
+  updates: { name?: string; path?: string; description?: string }
+): Promise<ProjectRecord | null> {
+  await initProjectsSchema();
+  const db = await getDb();
+  const existingRes = await db.execute({
+    sql: 'SELECT * FROM projects WHERE id = ?',
+    args: [id]
+  });
+  if (existingRes.rows.length === 0) return null;
+
+  const current = existingRes.rows[0];
+  const newName = updates.name !== undefined ? updates.name.trim() : (current.name as string);
+  const newPath = updates.path !== undefined ? updates.path.trim() : (current.path as string);
+  const newDesc = updates.description !== undefined ? updates.description.trim() : (current.description as string);
+  const now = new Date().toISOString();
+
+  await db.execute({
+    sql: 'UPDATE projects SET name = ?, path = ?, description = ?, updated_at = ? WHERE id = ?',
+    args: [newName, newPath, newDesc, now, id]
+  });
+
+  return {
+    id,
+    name: newName,
+    path: newPath,
+    description: newDesc,
+    createdAt: current.created_at as string,
+    updatedAt: now,
+    conversations: []
+  };
+}
+
+export async function deleteProject(id: string): Promise<boolean> {
+  await initProjectsSchema();
+  const db = await getDb();
+  // Eliminar mensajes de las conversaciones de este proyecto
+  await db.execute({
+    sql: 'DELETE FROM project_messages WHERE conversation_id IN (SELECT id FROM project_conversations WHERE project_id = ?)',
+    args: [id]
+  });
+  await db.execute({
+    sql: 'DELETE FROM project_conversations WHERE project_id = ?',
+    args: [id]
+  });
+  const res = await db.execute({
+    sql: 'DELETE FROM projects WHERE id = ?',
+    args: [id]
+  });
+  return (res.rowsAffected ?? 1) > 0;
+}
+
+export async function renameConversation(id: string, newTitle: string): Promise<ConversationRecord | null> {
+  await initProjectsSchema();
+  const db = await getDb();
+  const res = await db.execute({
+    sql: 'SELECT * FROM project_conversations WHERE id = ?',
+    args: [id]
+  });
+  if (res.rows.length === 0) return null;
+
+  const conv = res.rows[0];
+  const now = new Date().toISOString();
+  const title = newTitle.trim() || 'Conversación sin título';
+
+  await db.execute({
+    sql: 'UPDATE project_conversations SET title = ?, updated_at = ? WHERE id = ?',
+    args: [title, now, id]
+  });
+
+  return {
+    id,
+    projectId: conv.project_id as string,
+    title,
+    createdAt: conv.created_at as string,
+    updatedAt: now,
+    timeAgo: 'ahora'
+  };
+}
+
+export async function moveConversation(id: string, targetProjectId: string): Promise<ConversationRecord | null> {
+  await initProjectsSchema();
+  const db = await getDb();
+  const convRes = await db.execute({
+    sql: 'SELECT * FROM project_conversations WHERE id = ?',
+    args: [id]
+  });
+  if (convRes.rows.length === 0) return null;
+
+  const projRes = await db.execute({
+    sql: 'SELECT * FROM projects WHERE id = ?',
+    args: [targetProjectId]
+  });
+  if (projRes.rows.length === 0) return null;
+
+  const now = new Date().toISOString();
+  await db.execute({
+    sql: 'UPDATE project_conversations SET project_id = ?, updated_at = ? WHERE id = ?',
+    args: [targetProjectId, now, id]
+  });
+
+  const conv = convRes.rows[0];
+  return {
+    id,
+    projectId: targetProjectId,
+    title: conv.title as string,
+    createdAt: conv.created_at as string,
+    updatedAt: now,
+    timeAgo: 'ahora'
+  };
+}
+
+export async function deleteConversation(id: string): Promise<boolean> {
+  await initProjectsSchema();
+  const db = await getDb();
+  await db.execute({
+    sql: 'DELETE FROM project_messages WHERE conversation_id = ?',
+    args: [id]
+  });
+  const res = await db.execute({
+    sql: 'DELETE FROM project_conversations WHERE id = ?',
+    args: [id]
+  });
+  return (res.rowsAffected ?? 1) > 0;
+}

@@ -307,3 +307,25 @@ Kodara está instalado como aplicación nativa de escritorio en tu sistema Linux
 - **Certificación de Reemplazo Total**:
   - Verificado por la suite `antigravity-replacement-mastery.test.ts`, elevando el ecosistema a 10 suites de prueba y 45/45 tests unitarios aprobados al 100%.
 
+---
+
+## 21. Arquitectura de Carpetas y Conversaciones: Estándar Antigravity IDE
+- **Paridad Visual y Funcional Estricta**:
+  - El sidebar izquierdo de Kodara adopta la arquitectura exacta del panel lateral de Google Antigravity IDE, organizando el espacio de trabajo en una jerarquía clara de Carpetas (Proyectos/Workspaces) y Conversaciones anidadas.
+- **Barra de Acciones de Proyectos**:
+  - **Filtro en Tiempo Real (`🝖`)**: Despliega una barra de búsqueda para filtrar instantáneamente el árbol de carpetas y títulos de conversación sin recargas.
+  - **Nueva Carpeta / Proyecto (`📁+`)**: Modal flotante estilizado para registrar nuevos proyectos y workspaces locales en el sistema Linux con validación de ruta.
+- **Gestión Avanzada de Conversaciones (`::` Menú Contextual)**:
+  - Cada conversación anidada cuenta con truncado tipográfico con elipsis y marca de tiempo relativa (`2d`, `2m`).
+  - Al interactuar o pasar el cursor, emerge el botón de opciones `::` con menú desplegable:
+    1. *✏️ Renombrar Conversación*: Edición directa del título persistido en SQLite.
+    2. *📁 Mover a otra Carpeta*: Transferencia fluida de conversaciones entre diferentes proyectos o workspaces.
+    3. *🗑️ Eliminar Conversación*: Supresión permanente de la conversación y sus mensajes asociados.
+- **Tratamiento de Carpetas Vacías**:
+  - Implementación del placeholder atenuado exacto `No conversations yet` cuando un proyecto recién creado aún no contiene hilos de discusión.
+- **Navegación Superior Global**:
+  - Botón de `+ New Conversation` y accesos directos superiores a `🕒 Automations` y `🧰 Customizations`.
+- **Certificación de Calidad**:
+  - Validado integralmente por `antigravity-sidebar-folders-conversations.test.ts`, totalizando 11 suites de prueba y 49/49 pruebas automatizadas aprobadas al 100%.
+
+
