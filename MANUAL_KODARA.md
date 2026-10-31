@@ -134,3 +134,21 @@ Kodara está instalado como aplicación nativa de escritorio en tu sistema Linux
     - `RESTART_APPLICATION`: Cierra y vuelve a abrir la aplicación objetivo (`systemctl --user restart samulibre.service` + señal `SHOW` al puerto `49721`) para mostrar los cambios en vivo.
 - **Auditoría Verificadora Post-Ejecución (`PostExecutionAuditor`)**:
   - Comprueba físicamente en disco y en los procesos activos que cada requisito del historial se haya cumplido al **100%** antes de marcar el plan como `✓ 100% PROCEEDED & VERIFIED`.
+
+
+---
+
+## 12. Asistente Cognitivo en Lenguaje Natural y Base de Conocimiento de Arquitectura Antivirus (GLM-4.7 por Defecto)
+- **Modelo Predeterminado GLM-4.7-Flash**:
+  - Configurado como el motor por defecto en backend (`newcore/src/config/index.ts`, `.env`) y frontend (`newcore/src/web/dashboard.html`).
+  - Empaquetado localmente en Ollama con parámetros de conversación fluida: `temperature: 0.42`, `top_p: 0.92`, `repeat_penalty: 1.15` y ventana de contexto de `32768` tokens en GPU NVIDIA GeForce RTX 4060.
+- **Des-robotización y Comprensión Humana (Estilo Google Antigravity)**:
+  - Elimina respuestas acartonadas, frías o de plantilla.
+  - Dialoga en lenguaje natural coloquial, explicando de forma empática y reflexiva el razonamiento técnico de cada propuesta.
+- **Corpus Experto de Arquitectura Antivirus en Rust (`SAMULIBRE_ANTIVIRUS_KNOWLEDGE`)**:
+  - Incorpora conocimiento profundo sobre cómo construir una suite EDR/Antivirus como SamuLibre:
+    1. **Motor de Escaneo Multi-Capa**: Paralelización con `rayon`, reglas YARA-X, ClamAV y cálculo de entropía de Shannon.
+    2. **Trampas Canario Anti-Ransomware**: Siembra de honeyfiles vigilados en tiempo real por hash criptográfico SHA-256 e inotify.
+    3. **Escudo Endpoint y Blindaje de Memoria**: Prevención de volcados `PROCESS_VM_READ` en LSASS y protección de cookies/tokens DPAPI contra troyanos InfoStealers (RedLine, Vidar, Lumma).
+    4. **Centinela de Vulnerabilidades (Virtual Patching)**: Mitigación en caliente de CVEs en memoria sin reiniciar el sistema operativo.
+    5. **GUI Nativa Translúcida Estilo Apple**: Integración de WebKitGTK / Tao + Wry en Rust con Tailwind CSS offline, telemetría en tiempo real y consumo menor a 40 MB de RAM.

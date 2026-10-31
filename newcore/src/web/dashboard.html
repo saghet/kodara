@@ -832,7 +832,7 @@
     <!-- Barra de Prompt Inferior Estilo Antigravity (Flecha 3: Selector 🛡️ Turbo ^) -->
     <div class="ag-prompt-wrapper">
       <div id="modelAdvisorNotice" style="font-size:0.71rem;color:#9ca3af;margin-bottom:0.35rem;padding:0 0.25rem;display:flex;justify-content:space-between">
-        <span>💡 <b>Consejero de Modelo:</b> Qwen2.5-Coder 7B / Qwen3-Coder — Ideal para desarrollo seguro en Rust/TS y herramientas MCP.</span>
+        <span>💡 <b>Consejero de Modelo:</b> GLM-4.7-Flash — Comprensión en lenguaje natural, diálogo fluido y arquitectura experta de antivirus.</span>
         <span id="turboStatusNotice" style="color:#34d399">⚡ Modo Turbo Activo: Ejecución inmediata sin bloqueos</span>
       </div>
 
@@ -857,8 +857,8 @@
             <button class="ag-plus-btn" onclick="triggerImagePicker()" title="Adjuntar captura o imagen para diagnosticar fallas (también puedes usar Ctrl+V o arrastrar)">+</button>
             <button class="ag-chip-btn" style="padding:0.22rem 0.5rem;font-size:0.71rem;color:#38bdf8;border-color:rgba(56,189,248,0.35)" onclick="triggerImagePicker()" title="Subir captura de pantalla para análisis visual + OCR + Codebase Grounding">🖼️ Imagen</button>
             <select id="modelSelect" class="ag-inline-select" onchange="onModelProfileChange()">
-              <option value="qwen3-coder-30b-a3b" selected>⚡ Qwen2.5-Coder 7B / Qwen3-Coder (Desarrollo & MCP)</option>
-              <option value="glm-4.7-flash">🚀 GLM-4.7-Flash (Agentes Rápidos & Balanceado)</option>
+              <option value="glm-4.7-flash" selected>🚀 GLM-4.7-Flash (Lenguaje Natural & Arquitectura Antivirus) — Predeterminado</option>
+              <option value="qwen3-coder-30b-a3b">⚡ Qwen2.5-Coder 7B / Qwen3-Coder (Desarrollo & MCP)</option>
               <option value="gemma-4-26b-a4b">🔍 Gemma-4-26B-A4B (Análisis Logs, Nmap & SIEM)</option>
               <option value="devstral-small-24b">🛡️ Devstral-24B / DeepSeek-R1 (Auditoría SAST Profunda)</option>
             </select>
@@ -969,8 +969,8 @@
     let pendingAttachedImages = [];
 
     const MODEL_ADVISOR = {
+      'glm-4.7-flash': '💡 <b>Consejero de Modelo:</b> GLM-4.7-Flash — Comprensión en lenguaje natural, diálogo fluido y arquitectura experta de antivirus (Predeterminado).',
       'qwen3-coder-30b-a3b': '💡 <b>Consejero de Modelo:</b> Qwen2.5-Coder 7B / Qwen3-Coder — Óptimo para desarrollo seguro en Rust/TS y herramientas MCP.',
-      'glm-4.7-flash': '💡 <b>Consejero de Modelo:</b> GLM-4.7-Flash — Perfil balanceado para agentes rápidos y coordinación.',
       'gemma-4-26b-a4b': '💡 <b>Consejero de Modelo:</b> Gemma-4-26B — Especializado en triaje de puertos Nmap, logs SIEM y TShark.',
       'devstral-small-24b': '💡 <b>Consejero de Modelo:</b> Devstral-24B / DeepSeek-R1 — Auditoría profunda de código (SAST) y análisis de vulnerabilidades CWE.'
     };

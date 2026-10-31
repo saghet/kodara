@@ -23,7 +23,7 @@ export const ConfigSchema = z.object({
   atlasCloudApiKey: z.string().optional(),
   atlasCloudBaseUrl: z.string().default('https://api.atlascloud.ai/v1'),
   ollamaBaseUrl: z.string().default('http://localhost:11434'),
-  defaultModel: z.string().default('mock'),
+  defaultModel: z.string().default('glm-4.7-flash'),
 
   // Workspace
   workspaceRoot: z.string().default('./workspaces'),

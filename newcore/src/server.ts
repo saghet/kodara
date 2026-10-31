@@ -20,6 +20,7 @@ import { KodaraWorkspaceDB } from './kodara/workspace-db.js';
 import { KodaraPlanExecutor } from './kodara/plan-executor.js';
 import { KodaraVisionEngine, type AttachedImageInput } from './kodara/vision-engine.js';
 import { KodaraOrderCompiler } from './kodara/order-compiler.js';
+import { AntivirusKnowledgeEngine } from './kodara/knowledge/antivirus-architecture.js';
 import {
   KodaraEvolutionEngine,
   KodaraEvolutionDB,
@@ -68,16 +69,16 @@ function resolveKodaraModelProfile(requestedProfile?: string): {
   profileName: string;
   rolePersona: string;
 } {
-  const raw = requestedProfile?.replace(/^ollama:/, '') || 'qwen2.5-coder:7b';
+  const raw = requestedProfile?.replace(/^ollama:/, '') || 'glm-4.7-flash';
 
-  if (raw.includes('GLM-4.7-Flash') || raw.includes('glm')) {
+  if (!requestedProfile || raw.includes('GLM-4.7-Flash') || raw.includes('glm') || raw === 'glm-4.7-flash' || raw === 'kodara-expert') {
     return {
-      ollamaModel: 'qwen2.5-coder:7b',
-      profileName: 'GLM-4.7-Flash (30B-A3B MoE) — Balanceado / Agentes Rápidos',
-      rolePersona: 'Actúas bajo el perfil GLM-4.7-Flash (Agentes Tácticos Rápidos). Prioriza velocidad de respuesta, planes operativos concisos y orquestación ágil Red/Blue Team.'
+      ollamaModel: 'glm-4.7-flash',
+      profileName: 'GLM-4.7-Flash — Asistente Cognitivo en Lenguaje Natural & Arquitectura Antivirus',
+      rolePersona: `Actúas bajo el modelo GLM-4.7-Flash optimizado para Kodara. Te comunicas en lenguaje natural con total fluidez, empatía, claridad conceptual y calidez colaborativa (estilo Google Antigravity). Tienes dominio de nivel Ingeniero Principal en Ciberseguridad Defensiva y Arquitectura de Suites Antivirus en Rust (como SamuLibre). No suenas como un robot ni usas plantillas mecánicas; entiendes lo que el usuario pide en lenguaje coloquial o informal y lo traduces con naturalidad en soluciones técnicas de software de alta calidad.`
     };
   }
-  if (raw.includes('Qwen3-Coder-30B-A3B') || raw.includes('qwen3-coder')) {
+  if (raw.includes('Qwen3-Coder-30B-A3B') || raw.includes('qwen3-coder') || raw.includes('qwen2.5-coder:7b')) {
     return {
       ollamaModel: 'qwen2.5-coder:7b',
       profileName: 'Qwen3-Coder-30B-A3B — Desarrollo Seguro y Herramientas MCP',
@@ -100,9 +101,9 @@ function resolveKodaraModelProfile(requestedProfile?: string): {
   }
 
   return {
-    ollamaModel: raw === 'smollm:135m' || raw === 'qwen2.5-coder:0.5b' ? raw : 'qwen2.5-coder:7b',
+    ollamaModel: raw === 'smollm:135m' || raw === 'qwen2.5-coder:0.5b' ? raw : 'glm-4.7-flash',
     profileName: `${raw} — Motor Local en GPU`,
-    rolePersona: 'Actúas como Arquitecto Principal de Ciberseguridad y Desarrollo Seguro de Kodara.'
+    rolePersona: 'Actúas como Arquitecto Principal de Ciberseguridad y Desarrollo Seguro de Kodara con lenguaje natural fluido y empático.'
   };
 }
 
@@ -205,7 +206,13 @@ export async function startServer(orchestrator?: AgentOrchestrator) {
               role = 'Asistente General Multiuso (GPU)';
             }
             let priority = 10;
-            if (m.name.includes('qwen2.5-coder:7b') || m.name.includes('coder:7b')) {
+            if (m.name.includes('glm-4') || m.name.includes('glm')) {
+              role = 'Asistente Cognitivo en Lenguaje Natural & Arquitectura Antivirus (Predeterminado)';
+              priority = 350;
+            } else if (m.name.includes('kodara-expert')) {
+              role = 'Kodara Expert — Especialista Local en Ciberseguridad y EDR';
+              priority = 300;
+            } else if (m.name.includes('qwen2.5-coder:7b') || m.name.includes('coder:7b')) {
               role = 'Modelo de Máxima Potencia para Proyectos Masivos (7B - GPU)';
               priority = 200;
             } else if (m.name.includes('qwen2.5-coder:1.5b')) {
@@ -935,10 +942,18 @@ export async function startServer(orchestrator?: AgentOrchestrator) {
       })}\n\n`
     );
 
-    const systemPrompt = `Eres KODARA ("Your Code. Your AI. Your Rules."), operando en un ambiente local autorizado en modo ${isTurboMode ? 'TURBO sin restricciones ni bloqueos' : 'Supervisado'} con el mismo nivel de razonamiento, comprensión de historial y ejecución verificada que Google Antigravity.
+    // 3. Inyección de Base de Conocimiento de Antivirus + Memorias de Proyecto
+    const antivirusContext = AntivirusKnowledgeEngine.buildAntivirusArchitecturePromptBlock(message);
+    const systemPrompt = `Eres KODARA ("Your Code. Your AI. Your Rules."), el asistente de inteligencia artificial local de desarrollo, arquitectura y ciberseguridad defensiva.
 ${resolvedProfile.rolePersona}
-Responde SIEMPRE en español con lenguaje técnico, directo, estructurado y accionable.
-REGLA CRÍTICA DE INTERFAZ: El sistema gráfico de Kodara renderiza automáticamente su propia tarjeta de ejecución debajo de tu mensaje. Por lo tanto, finaliza tu respuesta directamente con el resumen técnico; NUNCA escribas botones en texto ni entre corchetes, NUNCA uses javascript:void(0) y NUNCA escribas notas sobre botones simbólicos.
+
+PAUTAS DE COMUNICACIÓN EN LENGUAJE NATURAL (ESTILO GOOGLE ANTIGRAVITY):
+• Comunícate siempre en español con naturalidad, empatía, calidez y solvencia técnica. Conversa con el usuario como un ingeniero senior de clase mundial y compañero de programación, escuchando atentamente lo que te pide y comprendiendo intenciones coloquiales.
+• Evita sonar como un script o un autómata rígido. No repitas muletillas de plantilla si no aportan valor.
+• Cuando hables de arquitectura de antivirus, desarrollo seguro o diseño de software (como SamuLibre), explica el *por qué* y el *cómo* con claridad didáctica, señalando archivos y componentes concretos.
+• NOTA DE INTERFAZ: Kodara genera automáticamente la tarjeta visual interactiva para ejecutar acciones físicas; finaliza tus explicaciones de forma limpia y directa sin redactar botones falsos ni enlaces javascript.
+
+${antivirusContext}
 ${compiledOrders.history_ledger_prompt_block}
 ${memoryContext}
 ${projectMemoryBlock}`;
@@ -956,14 +971,14 @@ ${projectMemoryBlock}`;
       ...priorMessages,
       {
         role: 'user',
-        content: `${visionPromptBlock ? `${visionPromptBlock}\n\n` : ''}${compiledOrders.history_ledger_prompt_block}\n\n${contextText ? `${contextText}\n\n` : ''}${turboToolDigest ? `${turboToolDigest}\n\n` : ''}ORDEN ACTUAL DEL USUARIO:\n${message}`,
+        content: `${visionPromptBlock ? `${visionPromptBlock}\n\n` : ''}${compiledOrders.history_ledger_prompt_block}\n\n${contextText ? `${contextText}\n\n` : ''}${turboToolDigest ? `${turboToolDigest}\n\n` : ''}SOLICITUD DEL USUARIO:\n${message}`,
         ...(ollamaVisionBase64.length > 0 && (actualModel.includes('vl') || actualModel.includes('llava') || actualModel.includes('gemma3') || actualModel.includes('minicpm'))
           ? { images: ollamaVisionBase64 }
           : {}),
       }
     ];
 
-    reply.raw.write(`data: ${JSON.stringify({ log: { time: getNow(), text: `🚀 Motor local (${actualModel}) • Ryzen 9 (${numThreads} hilos físicos) + RTX 4060 • num_ctx: ${numCtx}`, level: 'info' } })}\n\n`);
+    reply.raw.write(`data: ${JSON.stringify({ log: { time: getNow(), text: `🚀 Motor local (${actualModel}) • Inferencia en lenguaje natural • num_ctx: ${numCtx}`, level: 'info' } })}\n\n`);
 
     try {
       const ollamaResp = await fetch(`${config.ollamaBaseUrl}/api/chat`, {
@@ -974,10 +989,10 @@ ${projectMemoryBlock}`;
           messages: chatMessages,
           stream: true,
           options: {
-            temperature: 0.15,
-            repeat_penalty: 1.25,
-            repeat_last_n: 256,
-            top_p: 0.9,
+            temperature: 0.42,
+            repeat_penalty: 1.15,
+            repeat_last_n: 128,
+            top_p: 0.92,
             num_ctx: numCtx,
             num_threads: numThreads
           }
