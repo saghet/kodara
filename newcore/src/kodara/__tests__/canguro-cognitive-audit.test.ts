@@ -57,15 +57,16 @@ describe('Auditoría Cognitiva del Plan Canguro: Ruteo Semántico, CoT Scratchpa
     expect(routeCoding.systemPromptBlock).toContain('ESTRUCTURA DE RESPUESTA OBLIGATORIA');
   });
 
-  test('3. El Catálogo Golden Exemplars contiene 4 pares contrastivos de excelencia', () => {
+  test('3. El Catálogo Golden Exemplars contiene 5 pares contrastivos de excelencia (incluyendo Ética Anti-DoS)', () => {
     const exemplars = GoldenExemplarsEngine.getAllExemplars();
-    expect(exemplars.length).toBe(4);
+    expect(exemplars.length).toBeGreaterThanOrEqual(5);
 
     const ids = exemplars.map((e) => e.id);
     expect(ids).toContain('file-hashing-stream');
     expect(ids).toContain('safe-port-scanner');
     expect(ids).toContain('parameterized-sqlite-cache');
     expect(ids).toContain('telemetry-dark-card');
+    expect(ids).toContain('dos-defense-ethics');
 
     for (const ex of exemplars) {
       // Verifica que el ejemplo malo tiene defectos identificados

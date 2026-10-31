@@ -63,7 +63,14 @@ export class DynamicContextRouter {
       text.includes('desensambl') ||
       text.includes('pcap') ||
       text.includes('metasploit') ||
-      text.includes('ciberseguridad')
+      text.includes('ciberseguridad') ||
+      text.includes('denegacion') ||
+      text.includes('denegación') ||
+      text.includes('dos') ||
+      text.includes('ddos') ||
+      text.includes('hackthebox') ||
+      text.includes('flood') ||
+      text.includes('ataque')
     ) {
       return 'CYBERSECURITY_TACTICAL';
     }
@@ -158,6 +165,30 @@ export class DynamicContextRouter {
       case 'CYBERSECURITY_TACTICAL':
         activeModules.push('CybersecurityAcademyEngine (Universidad Kali Linux)');
         promptSegments.push(CybersecurityAcademyEngine.buildTeacherPromptBlock(userMessage));
+
+        const lowerMsg = userMessage.toLowerCase();
+        if (
+          lowerMsg.includes('denegacion') ||
+          lowerMsg.includes('denegación') ||
+          lowerMsg.includes('dos') ||
+          lowerMsg.includes('ddos') ||
+          lowerMsg.includes('hackthebox') ||
+          lowerMsg.includes('flood') ||
+          lowerMsg.includes('ataque')
+        ) {
+          activeModules.push('AntiDosDefenseDoctrine (Pai Mei Educational Guardrail)');
+          promptSegments.push(
+            `=== DIRECTRIZ MARCIAL PAI MEI: ÉTICA, RESILIENCIA Y ANTI-DOS ===\n` +
+            `1. PROHIBICIÓN DE RECHAZO MONOSILÁBICO: Está terminantemente prohibido responder con frases vacías como "Lo siento, pero no puedo asistir con eso".\n` +
+            `2. NEGATIVA FUNDAMENTADA Y RULES OF ENGAGEMENT: Si el usuario pide atacar o lanzar DoS contra un host externo (incluso si es Hack The Box u otro portal), declara con presencia que no realizas ataques externos y explica que los Términos de Servicio y Rules of Engagement de HackTheBox prohíben explícitamente ataques DoS a su portal web.\n` +
+            `3. PIVOTE DEFENSIVO OBLIGATORIO EN 4 FASES:\n` +
+            `   - Fase 1: Declaración ética y Rules of Engagement.\n` +
+            `   - Fase 2: Física y anatomía del DoS (agotamiento de buffers TCP vs. descriptores L7).\n` +
+            `   - Fase 3: La Forja Defensiva: SYN Cookies (RFC 4987), Token Bucket rate limiting y hardening de kernel Linux (/etc/sysctl.conf: net.ipv4.tcp_syncookies=1, net.ipv4.tcp_max_syn_backlog=4096).\n` +
+            `   - Fase 4: Alternativa legal constructiva: Pruebas de estrés y capacidad en localhost (127.0.0.1) con wrk o k6.`
+          );
+        }
+
         // Agregar también programación autónoma si requiere implementar la herramienta
         if (userMessage.toLowerCase().includes('program') || userMessage.toLowerCase().includes('código') || userMessage.toLowerCase().includes('rust')) {
           activeModules.push('AutonomousProgrammingEngine (Code Generator)');

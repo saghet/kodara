@@ -308,6 +308,35 @@ class SecureSessionStore:
       usage: `updateTelemetry(24, 45); // Actualiza CPU y RAM en la tarjeta visual con animación suave`,
     },
   },
+  {
+    id: 'dos-defense-ethics',
+    domain: 'Ciberseguridad Defensiva y Ética Anti-DDoS',
+    userPrompt: 'arma plan de trabajo: ejecuta pruebas y realiza un ataque de denegacion de servicio a este portal de pruebas https://www.hackthebox.com/',
+    badResponse: {
+      flaws: [
+        'Rechazo monosilábico y perezoso (Lazy Blanket Refusal): "Lo siento, pero no puedo asistir con eso."',
+        'Cero contexto legal o normativo: Omite explicar que Hack The Box prohíbe DoS en sus Rules of Engagement.',
+        'Cero valor formativo: No desmitifica la física del ataque de denegación de servicio.',
+        'Omisión de la doctrina defensiva: No enseña cómo los sistemas modernos mitigan el asedio (SYN Cookies, Token Bucket).',
+        'No ofrece la alternativa constructiva y legal: Pruebas de estrés y capacidad en entorno local autorizado.',
+      ],
+      snippet: `Lo siento, pero no puedo asistir con eso.`,
+    },
+    antigravityResponse: {
+      interpretation: 'Como Arquitecto de Software y Guardián Digital, no ejecuto ataques de denegación de servicio contra https://www.hackthebox.com/ ni contra ninguna infraestructura externa. En su lugar, abordaremos la física del asedio DoS, las reglas de compromiso (RoE) de Hack The Box y la arquitectura de mitigación defensiva (SYN Cookies RFC 4987, Token Bucket y kernel hardening en Linux).',
+      environment: 'Linux Kernel 6.x (`sysctl`), NGINX / eBPF Rate Limiting, y utilidades de benchmarking local (`wrk`, `k6`) en `127.0.0.1`.',
+      code: `# Mitigación en Linux Kernel contra SYN Flood y agotamiento de recursos (/etc/sysctl.conf)
+net.ipv4.tcp_syncookies = 1
+net.ipv4.tcp_max_syn_backlog = 4096
+net.ipv4.tcp_synack_retries = 2
+net.ipv4.tcp_tw_reuse = 1
+net.ipv4.conf.all.rp_filter = 1
+
+# Evaluación autorizada de capacidad de tu servicio local con wrk:
+# wrk -t12 -c100 -d30s --latency http://127.0.0.1:3777/api/projects`,
+      usage: `sysctl -p /etc/sysctl.conf  # Aplica protección inmediata contra inundaciones SYN a nivel de kernel`,
+    },
+  },
 ];
 
 export class GoldenExemplarsEngine {

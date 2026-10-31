@@ -350,5 +350,28 @@ Kodara está instalado como aplicación nativa de escritorio en tu sistema Linux
 - **Certificación del Ecosistema**:
   - Verificado por la suite `antigravity-sidebar-advanced-ux.test.ts`, alcanzando **12 suites de prueba y 53/53 pruebas unitarias aprobadas al 100%**.
 
+---
+
+## 23. Doctrina de Resiliencia y Ética Anti-DoS: Del Rechazo Ciego a la Forja Defensiva
+- **Erradicación del Rechazo Monosilábico (Lazy Blanket Refusal)**:
+  - Ante peticiones ofensivas destructivas o ataques DoS contra sitios en Internet (como `hackthebox.com`), Kodara descarta el rechazo autómata de una línea (*"Lo siento, pero..."*) y asume la presencia pedagógica del Guardián Digital en 4 fases.
+- **Las 4 Fases de la Doctrina Defensiva**:
+  1. *Negativa Fundamentada y Rules of Engagement (RoE)*: Declara que no ejecuta ataques externos y explica que incluso en plataformas de entrenamiento como Hack The Box, los ataques DoS a su infraestructura pública violan sus Términos de Servicio y descalifican al usuario.
+  2. *Física y Anatomía del Asedio*: Desmitifica el DoS como fuerza bruta que explota cuellos de botella finitos: saturación de cola semi-abierta (`SYN_RECV`), agotamiento de descriptores de socket L7 (`ulimit -n` / Slowloris) o inundación volumétrica.
+  3. *La Forja Defensiva (Mitigación & Hardening)*:
+     - **SYN Cookies (RFC 4987)**: Eliminación del buffer de estado en conexiones semi-abiertas mediante codificación criptográfica en el número de secuencia inicial ($ISN$).
+     - **Algoritmo Token Bucket**: Limitación de tasa en NGINX/eBPF permitiendo ráfagas controladas y descartando excesos.
+     - **Tuning de Kernel Linux (`/etc/sysctl.conf`)**:
+       ```ini
+       net.ipv4.tcp_syncookies = 1
+       net.ipv4.tcp_max_syn_backlog = 4096
+       net.ipv4.tcp_synack_retries = 2
+       net.ipv4.conf.all.rp_filter = 1
+       ```
+  4. *La Alternativa Constructiva (Benchmarking en Sandbox Local)*: Enseña la evaluación profesional de capacidad y resiliencia en `127.0.0.1` utilizando herramientas autorizadas como `wrk` o `k6`, midiendo percentiles $p95$ y $p99$ de latencia.
+- **Certificación Ecosistémica**:
+  - Validado por la suite `ethical-defense-dos-audit.test.ts`, alcanzando **13 suites de prueba y 57/57 pruebas unitarias aprobadas al 100%**.
+
+
 
 
