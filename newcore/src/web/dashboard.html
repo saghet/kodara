@@ -101,6 +101,46 @@
       color: #090d16;
     }
 
+    /* ── Avatar Circular de Maestro Pai Mei (Estilo Perfil LinkedIn) ── */
+    .pai-mei-avatar-wrap {
+      position: relative;
+      width: 28px;
+      height: 28px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .pai-mei-avatar-wrap:hover {
+      transform: scale(1.14);
+    }
+    .pai-mei-avatar-ring {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 2px solid #0a66c2;
+      box-shadow: 0 0 0 1px rgba(10, 102, 194, 0.4), 0 0 8px rgba(56, 189, 248, 0.5);
+      background: #0f172a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .pai-mei-status-pip {
+      position: absolute;
+      bottom: -1px;
+      right: -1px;
+      width: 8.5px;
+      height: 8.5px;
+      border-radius: 50%;
+      background: #10b981;
+      border: 2px solid #090d16;
+      box-shadow: 0 0 5px #10b981;
+      z-index: 2;
+    }
+
     .ag-new-conv-wrap {
       padding: 0.65rem 0.75rem 0.35rem;
     }
@@ -993,7 +1033,40 @@
   <aside class="ag-sidebar">
     <div class="ag-sidebar-top-nav">
       <div class="ag-brand">
-        <div class="ag-brand-icon">K</div>
+        <div class="pai-mei-avatar-wrap" id="brandPaiMeiAvatar" title="Maestro Pai Mei — Mentor Cognitivo y Guardián Marcial de Kodara">
+          <div class="pai-mei-avatar-ring">
+            <svg viewBox="0 0 64 64" width="100%" height="100%" class="pai-mei-svg" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="32" cy="32" r="32" fill="#0b1329" />
+              <circle cx="32" cy="32" r="28" fill="url(#paiMeiGlow)" opacity="0.4" />
+              <defs>
+                <radialGradient id="paiMeiGlow" cx="50%" cy="38%" r="50%">
+                  <stop offset="0%" stop-color="#38bdf8" />
+                  <stop offset="100%" stop-color="#0b1329" stop-opacity="0" />
+                </radialGradient>
+              </defs>
+              <!-- Túnica marcial cruzada -->
+              <path d="M15 64 Q32 46 49 64 Z" fill="#f1f5f9" />
+              <path d="M21 64 Q32 49 43 64" fill="none" stroke="#0a66c2" stroke-width="1.8" />
+              <!-- Rostro -->
+              <ellipse cx="32" cy="31" rx="12.5" ry="14.5" fill="#fbd5b5" />
+              <!-- Moño taoísta superior con horquilla dorada -->
+              <ellipse cx="32" cy="13" rx="5.5" ry="4.5" fill="#ffffff" />
+              <line x1="23" y1="12" x2="41" y2="12" stroke="#fbbf24" stroke-width="2.2" stroke-linecap="round" />
+              <!-- Cabello blanco recogido -->
+              <path d="M19.5 27 C19.5 16 23 15 32 15 C41 15 44.5 16 44.5 27 C41 22.5 37 20.5 32 20.5 C27 20.5 23 22.5 19.5 27 Z" fill="#ffffff" />
+              <!-- Ojos marciales severos de maestro -->
+              <path d="M24.5 29.5 Q28 27.5 30 29.5" fill="none" stroke="#0f172a" stroke-width="1.6" stroke-linecap="round" />
+              <path d="M34 29.5 Q36 27.5 39.5 29.5" fill="none" stroke="#0f172a" stroke-width="1.6" stroke-linecap="round" />
+              <!-- Cejas blancas legendarias de Pai Mei (largas y arqueadas) -->
+              <path d="M22 26 Q29 23 31 27 Q27 37 20 45 Q19 41 23 33 Z" fill="#ffffff" filter="drop-shadow(0 1px 1px rgba(0,0,0,0.4))" />
+              <path d="M42 26 Q35 23 33 27 Q37 37 44 45 Q45 41 41 33 Z" fill="#ffffff" filter="drop-shadow(0 1px 1px rgba(0,0,0,0.4))" />
+              <!-- Bigote y Barba venerable que fluye -->
+              <path d="M28 36 Q32 37.5 36 36 Q34 40.5 32 40.5 Q30 40.5 28 36 Z" fill="#ffffff" />
+              <path d="M25.5 38.5 C27.5 48 29 58 32 64 C35 58 36.5 48 38.5 38.5 C35 41.5 29 41.5 25.5 38.5 Z" fill="#ffffff" filter="drop-shadow(0 2px 2px rgba(0,0,0,0.3))" />
+            </svg>
+          </div>
+          <span class="pai-mei-status-pip" title="Maestro Pai Mei — Activo en Línea"></span>
+        </div>
         <span>Kodara</span>
       </div>
       <span style="font-size:0.66rem;color:#34d399;background:rgba(16,185,129,0.12);padding:2px 6px;border-radius:4px">LOCAL 32K</span>

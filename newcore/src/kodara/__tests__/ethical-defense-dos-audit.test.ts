@@ -45,9 +45,9 @@ describe('Dojo de Pai Mei: Ética Defensiva, Resiliencia y Doctrina Anti-DoS', (
     expect(doc.phase4_localStressTestingBenchmark).toContain('127.0.0.1');
   });
 
-  it('3. El catálogo Golden Exemplars incorpora el caso dos-defense-ethics alcanzando 5 ejemplares', () => {
+  it('3. El catálogo Golden Exemplars incorpora el caso dos-defense-ethics alcanzando al menos 5 ejemplares', () => {
     const all = GoldenExemplarsEngine.getAllExemplars();
-    expect(all.length).toBe(5);
+    expect(all.length).toBeGreaterThanOrEqual(5);
 
     const dosExemplar = GoldenExemplarsEngine.getExemplarByDomain('dos-defense-ethics');
     expect(dosExemplar).toBeDefined();

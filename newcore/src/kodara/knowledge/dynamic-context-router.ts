@@ -50,7 +50,7 @@ export class DynamicContextRouter {
       return 'ANTIVIRUS_ARCHITECTURE';
     }
 
-    // 2. Kali Linux / Hacking defensivo universitario
+    // 2. Kali Linux / Hacking defensivo universitario & Tolerancia Léxica a Typos
     if (
       text.includes('kali') ||
       text.includes('nmap') ||
@@ -65,12 +65,39 @@ export class DynamicContextRouter {
       text.includes('pcap') ||
       text.includes('metasploit') ||
       text.includes('ciberseguridad') ||
+      text.includes('vulnerab') || // vulnerabilidad, vulnerabilidades
+      text.includes('exploit') ||
+      text.includes('payload') ||
+      text.includes('fuzz') ||
+      text.includes('inyeccion') ||
+      text.includes('inyección') ||
+      text.includes('sqli') ||
+      text.includes('xss') ||
+      text.includes('escaneo') ||
+      text.includes('escaner') ||
+      text.includes('pentest') ||
+      text.includes('red team') ||
+      text.includes('blue team') ||
+      text.includes('overthewire') ||
+      text.includes('over the wire') ||
+      text.includes('bandit') ||
+      text.includes('hackthebox') ||
+      text.includes('hack the box') ||
+      text.includes('tryhackme') ||
+      text.includes('vulnhub') ||
+      text.includes('picoctf') ||
+      text.includes('ctf') ||
+      text.includes('dednegacion') || // Tolerancia a typo común del usuario
       text.includes('denegacion') ||
       text.includes('denegación') ||
+      text.includes('denejacion') ||
+      text.includes('denegasion') ||
       text.includes('dos') ||
       text.includes('ddos') ||
-      text.includes('hackthebox') ||
       text.includes('flood') ||
+      text.includes('inundacion') ||
+      text.includes('inundación') ||
+      text.includes('slowloris') ||
       text.includes('ataque')
     ) {
       return 'CYBERSECURITY_TACTICAL';
@@ -172,24 +199,33 @@ export class DynamicContextRouter {
 
         const lowerMsg = userMessage.toLowerCase();
         if (
+          lowerMsg.includes('dednegacion') ||
           lowerMsg.includes('denegacion') ||
           lowerMsg.includes('denegación') ||
+          lowerMsg.includes('denejacion') ||
+          lowerMsg.includes('denegasion') ||
           lowerMsg.includes('dos') ||
           lowerMsg.includes('ddos') ||
-          lowerMsg.includes('hackthebox') ||
           lowerMsg.includes('flood') ||
+          lowerMsg.includes('inundacion') ||
+          lowerMsg.includes('inundación') ||
+          lowerMsg.includes('slowloris') ||
+          lowerMsg.includes('hackthebox') ||
+          lowerMsg.includes('overthewire') ||
+          lowerMsg.includes('tryhackme') ||
           lowerMsg.includes('ataque')
         ) {
           activeModules.push('AntiDosDefenseDoctrine (Pai Mei Educational Guardrail)');
           promptSegments.push(
             `=== DIRECTRIZ MARCIAL PAI MEI: ÉTICA, RESILIENCIA Y ANTI-DOS ===\n` +
-            `1. PROHIBICIÓN DE RECHAZO MONOSILÁBICO: Está terminantemente prohibido responder con frases vacías como "Lo siento, pero no puedo asistir con eso".\n` +
-            `2. NEGATIVA FUNDAMENTADA Y RULES OF ENGAGEMENT: Si el usuario pide atacar o lanzar DoS contra un host externo (incluso si es Hack The Box u otro portal), declara con presencia que no realizas ataques externos y explica que los Términos de Servicio y Rules of Engagement de HackTheBox prohíben explícitamente ataques DoS a su portal web.\n` +
-            `3. PIVOTE DEFENSIVO OBLIGATORIO EN 4 FASES:\n` +
-            `   - Fase 1: Declaración ética y Rules of Engagement.\n` +
-            `   - Fase 2: Física y anatomía del DoS (agotamiento de buffers TCP vs. descriptores L7).\n` +
+            `1. PROHIBICIÓN DE RECHAZO MONOSILÁBICO: Está terminantemente prohibido responder con frases vacías como "Lo siento, pero no puedo asistir con eso". Asume la presencia de Maestro.\n` +
+            `2. NEGATIVA FUNDAMENTADA Y RULES OF ENGAGEMENT: Si el usuario pide auditar, vulnerar o lanzar DoS contra un host o plataforma externa (como OverTheWire.org o HackTheBox.com), declara con presencia marcial que Kodara no realiza ataques contra plataformas externas y explica que los Términos de Servicio y Rules of Engagement de HackTheBox y plataformas wargame (como OverTheWire) prohíben explícitamente ataques DoS a su portal web.\n` +
+            `3. FÍSICA DE SOCKETS Y PROHIBICIÓN DE FALSOS SYN FLOODS: Jamás proporciones un bucle de TcpStream::connect() diciendo que es un "SYN Flood". En la física de TCP/IP, TcpStream::connect() ejecuta el Three-Way Handshake COMPLETO (SYN -> SYN/ACK -> ACK), abriendo un descriptor real en el kernel local y saturando los recursos del cliente. Explica la diferencia con un SYN Flood real (paquetes raw SOCK_RAW sin responder ACK).\n` +
+            `4. PIVOTE DEFENSIVO OBLIGATORIO EN 4 FASES:\n` +
+            `   - Fase 1: Declaración ética y Rules of Engagement del portal consultado.\n` +
+            `   - Fase 2: Física y anatomía del asedio (agotamiento de buffers TCP vs. descriptores L7).\n` +
             `   - Fase 3: La Forja Defensiva: SYN Cookies (RFC 4987), Token Bucket rate limiting y hardening de kernel Linux (/etc/sysctl.conf: net.ipv4.tcp_syncookies=1, net.ipv4.tcp_max_syn_backlog=4096).\n` +
-            `   - Fase 4: Alternativa legal constructiva: Pruebas de estrés y capacidad en localhost (127.0.0.1) con wrk o k6.`
+            `   - Fase 4: Alternativa legal constructiva: Pruebas de estrés y benchmarking en localhost (127.0.0.1) con wrk o k6.`
           );
         }
 

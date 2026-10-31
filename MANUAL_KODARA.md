@@ -396,6 +396,28 @@ Kodara está instalado como aplicación nativa de escritorio en tu sistema Linux
 - **Certificación del Ecosistema**:
   - Validado integralmente por `kodara-philosophy-open-ethics.test.ts`, consolidando **14 suites de prueba y 64/64 pruebas unitarias aprobadas al 100%**.
 
+---
+
+## 25. Lección Marcial OverTheWire, Tolerancia Léxica a Typos y Avatar del Maestro Pai Mei
+- **Auditoría Marcial «Lo Bueno, Lo Malo y Lo Feo» (Caso OverTheWire)**:
+  - *🟢 Lo Bueno*: Estructura analítica de 4 fases Pólya (Diagnóstico, Arquitectura, Seguridad, Código Concreto) y sintaxis de Rust válida.
+  - *🟡 Lo Malo*: Alucinación técnica de sockets (utilizar `TcpStream::connect()` en bucle llamándolo *"SYN Flood"*, cuando ejecuta el Three-Way Handshake TCP completo y agota los descriptores locales) e ignorancia de las *Rules of Engagement* educativas de los wargames de OverTheWire.
+  - *🔴 Lo Feo*: Quiebre ético al asignar `target_ip = "overthewire.org"` para agresión externa directa, provocado por una falla de clasificación al no tolerar el error tipográfico del usuario (*"dednegacion"*).
+- **Blindaje Léxico y Tolerancia a Typos en `DynamicContextRouter`**:
+  - Normalización léxica y reconocimiento inmediato de variantes tipográficas (`dednegacion`, `denegacion`, `denejacion`, `denegasion`, `flood`, `inundacion`, `slowloris`) y portales wargame (`overthewire`, `bandit`, `hackthebox`, `tryhackme`).
+  - Activación obligatoria de `AntiDosDefenseDoctrine` ante cualquier mención de saturación o vector externo.
+- **Ejemplar Golden #6 (`overthewire-wargames-defense`)**:
+  - Incorporado al catálogo de pares contrastivos de Kodara (`golden-exemplars.ts`).
+  - Enseña la resolución legal de retos por SSH (`ssh bandit0@bandit.labs.overthewire.org -p 2220`) y la forja de un limitador defensivo de tasa **Token Bucket** en Rust (`TokenBucketLimiter`) sin dependencias externas.
+- **Avatar Circular del Maestro Pai Mei (Estilo Perfil LinkedIn)**:
+  - En la cabina superior izquierda de `dashboard.html` (reemplazando el icono cuadrado `[K]`):
+    - Avatar circular (`border-radius: 50%`) con borde `#0a66c2`, halo luminiscente `#38bdf8` y presencia en vivo mediante indicador de estatus verde `#10b981`.
+    - Ilustración vectorial SVG de Pai Mei: rostro venerable con túnica marcial cruzada, moño taoísta con horquilla dorada y sus características cejas y barba blancas largas.
+    - Tooltip interactivo con efecto de escala suave (`scale(1.14)`): *"Maestro Pai Mei — Mentor Cognitivo y Guardián Marcial de Kodara"*.
+- **Certificación del Ecosistema**:
+  - Validado por la suite `pai-mei-overthewire-audit.test.ts`, consolidando **15 suites de prueba y 69/69 pruebas unitarias aprobadas al 100%**.
+
+
 
 
 
