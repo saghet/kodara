@@ -26,6 +26,7 @@ import { FoundationalSchoolingEngine } from './kodara/knowledge/foundational-sch
 import { AutonomousProgrammingEngine } from './kodara/knowledge/autonomous-programming.js';
 import { DynamicContextRouter } from './kodara/knowledge/dynamic-context-router.js';
 import { GoldenExemplarsEngine } from './kodara/knowledge/golden-exemplars.js';
+import { KodaraPhilosophyEngine } from './kodara/knowledge/kodara-philosophy.js';
 import {
   KodaraEvolutionEngine,
   KodaraEvolutionDB,
@@ -522,6 +523,17 @@ export async function startServer(orchestrator?: AgentOrchestrator) {
         zero_todos_policy: 'Estricta (100% código funcional sin elipsis)',
         pedagogical_rubric: 'Pólya 4 pasos + Metáforas cotidianas + Seguridad por defecto'
       }
+    };
+  });
+
+  // ── Piedra Angular: Manifiesto de Filosofía, Soberanía y Ética Abierta ──
+  app.get('/api/kodara/philosophy', async () => {
+    return {
+      identity: KodaraPhilosophyEngine.getIdentity(),
+      pillars: KodaraPhilosophyEngine.getPillars(),
+      ethicsComparison: KodaraPhilosophyEngine.getEthicsComparison(),
+      manifestoMarkdown: KodaraPhilosophyEngine.buildManifestoMarkdown(),
+      systemPrompt: KodaraPhilosophyEngine.buildMasterIdentitySystemPrompt(),
     };
   });
 

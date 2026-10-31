@@ -10,6 +10,7 @@ import { FoundationalSchoolingEngine } from './foundational-schooling.js';
 import { AntivirusKnowledgeEngine } from './antivirus-architecture.js';
 import { CybersecurityAcademyEngine } from './cybersecurity-academy.js';
 import { AutonomousProgrammingEngine } from './autonomous-programming.js';
+import { KodaraPhilosophyEngine } from './kodara-philosophy.js';
 
 export type CognitiveDomain =
   | 'CODING_AUTONOMOUS'
@@ -129,8 +130,11 @@ export class DynamicContextRouter {
    */
   public static routeContext(userMessage: string): RoutedContextResult {
     const domain = this.classifyIntent(userMessage);
-    const activeModules: string[] = [];
+    const activeModules: string[] = ['KodaraPhilosophyEngine (Piedra Angular FOSS)'];
     const promptSegments: string[] = [];
+
+    // Piedra Angular: Identidad Soberana FOSS y Cabina Táctica
+    promptSegments.push(KodaraPhilosophyEngine.buildMasterIdentitySystemPrompt());
 
     // Protocolo de Disciplina Marcial Pai Mei & Plan Canguro: Meditación Interior + Prohibición de Clichés Robóticos
     promptSegments.push(

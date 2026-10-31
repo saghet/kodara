@@ -1240,6 +1240,26 @@
         <button class="ag-chip-btn" style="color:#22d3ee" onclick="openAddProjectMemoryPrompt()">+ Registrar Lección</button>
       </div>
 
+      <!-- TARJETA PIEDRA ANGULAR: CABINA TÁCTICA & MANIFIESTO FOSS -->
+      <div class="wb-card" style="background:linear-gradient(135deg, rgba(30, 58, 138, 0.22) 0%, rgba(15, 23, 42, 0.6) 100%); border:1px solid rgba(59, 130, 246, 0.35); border-radius:8px; padding:0.85rem; margin-bottom:0.75rem;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.4rem;">
+          <div style="font-weight:600; font-size:0.86rem; color:#60a5fa; display:flex; align-items:center; gap:0.4rem;">
+            <span>🏛️</span>
+            <span>Piedra Angular: Cabina Táctica FOSS</span>
+          </div>
+          <span style="font-size:0.68rem; background:rgba(37,99,235,0.25); border:1px solid #3b82f6; color:#93c5fd; padding:0.12rem 0.4rem; border-radius:4px; font-weight:600;">100% OPEN SOURCE</span>
+        </div>
+        <div style="font-size:0.75rem; color:#cbd5e1; line-height:1.4; margin-bottom:0.5rem;">
+          <em>"Your Code. Your AI. Your Rules."</em> — Modelo local sin censura comercial educativa, con soberanía absoluta de datos en Linux y forja defensiva en Rust.
+        </div>
+        <div style="display:flex; gap:0.4rem;">
+          <button class="ag-chip-btn" id="btnToggleManifesto" style="color:#60a5fa; border-color:#3b82f6; font-size:0.72rem; padding:0.25rem 0.55rem;" onclick="toggleKodaraPhilosophyManifesto()">📜 Ver Manifiesto y Pilares</button>
+        </div>
+        <div id="kodaraPhilosophyManifestoContainer" style="display:none; margin-top:0.65rem; padding-top:0.65rem; border-top:1px dashed rgba(59, 130, 246, 0.3); font-size:0.74rem; color:#cbd5e1; line-height:1.45;">
+          <!-- Cargado dinámicamente desde /api/kodara/philosophy -->
+        </div>
+      </div>
+
       <div style="display:flex;gap:0.35rem;flex-wrap:wrap">
         <button class="ag-chip-btn" onclick="loadProjectMemory('')">Todos</button>
         <button class="ag-chip-btn" onclick="loadProjectMemory('proj_samulibre')">🦀 SamulibreLinux</button>
@@ -2015,6 +2035,58 @@
         })
       });
       loadProjectMemory();
+    }
+
+    // ── 2b. PIEDRA ANGULAR & MANIFIESTO FOSS ──
+    async function toggleKodaraPhilosophyManifesto() {
+      const container = document.getElementById('kodaraPhilosophyManifestoContainer');
+      const btn = document.getElementById('btnToggleManifesto');
+      if (container.style.display === 'none' || !container.style.display) {
+        container.style.display = 'block';
+        if (btn) btn.textContent = '🔼 Ocultar Manifiesto';
+        if (!container.dataset.loaded) {
+          container.innerHTML = '<span style="color:#94a3b8">Cargando pilares y Manifiesto Soberano...</span>';
+          try {
+            const resp = await fetch('/api/kodara/philosophy');
+            const data = await resp.json();
+            const pillarsHtml = data.pillars.map(p => `
+              <div style="margin-bottom:0.5rem; background:rgba(15,23,42,0.5); padding:0.45rem; border-radius:5px; border-left:3px solid #3b82f6;">
+                <div style="font-weight:600; color:#93c5fd">Pilar ${p.pillarNumber}: ${escapeHtml(p.title)}</div>
+                <div style="font-style:italic; font-size:0.7rem; color:#60a5fa">«${escapeHtml(p.principle)}»</div>
+                <div style="margin-top:0.2rem; color:#cbd5e1">${escapeHtml(p.manifestoStatement)}</div>
+              </div>
+            `).join('');
+
+            const ethicsHtml = data.ethicsComparison.map(c => `
+              <div style="margin-bottom:0.4rem; padding:0.35rem 0.45rem; background:rgba(30,41,59,0.4); border-radius:4px;">
+                <div style="font-weight:600; color:#f8fafc">⚖️ ${escapeHtml(c.dimension)}</div>
+                <div style="color:#f87171; font-size:0.71rem">✖ Comercial: ${escapeHtml(c.commercialModelsApproach)}</div>
+                <div style="color:#34d399; font-size:0.71rem">✔ Kodara FOSS: ${escapeHtml(c.kodaraSovereignApproach)}</div>
+              </div>
+            `).join('');
+
+            container.innerHTML = `
+              <div style="margin-bottom:0.4rem; font-weight:700; color:#e2e8f0; font-size:0.78rem;">
+                🏛️ ${escapeHtml(data.identity.genericName)}
+              </div>
+              <div style="margin-bottom:0.5rem; color:#94a3b8; font-size:0.71rem;">
+                Hardware: ${escapeHtml(data.identity.hardwareStack)} | Inferencia: ${escapeHtml(data.identity.executionMode)}
+              </div>
+              ${pillarsHtml}
+              <div style="margin-top:0.6rem; margin-bottom:0.4rem; font-weight:600; color:#38bdf8;">
+                ⚖️ Contraste Ético con Modelos Comerciales:
+              </div>
+              ${ethicsHtml}
+            `;
+            container.dataset.loaded = 'true';
+          } catch (err) {
+            container.innerHTML = `<span style="color:#ef4444">Error al cargar Manifiesto: ${err.message}</span>`;
+          }
+        }
+      } else {
+        container.style.display = 'none';
+        if (btn) btn.textContent = '📜 Ver Manifiesto y Pilares';
+      }
     }
 
     // ── 3. KODARA CORE MEMORY (Memoria Independiente Interna del IDE) ──

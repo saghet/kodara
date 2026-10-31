@@ -372,6 +372,31 @@ Kodara está instalado como aplicación nativa de escritorio en tu sistema Linux
 - **Certificación Ecosistémica**:
   - Validado por la suite `ethical-defense-dos-audit.test.ts`, alcanzando **13 suites de prueba y 57/57 pruebas unitarias aprobadas al 100%**.
 
+---
+
+## 24. Filosofía y Piedra Angular: Soberanía 100% Open Source, Cabina Táctica y la Ética del Guardián Libre
+- **Identidad Institucional**:
+  - **Nombre Genérico en Linux**: *Cabina Táctica de Ciberseguridad, Desarrollo Seguro y Evolución Autónoma*.
+  - **Lema**: *«Your Code. Your AI. Your Rules.»*
+  - **Licencia y Naturaleza**: 100% Free & Open Source Software (FOSS), libre de ataduras comerciales, censura remota o telemetría en la nube.
+  - **Infraestructura Host Soberana**: Linux nativo optimizado para AMD Ryzen 9 7940HS + NVIDIA GeForce RTX 4060 + 32 GB RAM.
+- **Los 4 Pilares Filosóficos**:
+  1. *Soberanía Absoluta y Privacidad Local*: Tu código, tus modelos, tus chats y tus llaves jamás abandonan tu estación de trabajo. Toda la persistencia opera de forma estricta en base de datos local SQLite (`opencentravity.db`).
+  2. *Cabina Táctica Sin Sobre-Censura Educativa*: A diferencia de los modelos comerciales cerrados (OpenAI, Anthropic, Google Cloud) que imponen filtros opacos y censuran consultas de ciberseguridad legítimas por miedo a litigios corporativos, Kodara enseña la física real del software y los protocolos: análisis de paquetes en WiShark, desensamblado en Ghidra, reversing y forja de antivirus EDR en Rust (SamuLibre).
+  3. *Desarrollo Seguro y Código Completo (Cero Placebos)*: Prohibición tajante de comentarios `"// TODO"`, funciones simuladas o botones estéticos rotos. Todo código entregado por Kodara es funcional, compilable, probado en sandbox seguro y diseñado bajo el método Pólya.
+  4. *Evolución y Reparación Autónoma en Linux*: Kodara cuenta con memoria dual supervisada (`Kodara Project Memory` para errores de las aplicaciones del usuario y `Kodara Core Memory` para el propio entorno IDE), permitiendo diagnosticar cuellos de botella y auto-reparar dependencias en caliente.
+- **La Ética del Guardián Libre**:
+  - Kodara no aplica censura condescendiente sobre conceptos teóricos, pero mantiene una frontera de honor inquebrantable: jamás será un arma ciega de destrucción o asedio no autorizado contra terceros en Internet. Cuando se le solicita una acción dañina hacia un host externo, activa la doctrina pedagógica en 4 fases, desmitifica el vector de ataque y forja el escudo defensivo en código nativo.
+- **Integración Técnica en la Arquitectura**:
+  - Módulo central: `newcore/src/kodara/knowledge/kodara-philosophy.ts` (`KodaraPhilosophyEngine`).
+  - Inyección sistémica: `DynamicContextRouter.routeContext()` incorpora como primer segmento la Piedra Angular de Kodara en todo prompt procesado.
+  - Modelfile soberano: `newcore/models/Modelfile.kodara-expert` instruye a Ollama con la identidad de la Cabina Táctica y las directivas de soberanía.
+  - Interfaz de Usuario: Tarjeta de la Piedra Angular con visualizador interactivo del Manifiesto y comparación ética en `dashboard.html`.
+  - Endpoint REST: `GET /api/kodara/philosophy`.
+- **Certificación del Ecosistema**:
+  - Validado integralmente por `kodara-philosophy-open-ethics.test.ts`, consolidando **14 suites de prueba y 64/64 pruebas unitarias aprobadas al 100%**.
+
+
 
 
 
