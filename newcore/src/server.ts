@@ -23,6 +23,7 @@ import { KodaraOrderCompiler } from './kodara/order-compiler.js';
 import { AntivirusKnowledgeEngine } from './kodara/knowledge/antivirus-architecture.js';
 import { CybersecurityAcademyEngine } from './kodara/knowledge/cybersecurity-academy.js';
 import { FoundationalSchoolingEngine } from './kodara/knowledge/foundational-schooling.js';
+import { AutonomousProgrammingEngine } from './kodara/knowledge/autonomous-programming.js';
 import {
   KodaraEvolutionEngine,
   KodaraEvolutionDB,
@@ -76,8 +77,8 @@ function resolveKodaraModelProfile(requestedProfile?: string): {
   if (!requestedProfile || raw.includes('GLM-4.7-Flash') || raw.includes('glm') || raw === 'glm-4.7-flash' || raw === 'kodara-expert') {
     return {
       ollamaModel: 'glm-4.7-flash',
-      profileName: 'GLM-4.7-Flash — Asistente Cognitivo en Lenguaje Natural & Arquitectura Antivirus',
-      rolePersona: `Actúas bajo el modelo GLM-4.7-Flash optimizado para Kodara. Te comunicas en lenguaje natural con total fluidez, empatía, claridad conceptual y calidez colaborativa (estilo Google Antigravity). Tienes dominio de nivel Ingeniero Principal en Ciberseguridad Defensiva y Arquitectura de Suites Antivirus en Rust (como SamuLibre). No suenas como un robot ni usas plantillas mecánicas; entiendes lo que el usuario pide en lenguaje coloquial o informal y lo traduces con naturalidad en soluciones técnicas de software de alta calidad.`
+      profileName: 'GLM-4.7-Flash — Arquitecto de Software Autónomo & Abstracción Transparente (Efecto Antigravity)',
+      rolePersona: `Actúas bajo el modelo GLM-4.7-Flash optimizado para Kodara como Arquitecto de Software e Ingeniero de Programación Autónoma bajo el principio de "Abstracción Transparente" (Efecto Antigravity). Traduces intenciones en lenguaje natural a código funcional, limpio y listo para producción sin fricción ni marcadores incompletos. Tienes dominio de nivel Ingeniero Principal en Ciberseguridad Defensiva y Arquitectura de Suites Antivirus en Rust (como SamuLibre). No suenas como un robot; entiendes lo que el usuario pide en lenguaje coloquial o informal y lo resuelves de forma invisible, eficiente y directa.`
     };
   }
   if (raw.includes('Qwen3-Coder-30B-A3B') || raw.includes('qwen3-coder') || raw.includes('qwen2.5-coder:7b')) {
@@ -392,6 +393,27 @@ export async function startServer(orchestrator?: AgentOrchestrator) {
         'Maestría en Detección Heurística e IA',
         'Doctorado en Autonomía y Defensa de Sistemas',
       ],
+    };
+  });
+
+  app.get('/api/kodara/antigravity-programming', async () => {
+    return {
+      role: 'Arquitecto de Software e Ingeniero de Programación Autónoma',
+      philosophy: 'Abstracción Transparente (Efecto Antigravity)',
+      principles: AutonomousProgrammingEngine.getPrinciples(),
+      structure_steps: AutonomousProgrammingEngine.getStructureSteps(),
+      quality_rules: [
+        'Modularidad encapsulada',
+        'Seguridad por defecto (sanitización, variables de entorno, anti-SQLi/XSS)',
+        'Cero TODOs o implementaciones parciales',
+        'Código autodocumentado en español explicando decisiones de diseño',
+        'Uso directo en 1 a 3 líneas estilo import antigravity'
+      ],
+      adaptive_languages: {
+        automation_backend: 'Python',
+        web_ui: 'JavaScript / TypeScript / HTML / CSS',
+        systems_cybersecurity: 'Rust'
+      }
     };
   });
 
@@ -966,12 +988,15 @@ export async function startServer(orchestrator?: AgentOrchestrator) {
       })}\n\n`
     );
 
-    // 3. Inyección de Cimientos Escolares + Base de Conocimiento de Antivirus + Academia Universitaria de Ciberseguridad + Memorias de Proyecto
+    // 3. Inyección de Programación Autónoma (Efecto Antigravity) + Cimientos Escolares + Base de Conocimiento de Antivirus + Academia Universitaria de Ciberseguridad + Memorias de Proyecto
+    const autonomousContext = AutonomousProgrammingEngine.buildAutonomousProgrammingPromptBlock(message);
     const schoolingContext = FoundationalSchoolingEngine.buildSchoolingPromptBlock(message);
     const antivirusContext = AntivirusKnowledgeEngine.buildAntivirusArchitecturePromptBlock(message);
     const academyContext = CybersecurityAcademyEngine.buildTeacherPromptBlock(message);
-    const systemPrompt = `Eres KODARA ("Your Code. Your AI. Your Rules."), el asistente de inteligencia artificial local de desarrollo, arquitectura y ciberseguridad defensiva, actuando con la dedicación de un Profesor Mentor Escolar y Universitario.
+    const systemPrompt = `Eres KODARA ("Your Code. Your AI. Your Rules."), el asistente de inteligencia artificial local de desarrollo, arquitectura y ciberseguridad defensiva, actuando como Arquitecto de Software e Ingeniero de Programación Autónoma y Profesor Mentor.
 ${resolvedProfile.rolePersona}
+
+${autonomousContext}
 
 PAUTAS PEDAGÓGICAS Y DE COMUNICACIÓN EN LENGUAJE NATURAL (ESTILO GOOGLE ANTIGRAVITY):
 • Comunícate siempre en español con naturalidad, empatía, calidez y solvencia técnica. Conversa con el usuario como un profesor mentor e ingeniero senior de clase mundial y compañero de programación, escuchando atentamente lo que te pide y comprendiendo intenciones coloquiales.

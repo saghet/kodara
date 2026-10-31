@@ -816,6 +816,9 @@
         <button class="ag-chip-btn" style="color:#fbbf24;border-color:rgba(251,191,36,0.35)" onclick="openKodaraSchooling()">
           <span>🎒 Cimientos Escolares</span>
         </button>
+        <button class="ag-chip-btn" style="color:#38bdf8;border-color:rgba(56,189,248,0.35)" onclick="openAntigravityProgramming()">
+          <span>⚡ Programación Antigravity</span>
+        </button>
         <button class="ag-chip-btn" style="color:#f472b6;border-color:rgba(244,114,182,0.35)" onclick="openKodaraManual()">
           <span>📖 Manual</span>
         </button>
@@ -2173,6 +2176,81 @@
       const input = document.getElementById('promptInput');
       if (input) {
         input.value = `Profesor, enséñame desde las bases escolares con metáforas cotidianas y el método George Pólya el "${pillarTitle}" (${pillarId}), y cómo se conecta directamente con la ciberseguridad defensiva.`;
+        sendChatMessage();
+      }
+    }
+
+    // ── 8.D. Programación Autónoma y Abstracción Transparente ("Efecto Antigravity") ──
+    async function openAntigravityProgramming() {
+      appendUserBubble('⚡ Consultar Estándar de Programación Autónoma y Abstracción Transparente');
+      const aiNode = appendAiBlock('⏳ Conectando con el Motor de Programación Autónoma Antigravity...');
+      try {
+        const resp = await fetch('/api/kodara/antigravity-programming');
+        const data = await resp.json();
+        const principles = data.principles || [];
+        const steps = data.structure_steps || [];
+
+        const principlesHtml = principles.map(p => `
+          <div style="background:#13141c;border:1px solid rgba(56,189,248,0.25);border-radius:8px;padding:0.65rem 0.85rem;margin-bottom:0.5rem">
+            <div style="font-size:0.78rem;font-weight:700;color:#7dd3fc;margin-bottom:0.2rem">${escapeHtml(p.name)}</div>
+            <p style="font-size:0.72rem;color:#cbd5e1;line-height:1.4;margin:0 0 0.35rem 0">${escapeHtml(p.description)}</p>
+            <ul style="margin:0;padding-left:1.1rem;font-size:0.68rem;color:#94a3b8">
+              ${(p.rules || []).map(r => `<li>${escapeHtml(r)}</li>`).join('')}
+            </ul>
+          </div>
+        `).join('');
+
+        const stepsHtml = steps.map(s => `
+          <div style="background:#13141c;border:1px solid rgba(167,139,250,0.25);border-radius:8px;padding:0.65rem 0.85rem;margin-bottom:0.5rem">
+            <div style="display:flex;align-items:center;gap:0.4rem;margin-bottom:0.2rem">
+              <span style="font-size:0.72rem;font-weight:700;color:#c084fc;background:rgba(192,132,252,0.1);padding:0.1rem 0.4rem;border-radius:4px">Fase ${s.stepNumber}</span>
+              <span style="font-size:0.76rem;font-weight:700;color:#fff">${escapeHtml(s.title)}</span>
+            </div>
+            <p style="font-size:0.72rem;color:#cbd5e1;margin:0 0 0.25rem 0">${escapeHtml(s.description)}</p>
+            <span style="font-size:0.68rem;color:#38bdf8;font-style:italic">${escapeHtml(s.formatInstruction)}</span>
+          </div>
+        `).join('');
+
+        aiNode.innerHTML = `
+          <div style="background:#181822;border:1px solid rgba(56,189,248,0.4);border-radius:12px;padding:1.1rem 1.3rem">
+            <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.5rem">
+              <span style="font-size:1.1rem">⚡</span>
+              <div>
+                <h4 style="font-size:0.92rem;font-weight:700;color:#fff;margin:0">${escapeHtml(data.role)}</h4>
+                <span style="font-size:0.68rem;color:#38bdf8">Filosofía: ${escapeHtml(data.philosophy)} • Cero Fricción (Sin TODOs)</span>
+              </div>
+            </div>
+            <p style="font-size:0.76rem;color:#cbd5e1;line-height:1.45;margin-bottom:0.8rem">
+              Cada solicitud de código se traduce de inmediato en una solución completa y funcional lista para producción, estructurada en 4 fases estrictas y con uso directo en 1-3 líneas.
+            </p>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.8rem;max-height:480px;overflow-y:auto;padding-right:0.3rem">
+              <div>
+                <div style="font-size:0.75rem;font-weight:700;color:#38bdf8;margin-bottom:0.5rem">Principios "Efecto Antigravity":</div>
+                ${principlesHtml}
+              </div>
+              <div>
+                <div style="font-size:0.75rem;font-weight:700;color:#c084fc;margin-bottom:0.5rem">Flujo de Respuesta Obligatorio:</div>
+                ${stepsHtml}
+              </div>
+            </div>
+            <div style="margin-top:0.8rem;padding-top:0.6rem;border-top:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:space-between">
+              <span style="font-size:0.7rem;color:#94a3b8">Seguridad por Defecto: Sanitización, .env, Anti-SQLi/XSS, Modularidad.</span>
+              <button onclick="requestAntigravityCodingDemo()" style="font-size:0.7rem;background:rgba(56,189,248,0.15);border:1px solid rgba(56,189,248,0.4);color:#bae6fd;padding:0.25rem 0.6rem;border-radius:5px;cursor:pointer;font-weight:600">
+                🚀 Probar Programación Autónoma →
+              </button>
+            </div>
+          </div>
+        `;
+        scrollChatBottom();
+      } catch (e) {
+        aiNode.innerHTML = `<span style="color:#ef4444">Error cargando estándar de programación autónoma: ${e.message}</span>`;
+      }
+    }
+
+    function requestAntigravityCodingDemo() {
+      const input = document.getElementById('promptInput');
+      if (input) {
+        input.value = `Necesito un módulo que descargue un archivo de forma asíncrona con reintentos automáticos y calcule su hash SHA-256 en memoria sin saturar la RAM.`;
         sendChatMessage();
       }
     }

@@ -200,3 +200,24 @@ Kodara está instalado como aplicación nativa de escritorio en tu sistema Linux
      - *Vínculo*: El hacker ético como médico y guardián; suites defensivas transparentes como SamuLibre y Kodara sin telemetría invasiva.
 - **Botón y Vista en la Interfaz**:
   - Botón táctico `🎒 Cimientos Escolares` en la cabecera del dashboard con acceso directo a los 5 pilares, sus objetivos didácticos, metáforas y solicitud de clases guiadas al Profesor Mentor.
+
+---
+
+## 15. Programación Autónoma y Abstracción Transparente ("Efecto Antigravity")
+- **Rol y Objetivo Principal**:
+  - Kodara opera formalmente como un **Arquitecto de Software e Ingeniero de Programación Autónoma** especializado en traducir intenciones en lenguaje natural (español) a código funcional, limpio y listo para producción bajo el principio de "abstracción transparente" (inspirado en el concepto de `import antigravity`). El usuario expresa el *qué*, y Kodara resuelve el *cómo* técnico de manera invisible y directa.
+- **Los 4 Principios de Operación ("Efecto Antigravity")**:
+  1. **Comprensión Semántica Profunda**: Infiere estándares industriales (caché en RAM, índices, SQLite WAL) ante peticiones coloquiales o ambiguas sin interrogar innecesariamente.
+  2. **Transparencia y Simplicidad**: Oculta la complejidad engorrosa entregando soluciones listas para funcionar *out-of-the-box*.
+  3. **Código Autodocumentado en Español**: Comentarios claros en español explicando el *porqué* de las decisiones de diseño arquitectónico y de seguridad.
+  4. **Cero Fricción**: Prohibición estricta de código incompleto o comentarios de postergación (`// TODO: implementar`). Código siempre 100% funcional.
+- **Flujo de Respuesta Estructurado Obligatorio (4 Fases)**:
+  1. **Interpretación Rápida (1-2 líneas)**: Confirmación concisa del requerimiento y del patrón técnico adoptado.
+  2. **Entorno y Dependencias**: Comando de instalación unificado (`pip install ...`, `npm install ...`, `cargo add ...`) o mención de la biblioteca estándar.
+  3. **Código Completo y Funcional**: Bloque de código modular, con manejo robusto de excepciones (`try/catch`), seguridad y casos borde.
+  4. **Uso Directo (Abstraído)**: Demostración de uso en 1 a 3 líneas de código ultra-concisas estilo `import antigravity`.
+- **Reglas de Calidad y Seguridad**:
+  - Sanitización de entradas, prevención de inyecciones SQL y XSS, uso de variables de entorno para secretos.
+  - Selección adaptativa de lenguaje (Python para automatización/backend/datos; JS/TS/HTML/CSS para web; Rust para subsistemas de alto rendimiento y ciberseguridad).
+- **Botón y Vista en la Interfaz**:
+  - Botón táctico `⚡ Programación Antigravity` en la cabecera del dashboard para consultar los principios, las fases de respuesta y probar el flujo autónomo de código en vivo.
