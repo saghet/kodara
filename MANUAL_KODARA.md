@@ -51,14 +51,25 @@ La interfaz de Kodara se divide en **3 columnas tácticas**:
 
 ---
 
-### 2.2 Columna Central: Consola Táctica, Planes Ejecutables (`[▶ Proceed]`) y Modo Turbo
+### 2.2 Columna Central: Consola Táctica, Visión Multimodal (`🖼️ Imagen`), Planes Ejecutables (`[▶ Proceed]`) y Modo Turbo
 1. **Barra Superior de Acciones Directas (`1-Click Toolbelt`)**:
    - **`📋 Generar Plan Ejecutable`**: Crea en SQLite un nuevo artefacto de plan en 4 fases para el proyecto activo con su botón real **`[▶ Proceed]`**.
+   - **`🖼️ Adjuntar Imagen`**: Abre el selector para adjuntar capturas de pantalla o diagramas para diagnosticar fallas.
    - **`🔍 Nmap Directo`**: Escanea inmediatamente los puertos y servicios del objetivo activo.
    - **`🛡️ SAST Semgrep`**: Ejecuta una auditoría estática de código sobre el proyecto activo y extrae hallazgos CWE.
    - **`🔧 Auto-Repair Sandbox`**: Dispara una demostración real del ciclo de diagnóstico, reparación en Sandbox (`rustc`) y verificación de pruebas unitarias (`rustc --test`).
    - **`📖 Manual`**: Abre este manual completo dentro del flujo central.
-2. **Pilar de Planes Ejecutables Reales (`[▶ Proceed]`)**:
+2. **Motor Multimodal `Kodara Vision Engine` (Adjuntar e Interpretar Imágenes al Estilo Antigravity)**:
+   - Puedes adjuntar una o varias imágenes por **3 vías**:
+     1. Clic en el botón **`+`** o **`🖼️ Imagen`** en la barra de prompt (o **`🖼️ Adjuntar Imagen`** en la barra superior).
+     2. Pegando directamente con **`Ctrl + V`** desde el portapapeles tras tomar un pantallazo.
+     3. Arrastrando y soltando (**`Drag & Drop`**) archivos `.png`, `.jpg` o `.webp` sobre la caja de texto.
+   - Antes de enviar, las capturas aparecen en la **Bandeja de Miniaturas** con opción de quitarlas (`✕`).
+   - Al enviar, **`Kodara Vision Engine`** ejecuta:
+     - **OCR Bilingüe (`spa+eng`) con Tesseract** y extracción de geometría con `ImageMagick`.
+     - **Detección de Anomalías Visuales**: Identifica estados bloqueados (`EXECUTING PHASES...`, `PENDING`), errores de compilación (`error[E0308]`, `panic`) o vulnerabilidades CWE visibles en la captura.
+     - **Codebase Visual Grounding**: Cruza los textos de la captura con los archivos del proyecto activo (`SamulibreLinux`, `WiSharkOpen`, `Ollama`) y adjunta automáticamente un **Plan de Reparación Ejecutable (`[▶ Proceed]`)**.
+3. **Pilar de Planes Ejecutables Reales (`[▶ Proceed]`)**:
    - A diferencia de los chats convencionales que generan botones falsos o simbólicos, cada plan propuesto en Kodara se convierte en un **Artefacto Ejecutable Nativo (`ExecutablePlanArtifact`)**.
    - Al pulsar **`[▶ Proceed]`**, Kodara ejecuta físicamente en Linux 4 fases secuenciales:
      - **Fase 1 (`INDEX_AND_VERIFY`)**: Indexación real de crates, paquetes y símbolos públicos del proyecto (`ProjectIndexer.index`).

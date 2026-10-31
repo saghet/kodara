@@ -18,6 +18,7 @@ import { CybersecurityMCPBridge } from './kodara/mcp-bridge.js';
 import { OutputPreprocessor } from './kodara/output-preprocessor.js';
 import { KodaraWorkspaceDB } from './kodara/workspace-db.js';
 import { KodaraPlanExecutor } from './kodara/plan-executor.js';
+import { KodaraVisionEngine, type AttachedImageInput } from './kodara/vision-engine.js';
 import {
   KodaraEvolutionEngine,
   KodaraEvolutionDB,
@@ -708,6 +709,28 @@ export async function startServer(orchestrator?: AgentOrchestrator) {
     return { ok: true, content };
   });
 
+  // ── KODARA VISION ENGINE: ANÁLISIS MULTIMODAL DE IMÁGENES PARA RESOLVER FALLAS ──
+  app.post<{
+    Body: {
+      images: AttachedImageInput[];
+      projectPath?: string;
+      message?: string;
+    };
+  }>('/api/kodara/vision/analyze', async (req) => {
+    const report = KodaraVisionEngine.analyzeAttachedImages(
+      req.body?.images || [],
+      req.body?.projectPath || '/home/saghet/Documents/SamulibreLinux',
+      req.body?.message || ''
+    );
+    return {
+      ok: true,
+      report: {
+        ...report,
+        ollama_base64_images: [],
+      },
+    };
+  });
+
   // ── Sistema de Memoria y Telemetría de Ingeniería ──
   app.get('/memory', async () => {
     return memoryManager.getMemory();
@@ -719,11 +742,12 @@ export async function startServer(orchestrator?: AgentOrchestrator) {
     return { ok: true, memory: memoryManager.getMemory() };
   });
 
-  // ── Chat con Streaming en Tiempo Real, Modo Turbo Directo y Memorias Duales ──
+  // ── Chat con Streaming en Tiempo Real, Modo Turbo Directo, Visión Multimodal y Memorias Duales ──
   app.post<{
     Body: {
       model?: string;
       message: string;
+      images?: AttachedImageInput[];
       history?: unknown[];
       conversationId?: string;
       projectId?: string;
@@ -732,7 +756,8 @@ export async function startServer(orchestrator?: AgentOrchestrator) {
       executionMode?: 'turbo' | 'supervised';
     };
   }>('/chat/stream', async (req, reply) => {
-    const { model, message, history, conversationId, projectId, projectName, projectPath, executionMode } = req.body;
+    const { model, message, images, history, conversationId, projectId, projectName, projectPath, executionMode } = req.body;
+    const attachedImages = Array.isArray(images) ? images : [];
     const effectiveConvId = conversationId || 'conv_samu_1';
     const isTurboMode = (executionMode || 'turbo') === 'turbo';
     const resolvedProfile = resolveKodaraModelProfile(model);
@@ -740,7 +765,10 @@ export async function startServer(orchestrator?: AgentOrchestrator) {
 
     // Guardar mensaje del usuario en SQLite para persistencia de conversación
     try {
-      await projectsTable.saveProjectMessage(effectiveConvId, 'user', message);
+      await projectsTable.saveProjectMessage(effectiveConvId, 'user', message, {
+        imagesCount: attachedImages.length,
+        imageNames: attachedImages.map((im) => im.name),
+      });
     } catch {}
 
     const getNow = () => new Date().toLocaleTimeString('es-ES', { hour12: false });
@@ -804,6 +832,41 @@ export async function startServer(orchestrator?: AgentOrchestrator) {
       reply.raw.write(`data: ${JSON.stringify({ log: { time: getNow(), text: `🔍 Indexando estructura completa del proyecto en ${detectedPath}...`, level: 'info' } })}\n\n`);
     }
 
+    // 2.5. KODARA VISION ENGINE: Si el usuario adjuntó imágenes, analizarlas con OCR bilingüe + Codebase Grounding
+    let visionPromptBlock = '';
+    let ollamaVisionBase64: string[] = [];
+    if (attachedImages.length > 0) {
+      reply.raw.write(`data: ${JSON.stringify({ log: { time: getNow(), text: `🖼️ Kodara Vision Engine analizando ${attachedImages.length} imagen(es) adjunta(s) (OCR + Codebase Grounding)...`, level: 'info' } })}\n\n`);
+      const visionReport = KodaraVisionEngine.analyzeAttachedImages(
+        attachedImages,
+        effectiveProjectPath,
+        message
+      );
+      visionPromptBlock = visionReport.llm_vision_context;
+      ollamaVisionBase64 = visionReport.ollama_base64_images;
+
+      // Enviar resumen ligero de la inspección visual al frontend para renderizar la tarjeta multimodal
+      reply.raw.write(
+        `data: ${JSON.stringify({
+          visionReport: {
+            report_id: visionReport.report_id,
+            images_count: visionReport.images_count,
+            consolidated_anomalies: visionReport.consolidated_anomalies,
+            grounded_files: visionReport.grounded_files,
+            analyses: visionReport.analyses.map((a) => ({
+              file_name: a.file_name,
+              resolution: a.resolution,
+              format: a.format,
+              size_kb: a.size_kb,
+              duration_ms: a.duration_ms,
+              ocr_excerpt: a.ocr_text.slice(0, 320),
+              detected_anomalies: a.detected_anomalies,
+            })),
+          },
+        })}\n\n`
+      );
+    }
+
     // 3. Inyección de Kodara Project Memory + Memoria de Ingeniería
     const memoryContext = memoryManager.generateSystemContext(effectiveProjectPath);
     const projectMemoryBlock = await KodaraProjectMemory.buildProjectMemoryPromptBlock(projectId);
@@ -824,7 +887,10 @@ ${projectMemoryBlock}`;
       })),
       {
         role: 'user',
-        content: `${contextText ? `${contextText}\n\n` : ''}${turboToolDigest ? `${turboToolDigest}\n\n` : ''}${message}`
+        content: `${visionPromptBlock ? `${visionPromptBlock}\n\n` : ''}${contextText ? `${contextText}\n\n` : ''}${turboToolDigest ? `${turboToolDigest}\n\n` : ''}${message}`,
+        ...(ollamaVisionBase64.length > 0 && (actualModel.includes('vl') || actualModel.includes('llava') || actualModel.includes('gemma3') || actualModel.includes('minicpm'))
+          ? { images: ollamaVisionBase64 }
+          : {}),
       }
     ];
 
@@ -935,13 +1001,17 @@ ${projectMemoryBlock}`;
       try {
         await projectsTable.saveProjectMessage(effectiveConvId, 'assistant', cleanedFinal);
       } catch {}
-      if (KodaraPlanExecutor.shouldAttachExecutablePlan(message, cleanedFinal)) {
+      if (attachedImages.length > 0 || KodaraPlanExecutor.shouldAttachExecutablePlan(message, cleanedFinal)) {
         const planArtifact = await KodaraPlanExecutor.createExecutablePlan({
           projectId: projectId || 'proj_samulibre',
           projectName: projectName || 'SamulibreLinux',
           projectPath: effectiveProjectPath,
-          title: `Plan de Acción Ejecutable — ${projectName || 'SamulibreLinux'}`,
-          summary: 'Plan de 4 fases listo para ejecutarse físicamente en Linux (Indexación, SAST, Compilación/Tests en Sandbox y consolidación en Kodara Project Memory).',
+          title: attachedImages.length > 0
+            ? `Plan de Reparación de Falla Visual — ${projectName || 'SamulibreLinux'}`
+            : `Plan de Acción Ejecutable — ${projectName || 'SamulibreLinux'}`,
+          summary: attachedImages.length > 0
+            ? `Plan generado a partir de ${attachedImages.length} captura(s) analizada(s) con Kodara Vision Engine (OCR + Codebase Grounding) listo para ejecutarse con [▶ Proceed].`
+            : 'Plan de 4 fases listo para ejecutarse físicamente en Linux (Indexación, SAST, Compilación/Tests en Sandbox y consolidación en Kodara Project Memory).',
           markdownContent: cleanedFinal,
         });
         // Enviar payload SSE compacto (< 600 bytes) para evitar fragmentación TCP en respuestas extensas

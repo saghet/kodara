@@ -798,6 +798,9 @@
         <button class="ag-chip-btn" style="color:#60a5fa;border-color:rgba(59,130,246,0.45)" onclick="generateQuickExecutablePlan()">
           <span>📋 Generar Plan Ejecutable</span>
         </button>
+        <button class="ag-chip-btn" style="color:#38bdf8;border-color:rgba(56,189,248,0.45)" onclick="triggerImagePicker()">
+          <span>🖼️ Adjuntar Imagen</span>
+        </button>
         <button class="ag-chip-btn" onclick="executeDirectTurboTool('nmap', '127.0.0.1')">
           <span>🔍 Nmap Directo</span>
         </button>
@@ -833,18 +836,26 @@
         <span id="turboStatusNotice" style="color:#34d399">⚡ Modo Turbo Activo: Ejecución inmediata sin bloqueos</span>
       </div>
 
-      <div class="ag-prompt-box">
+      <div class="ag-prompt-box" id="agPromptBox" ondragover="handlePromptDragOver(event)" ondragleave="handlePromptDragLeave(event)" ondrop="handlePromptDrop(event)">
+        <!-- Selector oculto para adjuntar imágenes -->
+        <input type="file" id="imageFileInput" accept="image/*" multiple style="display:none" onchange="handleImageFileSelect(event)" />
+
+        <!-- Bandeja de Miniaturas de Imágenes Adjuntas (Estilo Antigravity Media Uploads) -->
+        <div id="attachedImagesTray" style="display:none;flex-wrap:wrap;gap:0.5rem;margin-bottom:0.5rem;padding-bottom:0.45rem;border-bottom:1px solid rgba(56,189,248,0.22)"></div>
+
         <textarea
           id="promptInput"
           class="ag-prompt-textarea"
-          placeholder="Escribe una orden para Kodara, menciona una ruta o usa /recordar para guardar en Project Memory..."
+          placeholder="Escribe una orden, pega una captura (Ctrl+V), arrastra una imagen o usa /recordar para guardar en Project Memory..."
           onkeydown="handlePromptKey(event)"
+          onpaste="handlePromptPaste(event)"
         ></textarea>
 
         <div class="ag-prompt-bottom-bar">
-          <!-- Controles Izquierdos: + y Selector de Modelo -->
+          <!-- Controles Izquierdos: + (Adjuntar Imagen), 🖼️ y Selector de Modelo -->
           <div class="ag-prompt-left-controls">
-            <button class="ag-plus-btn" onclick="executeDirectTurboTool('semgrep', activeProjectPath)" title="Ejecutar auditoría rápida sobre el proyecto activo">+</button>
+            <button class="ag-plus-btn" onclick="triggerImagePicker()" title="Adjuntar captura o imagen para diagnosticar fallas (también puedes usar Ctrl+V o arrastrar)">+</button>
+            <button class="ag-chip-btn" style="padding:0.22rem 0.5rem;font-size:0.71rem;color:#38bdf8;border-color:rgba(56,189,248,0.35)" onclick="triggerImagePicker()" title="Subir captura de pantalla para análisis visual + OCR + Codebase Grounding">🖼️ Imagen</button>
             <select id="modelSelect" class="ag-inline-select" onchange="onModelProfileChange()">
               <option value="qwen3-coder-30b-a3b" selected>⚡ Qwen2.5-Coder 7B / Qwen3-Coder (Desarrollo & MCP)</option>
               <option value="glm-4.7-flash">🚀 GLM-4.7-Flash (Agentes Rápidos & Balanceado)</option>
@@ -955,6 +966,7 @@
     let activeProjectPath = '/home/saghet/Documents/SamulibreLinux';
     let activeConversationId = 'conv_samu_1';
     let chatHistory = [];
+    let pendingAttachedImages = [];
 
     const MODEL_ADVISOR = {
       'qwen3-coder-30b-a3b': '💡 <b>Consejero de Modelo:</b> Qwen2.5-Coder 7B / Qwen3-Coder — Óptimo para desarrollo seguro en Rust/TS y herramientas MCP.',
@@ -1652,14 +1664,133 @@
       } catch {}
     }
 
+    // ── 6.A. Sistema Multimodal de Adjunto de Imágenes (Botón +, Ctrl+V y Drag & Drop Estilo Antigravity) ──
+    function triggerImagePicker() {
+      const inp = document.getElementById('imageFileInput');
+      if (inp) inp.click();
+    }
+
+    function handleImageFileSelect(e) {
+      const files = Array.from(e.target.files || []);
+      processImageFiles(files);
+      e.target.value = '';
+    }
+
+    function handlePromptPaste(e) {
+      const items = Array.from((e.clipboardData && e.clipboardData.items) || []);
+      const imgFiles = [];
+      for (const item of items) {
+        if (item.type && item.type.startsWith('image/')) {
+          const f = item.getAsFile();
+          if (f) imgFiles.push(f);
+        }
+      }
+      if (imgFiles.length > 0) {
+        e.preventDefault();
+        processImageFiles(imgFiles);
+      }
+    }
+
+    function handlePromptDragOver(e) {
+      e.preventDefault();
+      const box = document.getElementById('agPromptBox');
+      if (box) box.style.borderColor = '#38bdf8';
+    }
+
+    function handlePromptDragLeave(e) {
+      e.preventDefault();
+      const box = document.getElementById('agPromptBox');
+      if (box) box.style.borderColor = '';
+    }
+
+    function handlePromptDrop(e) {
+      e.preventDefault();
+      const box = document.getElementById('agPromptBox');
+      if (box) box.style.borderColor = '';
+      const files = Array.from((e.dataTransfer && e.dataTransfer.files) || []).filter(f => f.type && f.type.startsWith('image/'));
+      if (files.length > 0) {
+        processImageFiles(files);
+      }
+    }
+
+    function processImageFiles(files) {
+      for (const file of files) {
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          pendingAttachedImages.push({
+            name: file.name || `captura_${Date.now()}.png`,
+            dataUrl: ev.target.result
+          });
+          renderAttachedImagesTray();
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function removePendingImage(idx) {
+      pendingAttachedImages.splice(idx, 1);
+      renderAttachedImagesTray();
+    }
+
+    function renderAttachedImagesTray() {
+      const tray = document.getElementById('attachedImagesTray');
+      if (!tray) return;
+      if (pendingAttachedImages.length === 0) {
+        tray.style.display = 'none';
+        tray.innerHTML = '';
+        return;
+      }
+      tray.style.display = 'flex';
+      tray.innerHTML = pendingAttachedImages.map((im, idx) => `
+        <div style="display:flex;align-items:center;gap:0.45rem;background:#14141b;border:1px solid rgba(56,189,248,0.45);border-radius:7px;padding:0.25rem 0.5rem">
+          <img src="${im.dataUrl}" alt="${escapeHtml(im.name)}" style="width:36px;height:28px;object-fit:cover;border-radius:4px;border:1px solid rgba(255,255,255,0.12)" />
+          <div style="display:flex;flex-direction:column">
+            <span style="font-size:0.7rem;color:#fff;font-weight:600;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(im.name)}</span>
+            <span style="font-size:0.63rem;color:#38bdf8">Lista para OCR + Grounding</span>
+          </div>
+          <button onclick="removePendingImage(${idx})" style="background:transparent;border:none;color:#94a3b8;cursor:pointer;font-size:0.8rem;padding:0 0.2rem" title="Quitar imagen">✕</button>
+        </div>
+      `).join('');
+    }
+
+    function renderVisionReportCardHTML(vr) {
+      if (!vr) return '';
+      const anomaliesHtml = (vr.consolidated_anomalies || []).map(a =>
+        `<div style="font-size:0.73rem;color:#fbbf24;margin-bottom:2px">⚠️ ${escapeHtml(a)}</div>`
+      ).join('');
+      const filesHtml = (vr.grounded_files || []).map(f =>
+        `<code style="display:inline-block;background:#121218;color:#38bdf8;padding:2px 6px;border-radius:4px;font-size:0.69rem;margin:2px 4px 2px 0;font-family:var(--font-mono)">📄 ${escapeHtml(f)}</code>`
+      ).join('');
+      const ocrExcerpt = vr.analyses && vr.analyses[0] && vr.analyses[0].ocr_excerpt
+        ? `<div style="font-family:var(--font-mono);font-size:0.68rem;color:#94a3b8;background:#0e0e13;border:1px solid var(--border-subtle);border-radius:6px;padding:0.4rem 0.55rem;margin-top:0.35rem;max-height:85px;overflow-y:auto"><b>OCR Extraído (${vr.analyses[0].resolution} • ${vr.analyses[0].duration_ms}ms):</b><br>${escapeHtml(vr.analyses[0].ocr_excerpt)}</div>`
+        : '';
+
+      return `
+        <div style="background:#161923;border:1px solid rgba(56,189,248,0.4);border-radius:9px;padding:0.75rem 0.9rem;margin-bottom:0.75rem">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.35rem">
+            <span style="font-size:0.78rem;font-weight:700;color:#38bdf8">🖼️ Kodara Vision Engine — Inspección Multimodal (${vr.images_count} captura${vr.images_count > 1 ? 's' : ''})</span>
+            <span style="font-size:0.66rem;font-weight:700;color:#34d399;background:rgba(16,185,129,0.15);padding:2px 6px;border-radius:4px">OCR + CODEBASE GROUNDING</span>
+          </div>
+          ${anomaliesHtml}
+          ${filesHtml ? `<div style="margin-top:0.3rem"><span style="font-size:0.7rem;color:#cbd5e1;font-weight:600">Archivos correlacionados:</span><br>${filesHtml}</div>` : ''}
+          ${ocrExcerpt}
+        </div>
+      `;
+    }
+
     async function sendChatMessage() {
       const input = document.getElementById('promptInput');
-      const text = input.value.trim();
-      if (!text) return;
-      input.value = '';
+      const rawText = input.value.trim();
+      const imagesToSend = pendingAttachedImages.slice();
+      if (!rawText && imagesToSend.length === 0) return;
 
-      appendUserBubble(text);
-      const aiNode = appendAiBlock('<span style="color:var(--text-tertiary)">Procesando en modo Turbo (num_ctx: 32768, num_threads: 8)...</span>');
+      const text = rawText || 'Analiza la imagen adjunta, diagnostica la falla mostrada y genera el plan ejecutable para solventarla.';
+      input.value = '';
+      pendingAttachedImages = [];
+      renderAttachedImagesTray();
+
+      appendUserBubble(text, imagesToSend);
+      const aiNode = appendAiBlock(`<span style="color:var(--text-tertiary)">${imagesToSend.length > 0 ? '🖼️ Analizando captura con Kodara Vision Engine (OCR bilingüe + Codebase Grounding)...' : 'Procesando en modo Turbo (num_ctx: 32768, num_threads: 8)...'}</span>`);
 
       const model = document.getElementById('modelSelect').value;
       const executionMode = document.getElementById('executionModeSelect').value;
@@ -1671,6 +1802,7 @@
           body: JSON.stringify({
             model,
             message: text,
+            images: imagesToSend,
             history: chatHistory.slice(-8),
             projectId: activeProjectId,
             projectName: activeProjectName,
@@ -1684,6 +1816,7 @@
         const decoder = new TextDecoder();
         let sseBuffer = '';
         let fullText = '';
+        let visionCardHtml = '';
         let attachedPlanHtml = '';
 
         const processSseLine = (ln) => {
@@ -1692,19 +1825,24 @@
           if (!payload || payload === '[DONE]') return;
           try {
             const data = JSON.parse(payload);
+            if (data.visionReport) {
+              visionCardHtml = renderVisionReportCardHTML(data.visionReport);
+              aiNode.innerHTML = visionCardHtml + formatMarkdown(stripSymbolicDisclaimersClient(fullText)) + attachedPlanHtml;
+              scrollChatBottom();
+            }
             if (data.turboExecuted) {
               fullText += data.turboExecuted.parsed.llmDigest + '\n\n---\n\n';
-              aiNode.innerHTML = formatMarkdown(stripSymbolicDisclaimersClient(fullText)) + attachedPlanHtml;
+              aiNode.innerHTML = visionCardHtml + formatMarkdown(stripSymbolicDisclaimersClient(fullText)) + attachedPlanHtml;
               loadTargetTree();
             }
             if (data.chunk) {
               fullText += data.chunk;
-              aiNode.innerHTML = formatMarkdown(stripSymbolicDisclaimersClient(fullText)) + attachedPlanHtml;
+              aiNode.innerHTML = visionCardHtml + formatMarkdown(stripSymbolicDisclaimersClient(fullText)) + attachedPlanHtml;
               scrollChatBottom();
             }
             if (data.executablePlan) {
               attachedPlanHtml = renderExecutablePlanCardHTML(data.executablePlan);
-              aiNode.innerHTML = formatMarkdown(stripSymbolicDisclaimersClient(fullText)) + attachedPlanHtml;
+              aiNode.innerHTML = visionCardHtml + formatMarkdown(stripSymbolicDisclaimersClient(fullText)) + attachedPlanHtml;
               scrollChatBottom();
             }
           } catch {}
@@ -1726,9 +1864,9 @@
 
         const cleanFinal = stripSymbolicDisclaimersClient(fullText);
 
-        // Capa 3 (Garantía Infalible): Si el usuario pidió un plan/mejora o la respuesta es estructurada
+        // Capa 3 (Garantía Infalible): Si adjuntó imagen o pidió un plan/mejora
         // y aún no se adjuntó la tarjeta por cualquier razón, crearla e inyectarla siempre
-        if (!attachedPlanHtml && isPlanOrActionResponse(text, cleanFinal)) {
+        if (!attachedPlanHtml && (imagesToSend.length > 0 || isPlanOrActionResponse(text, cleanFinal))) {
           try {
             const planResp = await fetch('/api/kodara/plans', {
               method: 'POST',
@@ -1737,7 +1875,9 @@
                 projectId: activeProjectId,
                 projectName: activeProjectName,
                 projectPath: activeProjectPath,
-                title: `Plan de Acción Ejecutable — ${activeProjectName}`,
+                title: imagesToSend.length > 0
+                  ? `Plan de Reparación de Falla Visual — ${activeProjectName}`
+                  : `Plan de Acción Ejecutable — ${activeProjectName}`,
                 summary: `Plan de 4 fases listo para ejecutarse físicamente en Linux sobre ${activeProjectPath} (Indexación, SAST, Compilación/Tests en Sandbox y Kodara Project Memory).`,
                 markdownContent: cleanFinal
               })
@@ -1749,7 +1889,7 @@
           } catch {}
         }
 
-        aiNode.innerHTML = formatMarkdown(cleanFinal) + attachedPlanHtml;
+        aiNode.innerHTML = visionCardHtml + formatMarkdown(cleanFinal) + attachedPlanHtml;
         scrollChatBottom();
 
         chatHistory.push({ role: 'user', content: text });
@@ -1800,11 +1940,16 @@
       appendAiBlock(md);
     }
 
-    function appendUserBubble(text) {
+    function appendUserBubble(text, images = []) {
       const flow = document.getElementById('chatFlow');
       const div = document.createElement('div');
       div.className = 'ag-msg-user';
-      div.textContent = text;
+      const imgsHtml = (images && images.length > 0)
+        ? `<div style="display:flex;gap:0.45rem;flex-wrap:wrap;margin-bottom:0.45rem">` +
+          images.map(im => `<img src="${im.dataUrl}" alt="${escapeHtml(im.name)}" style="max-height:110px;max-width:220px;border-radius:6px;border:1px solid rgba(56,189,248,0.45)" />`).join('') +
+          `</div>`
+        : '';
+      div.innerHTML = `${imgsHtml}<div>${escapeHtml(text)}</div>`;
       flow.appendChild(div);
       scrollChatBottom();
     }
