@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // ═══════════════════════════════════════════════════════════════
-// OpenCentravity — Command Line Interface
-// The primary user-facing surface for the engine.
+// Kodara — Command Line Interface ("Your Code. Your AI. Your Rules.")
+// The primary user-facing CLI surface for the Kodara engine.
 // ═══════════════════════════════════════════════════════════════
 
 import { Command } from 'commander';
@@ -16,13 +16,13 @@ import * as costTable from './db/tables/cost-events.js';
 import { createBackup, listBackups } from './db/backup.js';
 import { migrationStatus } from './db/migrate.js';
 
-const BANNER = `${chalk.cyan.bold(`   ____                   ______               __                       _ __       \n  / __ \\\\____  ___  ____  / ____/__  ____  / /__________ __   __(_) /_ __  __\n / / / / __ \\\\/ _ \\\\/ __ \\\\/ /   / _ \\\\/ __ \\\\/ __/ ___/ __ \\\` | / / / __/ / / / \n/ /_/ / /_/ /  __/ / / / /___/  __/ / / / /_/ /  / /_/ /| |/ / / /_/ /_/ /  \n\\\\____/ .___/\\\\___/_/ /_/\\\\____/\\\\___/_/ /_/\\\\__/_/   \\\\__,_/ |___/_/\\\\__/\\\\__, /   \n    /_/                                                            /____/`)}\n  ${chalk.gray('Universal AI Agent Orchestrator with Formal Verification')}\n`;
+const BANNER = `${chalk.cyan.bold(`   __ __          __                 \n  / //_/__  ____/ /___ ______ ____ _\n / ,< / __ \\\\/ __  / __ \`/ ___// __ \`/\n/ /| / /_/ / /_/ / /_/ / /   / /_/ / \n/_/ |_\\\\____/\\\\__,_/\\\\__,_/_/    \\\\__,_/  `)}\n  ${chalk.gray('Kodara — Your Code. Your AI. Your Rules. (Cybersecurity, Secure Dev & Autonomous Evolution)')}\n`;
 
 /** Prints the cool banner with an optional subtitle. */
 function printBanner(subtitle?: string) {
   console.log(BANNER);
   if (subtitle) {
-    console.log(`  ${chalk.yellow('⚡')} ${chalk.white.bold('OpenCentravity')} — ${chalk.white(subtitle)}`);
+    console.log(`  ${chalk.yellow('⚡')} ${chalk.white.bold('Kodara')} — ${chalk.white(subtitle)}`);
     console.log(`  ${chalk.gray('══════════════════════════════════════════════════════════════════════════')}\n`);
   }
 }
@@ -30,9 +30,9 @@ function printBanner(subtitle?: string) {
 const program = new Command();
 
 program
-  .name('opencentravity')
-  .description('OpenCentravity Engine — Universal AI Agent Orchestrator with Formal Verification')
-  .version('0.1.0');
+  .name('kodara')
+  .description('Kodara Engine — Your Code. Your AI. Your Rules.')
+  .version('1.0.0');
 
 // ── Run Agent ──
 program

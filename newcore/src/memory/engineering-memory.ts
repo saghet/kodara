@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════
-// Open Antigravity — Sistema de Memoria de Ingeniería Persistente
+// Kodara — Sistema de Memoria de Ingeniería Persistente
 // Guarda la metodología de trabajo, pautas de código y perfil de proyectos
 // ═══════════════════════════════════════════════════════════════
 
@@ -28,7 +28,7 @@ export interface EngineeringMemory {
   updatedAt: string;
 }
 
-const MEMORY_DIR = resolve(homedir(), '.local/share/open-antigravity');
+const MEMORY_DIR = resolve(homedir(), '.local/share/kodara');
 const MEMORY_FILE = resolve(MEMORY_DIR, 'memory.json');
 
 const DEFAULT_MEMORY: EngineeringMemory = {

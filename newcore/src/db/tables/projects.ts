@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════════════════════════
-// Open Antigravity — Tabla y Gestor de Proyectos e Historial
-// Persistencia local en SQLite para emular el árbol de Antigravity IDE
+// Kodara — Tabla y Gestor de Proyectos e Historial
+// Persistencia local en SQLite para el árbol de Proyectos de Kodara IDE
 // ═══════════════════════════════════════════════════════════════
 
 import { getDb } from '../index.js';

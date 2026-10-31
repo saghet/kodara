@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════
-// Open Antigravity — Indexador Inteligente de Código y Workspaces Masivos
+// Kodara — Indexador Inteligente de Código y Workspaces Masivos
 // Escanea proyectos complejos (Rust Workspaces, TS Monorepos, Python)
 // Extrayendo tipos, structs, traits, funciones y dependencias reales.
 // ═══════════════════════════════════════════════════════════════

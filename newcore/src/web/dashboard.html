@@ -245,6 +245,69 @@
       background: rgba(255, 255, 255, 0.03);
     }
 
+    /* Recuadro Inferior Izquierdo: Monitor de Hardware en Vivo (CPU / GPU / RAM) */
+    .kodara-hw-box {
+      margin: 0.45rem 0.65rem;
+      padding: 0.55rem 0.65rem;
+      background: #18181f;
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 0.42rem;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    }
+
+    .kodara-hw-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: #38bdf8;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+
+    .hw-metric-row {
+      display: flex;
+      flex-direction: column;
+      gap: 0.16rem;
+    }
+
+    .hw-metric-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.7rem;
+      font-family: var(--font-mono);
+    }
+
+    .hw-metric-label {
+      color: #cbd5e1;
+      font-weight: 600;
+    }
+
+    .hw-metric-val {
+      color: #34d399;
+      font-weight: 600;
+    }
+
+    .hw-bar-track {
+      width: 100%;
+      height: 5px;
+      background: #0d0d12;
+      border-radius: 999px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .hw-bar-fill {
+      height: 100%;
+      border-radius: 999px;
+      transition: width 0.35s ease, background 0.35s ease;
+    }
+
     /* ═══════════════════════════════════════════════════════════════
        COLUMNA 2 (CENTRAL): CONVERSACIÓN DE PROYECTO + CAJA TURBO
        ═══════════════════════════════════════════════════════════════ */
@@ -628,7 +691,7 @@
 <body>
 
   <!-- ═══════════════════════════════════════════════════════════════
-       COLUMNA 1: SIDEBAR DE PROYECTOS (FLECHAS 1 Y 2 DE LA CAPTURA)
+       COLUMNA 1: SIDEBAR DE PROYECTOS & MONITOR DE HARDWARE EN VIVO
        ═══════════════════════════════════════════════════════════════ -->
   <aside class="ag-sidebar">
     <div class="ag-sidebar-top-nav">
@@ -642,23 +705,27 @@
     <div class="ag-new-conv-wrap">
       <button class="ag-new-conv-btn" onclick="createNewProjectConversation()">
         <span>+</span>
-        <span>New Conversation</span>
+        <span>Nueva Conversación</span>
       </button>
     </div>
 
     <div class="ag-nav-links">
       <div class="ag-nav-item" onclick="runTurboBenchmarkSuite()">
         <span>⚡</span>
-        <span>Automations (Benchmark Turbo)</span>
+        <span>Automatizaciones (Benchmark)</span>
       </div>
       <div class="ag-nav-item" onclick="switchWorkbenchTab('projectMemory')">
         <span>🧠</span>
-        <span>Customizations & Memories</span>
+        <span>Memorias &amp; Reglas</span>
+      </div>
+      <div class="ag-nav-item" onclick="openKodaraManual()">
+        <span>📖</span>
+        <span>Manual de Kodara</span>
       </div>
     </div>
 
     <div class="ag-projects-header">
-      <span>Projects</span>
+      <span>Proyectos</span>
       <span style="cursor:pointer;color:var(--text-secondary)" onclick="createNewProjectConversation()" title="Nueva conversación en proyecto activo">+</span>
     </div>
 
@@ -666,10 +733,51 @@
       <!-- Renderizado dinámico con tus proyectos reales: Ollama, WiSharkOpen, SamulibreLinux, CLI Project -->
     </div>
 
+    <!-- RECUADRO INFERIOR IZQUIERDO: MONITOR EN VIVO DE CPU, GPU Y MEMORIA RAM -->
+    <div class="kodara-hw-box" id="kodaraHardwareBox" title="Telemetría de Hardware en Vivo (AMD Ryzen 9 + NVIDIA RTX 4060 + 32 GB RAM)">
+      <div class="kodara-hw-header">
+        <span>⚡ Hardware en Vivo</span>
+        <span id="hwGpuTempBadge" style="color:#34d399;font-family:var(--font-mono)">50°C</span>
+      </div>
+
+      <!-- CPU -->
+      <div class="hw-metric-row">
+        <div class="hw-metric-top">
+          <span class="hw-metric-label">CPU Ryzen 9</span>
+          <span class="hw-metric-val" id="hwCpuText">12% (8C)</span>
+        </div>
+        <div class="hw-bar-track">
+          <div class="hw-bar-fill" id="hwCpuBar" style="width:12%;background:#38bdf8"></div>
+        </div>
+      </div>
+
+      <!-- GPU -->
+      <div class="hw-metric-row">
+        <div class="hw-metric-top">
+          <span class="hw-metric-label">GPU RTX 4060</span>
+          <span class="hw-metric-val" id="hwGpuText">11% • 40MB</span>
+        </div>
+        <div class="hw-bar-track">
+          <div class="hw-bar-fill" id="hwGpuBar" style="width:11%;background:#34d399"></div>
+        </div>
+      </div>
+
+      <!-- RAM -->
+      <div class="hw-metric-row">
+        <div class="hw-metric-top">
+          <span class="hw-metric-label">RAM Sistema</span>
+          <span class="hw-metric-val" id="hwRamText">6.4 / 31.1 GB</span>
+        </div>
+        <div class="hw-bar-track">
+          <div class="hw-bar-fill" id="hwRamBar" style="width:21%;background:#a855f7"></div>
+        </div>
+      </div>
+    </div>
+
     <div class="ag-sidebar-footer" onclick="switchWorkbenchTab('coreMemory')">
       <div style="display:flex;align-items:center;gap:0.5rem">
         <span>⚙</span>
-        <span>Settings & Core Telemetry</span>
+        <span>Ajustes &amp; Telemetría Core</span>
       </div>
       <span style="font-size:0.68rem;color:#22d3ee">RTX 4060</span>
     </div>
@@ -699,6 +807,9 @@
         <button class="ag-chip-btn" style="color:#34d399;border-color:rgba(16,185,129,0.35)" onclick="runTurboAutoRepairDemo()">
           <span>🔧 Auto-Repair Sandbox</span>
         </button>
+        <button class="ag-chip-btn" style="color:#f472b6;border-color:rgba(244,114,182,0.35)" onclick="openKodaraManual()">
+          <span>📖 Manual</span>
+        </button>
       </div>
     </header>
 
@@ -726,7 +837,7 @@
         <textarea
           id="promptInput"
           class="ag-prompt-textarea"
-          placeholder="Ask anything, @ to mention project, /recordar para guardar en Project Memory..."
+          placeholder="Escribe una orden para Kodara, menciona una ruta o usa /recordar para guardar en Project Memory..."
           onkeydown="handlePromptKey(event)"
         ></textarea>
 
@@ -906,7 +1017,7 @@
                   </div>
                 `;
               }).join('')
-            : `<div class="ag-conv-item" style="color:var(--text-tertiary);cursor:default">No conversations yet</div>`;
+            : `<div class="ag-conv-item" style="color:var(--text-tertiary);cursor:default">Sin conversaciones aún</div>`;
 
           return `
             <div class="ag-project-group">
@@ -930,6 +1041,29 @@
       document.getElementById('centerBreadcrumb').innerHTML = `<span>${projName}</span> <span>/</span> <b>Workspace Activo (${projPath})</b>`;
       loadProjectsSidebar();
       loadProjectMemory(projId);
+      await renderProjectWorkspaceCleanState(projId, projName, projPath, 'Workspace Activo');
+    }
+
+    async function renderProjectWorkspaceCleanState(projId, projName, projPath, subtitle) {
+      try {
+        const plansResp = await fetch(`/api/kodara/plans?projectId=${encodeURIComponent(projId)}`);
+        const plans = await plansResp.json();
+        const latestPlan = plans && plans.length > 0 ? plans[0] : null;
+        const planHtml = latestPlan ? renderExecutablePlanCardHTML(latestPlan) : '';
+        const flow = document.getElementById('chatFlow');
+        flow.innerHTML = `
+          <div class="ag-msg-ai">
+            <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.45rem;color:#34d399;font-size:0.78rem;font-weight:600">
+              <span>✓ Proyecto Activo en Kodara: ${escapeHtml(projName)} (${escapeHtml(projPath)})</span>
+            </div>
+            <p style="margin-bottom:0.6rem">
+              Contexto sincronizado con <b>Kodara Project Memory</b> y motor de ejecución directa <b>🛡️ Turbo</b> para <code>${escapeHtml(projName)}</code> (${escapeHtml(subtitle)}).
+              ${latestPlan ? 'Debajo tienes el Artefacto de Plan Ejecutable vinculado a este proyecto:' : 'Haz clic en <b>📋 Generar Plan Ejecutable</b> en la barra superior para crear un plan de 4 fases con botón real <b>▶ Proceed</b>.'}
+            </p>
+            ${planHtml}
+          </div>
+        `;
+      } catch {}
     }
 
     async function selectProjectConversation(projId, projName, projPath, convId, convTitle) {
@@ -953,14 +1087,17 @@
         if (msgs && msgs.length > 0) {
           const flow = document.getElementById('chatFlow');
           flow.innerHTML = msgs.map((m, idx) => {
+            const cleanContent = stripSymbolicDisclaimersClient(m.content || '');
             if (m.role === 'user') {
-              return `<div class="ag-msg-user">${escapeHtml(m.content)}</div>`;
+              return `<div class="ag-msg-user">${escapeHtml(cleanContent)}</div>`;
             }
             const isLastAi = (idx === msgs.length - 1);
             const planCardHtml = (isLastAi && latestPlan) ? renderExecutablePlanCardHTML(latestPlan) : '';
-            return `<div class="ag-msg-ai">${formatMarkdown(m.content)}${planCardHtml}</div>`;
+            return `<div class="ag-msg-ai">${formatMarkdown(cleanContent)}${planCardHtml}</div>`;
           }).join('');
           scrollChatBottom();
+        } else {
+          await renderProjectWorkspaceCleanState(projId, projName, projPath, convTitle);
         }
       } catch {}
     }
@@ -1480,17 +1617,83 @@
       out = out.replace(/```([a-zA-Z0-9_\-\+]*)\n([\s\S]*?)```/g, (_m, _lang, code) => `<div class="code-block"><pre>${code.trim()}</pre></div>`);
       out = out.replace(/`([^`]+)`/g, '<code style="background:#23232c;color:#38bdf8;padding:1px 5px;border-radius:4px;font-family:var(--font-mono)">$1</code>');
       out = out.replace(/\*\*([^*]+)\*\*/g, '<b style="color:#fff">$1</b>');
-      out = out.replace(/^### (.*$)/gim, '<h3 style="color:#fff;margin:0.6rem 0 0.3rem;font-size:0.92rem">$1</h3>');
       out = out.replace(/^#### (.*$)/gim, '<h4 style="color:#22d3ee;margin:0.5rem 0 0.25rem;font-size:0.84rem">$1</h4>');
+      out = out.replace(/^### (.*$)/gim, '<h3 style="color:#fff;margin:0.6rem 0 0.3rem;font-size:0.92rem">$1</h3>');
+      out = out.replace(/^## (.*$)/gim, '<h2 style="color:#38bdf8;margin:0.75rem 0 0.35rem;font-size:1.02rem;border-bottom:1px solid rgba(56,189,248,0.2);padding-bottom:0.2rem">$1</h2>');
+      out = out.replace(/^# (.*$)/gim, '<h1 style="color:#fff;margin:0.75rem 0 0.4rem;font-size:1.15rem">$1</h1>');
       out = out.replace(/^- (.*$)/gim, '<div style="margin-left:0.75rem;margin-bottom:2px">• $1</div>');
       out = out.replace(/\n/g, '<br>');
       return out;
+    }
+
+    // ── 7. Monitor en Vivo de CPU, GPU y RAM (Recuadro Abajo a la Izquierda) ──
+    function pickBarColor(pct, baseColor) {
+      if (pct >= 85) return '#ef4444';
+      if (pct >= 65) return '#f59e0b';
+      return baseColor;
+    }
+
+    async function pollHardwareTelemetry() {
+      try {
+        const resp = await fetch('/api/kodara/hardware-telemetry');
+        const hw = await resp.json();
+        if (!hw || !hw.cpu) return;
+
+        const cpuPct = hw.cpu.percent ?? 10;
+        const gpuPct = hw.gpu.percent ?? 5;
+        const ramPct = hw.ram.percent ?? 20;
+
+        const cpuText = document.getElementById('hwCpuText');
+        const cpuBar = document.getElementById('hwCpuBar');
+        if (cpuText) cpuText.textContent = `${cpuPct}% (${hw.cpu.physicalThreadsConfigured || 8}C)`;
+        if (cpuBar) {
+          cpuBar.style.width = `${cpuPct}%`;
+          cpuBar.style.background = pickBarColor(cpuPct, '#38bdf8');
+        }
+
+        const gpuText = document.getElementById('hwGpuText');
+        const gpuBar = document.getElementById('hwGpuBar');
+        const gpuTemp = document.getElementById('hwGpuTempBadge');
+        if (gpuText) gpuText.textContent = `${gpuPct}% • ${hw.gpu.vramUsedMb}MB`;
+        if (gpuBar) {
+          gpuBar.style.width = `${Math.max(gpuPct, hw.gpu.vramPercent || 4)}%`;
+          gpuBar.style.background = pickBarColor(gpuPct, '#34d399');
+        }
+        if (gpuTemp) {
+          gpuTemp.textContent = `${hw.gpu.tempC}°C`;
+          gpuTemp.style.color = hw.gpu.tempC >= 78 ? '#ef4444' : hw.gpu.tempC >= 68 ? '#f59e0b' : '#34d399';
+        }
+
+        const ramText = document.getElementById('hwRamText');
+        const ramBar = document.getElementById('hwRamBar');
+        if (ramText) ramText.textContent = `${hw.ram.usedGb} / ${hw.ram.totalGb} GB (${ramPct}%)`;
+        if (ramBar) {
+          ramBar.style.width = `${ramPct}%`;
+          ramBar.style.background = pickBarColor(ramPct, '#a855f7');
+        }
+      } catch {}
+    }
+
+    // ── 8. Visor Integrado del Manual Oficial de Kodara ──
+    async function openKodaraManual() {
+      appendUserBubble('📖 Abrir Manual Oficial de Funcionamiento de Kodara');
+      const aiNode = appendAiBlock('⏳ Cargando Manual Oficial de Kodara...');
+      try {
+        const resp = await fetch('/api/kodara/manual');
+        const data = await resp.json();
+        aiNode.innerHTML = `<div style="background:#18181f;border:1px solid rgba(56,189,248,0.3);border-radius:10px;padding:1rem 1.2rem">${formatMarkdown(data.content || '')}</div>`;
+        scrollChatBottom();
+      } catch (e) {
+        aiNode.innerHTML = `<span style="color:#ef4444">Error cargando manual: ${e.message}</span>`;
+      }
     }
 
     window.addEventListener('DOMContentLoaded', () => {
       loadProjectsSidebar();
       loadProjectMemory();
       loadInitialExecutablePlans();
+      pollHardwareTelemetry();
+      setInterval(pollHardwareTelemetry, 2500);
     });
   </script>
 </body>
