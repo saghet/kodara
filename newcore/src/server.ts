@@ -143,7 +143,10 @@ export async function startServer(orchestrator?: AgentOrchestrator) {
   const config = loadConfig();
   const engine = orchestrator ?? new AgentOrchestrator();
 
-  const app = Fastify({ logger: { level: config.logLevel } });
+  const app = Fastify({
+    logger: { level: config.logLevel },
+    bodyLimit: 25 * 1024 * 1024, // 25 MB para soportar múltiples capturas de alta resolución en Base64
+  });
 
   // Parser JSON tolerante: evita el error 400 FST_ERR_CTP_EMPTY_JSON_BODY cuando un POST envía Content-Type: application/json sin body
   app.removeAllContentTypeParsers();
