@@ -819,6 +819,9 @@
         <button class="ag-chip-btn" style="color:#38bdf8;border-color:rgba(56,189,248,0.35)" onclick="openAntigravityProgramming()">
           <span>⚡ Programación Antigravity</span>
         </button>
+        <button class="ag-chip-btn" style="color:#f59e0b;border-color:rgba(245,158,11,0.35)" onclick="openPlanCanguro()">
+          <span>🦘 Plan Canguro</span>
+        </button>
         <button class="ag-chip-btn" style="color:#f472b6;border-color:rgba(244,114,182,0.35)" onclick="openKodaraManual()">
           <span>📖 Manual</span>
         </button>
@@ -1987,7 +1990,20 @@
     }
 
     function formatMarkdown(str) {
-      let out = escapeHtml(stripSymbolicDisclaimersClient(str));
+      let raw = stripSymbolicDisclaimersClient(str);
+      // Extraer y procesar bloque de deliberación interna del Plan Canguro
+      let thoughtHtml = '';
+      const thoughtMatch = raw.match(/<pensamiento_kodara>([\s\S]*?)<\/pensamiento_kodara>/i);
+      if (thoughtMatch) {
+        const thoughtContent = escapeHtml(thoughtMatch[1].trim()).replace(/\n/g, '<br>');
+        thoughtHtml = `<details style="background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.25);border-radius:8px;padding:0.5rem 0.8rem;margin-bottom:0.75rem">
+          <summary style="cursor:pointer;color:#f59e0b;font-weight:600;font-size:0.75rem">💭 Razonamiento del Mentor (Plan Canguro CoT)</summary>
+          <div style="font-size:0.72rem;color:#cbd5e1;padding-top:0.4rem;line-height:1.45">${thoughtContent}</div>
+        </details>`;
+        raw = raw.replace(/<pensamiento_kodara>[\s\S]*?<\/pensamiento_kodara>/gi, '').trim();
+      }
+
+      let out = escapeHtml(raw);
       out = out.replace(/```([a-zA-Z0-9_\-\+]*)\n([\s\S]*?)```/g, (_m, _lang, code) => `<div class="code-block"><pre>${code.trim()}</pre></div>`);
       out = out.replace(/`([^`]+)`/g, '<code style="background:#23232c;color:#38bdf8;padding:1px 5px;border-radius:4px;font-family:var(--font-mono)">$1</code>');
       out = out.replace(/\*\*([^*]+)\*\*/g, '<b style="color:#fff">$1</b>');
@@ -1997,7 +2013,7 @@
       out = out.replace(/^# (.*$)/gim, '<h1 style="color:#fff;margin:0.75rem 0 0.4rem;font-size:1.15rem">$1</h1>');
       out = out.replace(/^- (.*$)/gim, '<div style="margin-left:0.75rem;margin-bottom:2px">• $1</div>');
       out = out.replace(/\n/g, '<br>');
-      return out;
+      return thoughtHtml ? thoughtHtml + out : out;
     }
 
     // ── 7. Monitor en Vivo de CPU, GPU y RAM (Recuadro Abajo a la Izquierda) ──
@@ -2251,6 +2267,66 @@
       const input = document.getElementById('promptInput');
       if (input) {
         input.value = `Necesito un módulo que descargue un archivo de forma asíncrona con reintentos automáticos y calcule su hash SHA-256 en memoria sin saturar la RAM.`;
+        sendChatMessage();
+      }
+    }
+
+    // ── 8.E. Plan Canguro: Mentoring Cognitivo y Evolución de Kodara ──
+    async function openPlanCanguro() {
+      appendUserBubble('🦘 Consultar Estado del Plan Canguro y Maduración Cognitiva');
+      const aiNode = appendAiBlock('⏳ Conectando con la Supervisión Cognitiva del Plan Canguro...');
+      try {
+        const resp = await fetch('/api/kodara/canguro-status');
+        const data = await resp.json();
+
+        const domainsHtml = (data.domains || []).map(d => `
+          <div style="background:#13141c;border:1px solid rgba(245,158,11,0.25);border-radius:6px;padding:0.4rem 0.6rem;margin-bottom:0.35rem;font-size:0.72rem;color:#fde68a">
+            • ${escapeHtml(d)}
+          </div>
+        `).join('');
+
+        aiNode.innerHTML = `
+          <div style="background:#181822;border:1px solid rgba(245,158,11,0.4);border-radius:12px;padding:1.1rem 1.3rem">
+            <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.5rem">
+              <span style="font-size:1.1rem">🦘</span>
+              <div>
+                <h4 style="font-size:0.92rem;font-weight:700;color:#fff;margin:0">${escapeHtml(data.name)}</h4>
+                <span style="font-size:0.68rem;color:#f59e0b">${escapeHtml(data.role)} • Nivel: ${escapeHtml(data.cognitive_level)}</span>
+              </div>
+            </div>
+            <p style="font-size:0.76rem;color:#cbd5e1;line-height:1.45;margin-bottom:0.8rem">
+              Arquitectura de tutela inspirada en Google Antigravity: Ruteo semántico dinámico para no saturar el prompt, buffer de pensamiento reflexivo (<code style="color:#f59e0b">&lt;pensamiento_kodara&gt;</code>) y ${data.exemplars_count} pares contrastivos Golden.
+            </p>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.8rem;margin-bottom:0.8rem">
+              <div style="background:#13141c;border:1px solid rgba(245,158,11,0.2);border-radius:8px;padding:0.6rem 0.8rem">
+                <div style="font-size:0.75rem;font-weight:700;color:#f59e0b;margin-bottom:0.4rem">Métricas de Rendimiento Cognitivo:</div>
+                <div style="font-size:0.7rem;color:#94a3b8;line-height:1.5">
+                  • <b>Optimización de Contexto:</b> ${escapeHtml(data.metrics.token_savings_average)}<br>
+                  • <b>Scratchpad CoT:</b> ${escapeHtml(data.metrics.scratchpad_protocol)}<br>
+                  • <b>Cero TODOs:</b> ${escapeHtml(data.metrics.zero_todos_policy)}<br>
+                  • <b>Rúbrica Pedagógica:</b> ${escapeHtml(data.metrics.pedagogical_rubric)}
+                </div>
+              </div>
+              <div>
+                <div style="font-size:0.75rem;font-weight:700;color:#fde68a;margin-bottom:0.4rem">Dominios con Ruteo Quirúrgico:</div>
+                ${domainsHtml}
+              </div>
+            </div>
+            <button onclick="requestCanguroAuditDemo()" style="font-size:0.7rem;background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.4);color:#fde68a;padding:0.25rem 0.6rem;border-radius:5px;cursor:pointer;font-weight:600">
+              🔍 Evaluar Razonamiento y Ruteo Dinámico en Vivo →
+            </button>
+          </div>
+        `;
+        scrollChatBottom();
+      } catch (e) {
+        aiNode.innerHTML = `<span style="color:#ef4444">Error cargando estado del Plan Canguro: ${e.message}</span>`;
+      }
+    }
+
+    function requestCanguroAuditDemo() {
+      const input = document.getElementById('promptInput');
+      if (input) {
+        input.value = `Explica cómo construirías un detector de inyección de código en memoria RAM y muestra el razonamiento paso a paso antes de dar el código.`;
         sendChatMessage();
       }
     }

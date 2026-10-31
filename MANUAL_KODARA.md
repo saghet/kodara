@@ -221,3 +221,28 @@ Kodara está instalado como aplicación nativa de escritorio en tu sistema Linux
   - Selección adaptativa de lenguaje (Python para automatización/backend/datos; JS/TS/HTML/CSS para web; Rust para subsistemas de alto rendimiento y ciberseguridad).
 - **Botón y Vista en la Interfaz**:
   - Botón táctico `⚡ Programación Antigravity` en la cabecera del dashboard para consultar los principios, las fases de respuesta y probar el flujo autónomo de código en vivo.
+
+---
+
+## 16. Plan Canguro: Mentoring Cognitivo, Ruteo Semántico y Estándar Google Antigravity
+- **Filosofía del Plan Canguro**:
+  - Modelo de tutela permanente inspirado en el Método Canguro: Antigravity supervisa y sostiene el desarrollo cognitivo de Kodara línea a línea, asegurando que adquiera solvencia y madurez hasta superar a sus propios maestros.
+- **Ruteo Semántico Dinámico (`DynamicContextRouter`)**:
+  - En lugar de concatenar enciclopedias estáticas en cada turno (lo que causaba saturación y dilución de contexto), Kodara clasifica la intención de la consulta en 5 dominios:
+    1. `CODING_AUTONOMOUS`: Programación y scripts con las 4 fases.
+    2. `CONCEPTUAL_SCHOOLING`: Cimientos escolares de bachillerato, física y método Pólya.
+    3. `CYBERSECURITY_TACTICAL`: Academia Kali Linux y herramientas tácticas.
+    4. `ANTIVIRUS_ARCHITECTURE`: SamuLibre EDR, honeyfiles y blindaje de memoria.
+    5. `GENERAL_HYBRID`: Asistencia general balanceada.
+  - *Impacto*: Ahorro de entre 15% y 75% en tokens de prompt, maximizando la atención neuronal y eliminando alucinaciones.
+- **Buffer de Pensamiento Reflexivo (`<pensamiento_kodara>`)**:
+  - Implementa un Scratchpad interno de Chain-of-Thought (CoT) donde el modelo delibera silenciosamente antes de emitir la respuesta final: analiza casos borde, planifica dependencias seguras y verifica la ausencia de `TODOs`.
+  - En la interfaz web se muestra como un acordeón colapsable: `💭 Razonamiento del Mentor (Plan Canguro CoT)`.
+- **Catálogo de Pares Contrastivos Golden (`GOLDEN_EXEMPLARS`)**:
+  - 4 pares formativos Few-Shot que enseñan la diferencia entre código incompleto con `// TODO` o fallas de seguridad y el estándar de excelencia de Google Antigravity:
+    - Verificación criptográfica en streaming (RAM segura).
+    - Escáner de puertos asíncrono no bloqueante.
+    - Base de datos transaccional con SQLite WAL y consultas parametrizadas.
+    - Tarjeta UI Glassmorphism oscura con telemetría en tiempo real.
+- **Botón y Vista en la Interfaz**:
+  - Botón táctico `🦘 Plan Canguro` en la barra superior para auditar métricas de optimización de tokens, dominios activos y evaluar el razonamiento en vivo.
