@@ -1,8 +1,12 @@
 node_modules/
 dist/
+rust-evolution-core/target/
+**/target/
 .env
 *.db
 *.db-journal
+*.db-wal
+*.db-shm
 workspaces/
 artifacts/
 data/

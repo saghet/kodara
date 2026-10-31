@@ -1,250 +1,105 @@
-# OpenCentravity Core Engine 🌌
+# 🛡️ KODARA — Autonomous Cybersecurity, Secure Development & Evolution IDE
+> **"Your Code. Your AI. Your Rules."**
 
-> **A headless, infrastructure-first autonomous AI orchestration engine with Liquid Working Memory.**
-
-OpenCentravity is a production-grade backend engine designed to execute complex, multi-step software engineering tasks autonomously. It sits between user interfaces (like a CLI, VS Code extension, or web dashboard) and Large Language Models, providing a robust containerized sandbox, formal verification, and **a novel Liquid Working Memory system that prevents goal drift across multi-step execution.**
-
----
-
-## 🧠 Breakthrough: Liquid Working Memory (LWM)
-
-### The Problem: Context Degradation & Goal Drift in Agents
-In multi-step agentic workflows, Large Language Models suffer from three critical bottlenecks:
-1. **Goal Drift:** As an agent encounters errors, executes tools, and accumulates feedback, the original goal and invariants scroll out of the LLM's effective context window. The agent loses alignment and begins pursuing tangential fixes or infinite loops.
-2. **Context Window Bloat:** Appending every historical tool output, debug attempt, and intermediate command directly into a linear chat history consumes thousands of tokens. This leads to massive API costs and degrades the model's reasoning capabilities.
-3. **Observability Black Box:** During execution, there is no mathematical representation of what the agent swarm is focusing on, whether it is struggling with compile errors, or if it has drifted away from the original goal.
-
-### The Solution: Continuous-Time Memory Graphs
-OpenCentravity implements **Liquid Working Memory (LWM)**—a lightweight, continuous-time memory graph that runs parallel to the LLM. It acts as shared "cognitive glue" to manage agent focus. LWM is inspired by Liquid Neural Networks (MIT CSAIL) but implemented as a lightweight, zero-dependency TypeScript structure—**no GPU required, no training needed, and zero runtime inference overhead.**
-
-```
-┌────────────────────────────────────────────────────────────┐
-│                  LIQUID WORKING MEMORY                     │
-│                                                            │
-│   [ROOT GOAL: "Build Express API with auth"]               │
-│    ├── activation: 0.92  (anchored, resists decay)         │
-│    ├──→ [STEP 1: Create project]  activation: 0.15         │
-│    ├──→ [STEP 2: Implement auth]  activation: 0.85         │
-│    └──→ [ERROR: "bcrypt not found"] activation: 0.78       │
-│                                                            │
-│   Edges carry Hebbian-weighted connections:                 │
-│    STEP 2 ──(0.8)──→ ERROR  (strong causal link)           │
-│    STEP 1 ──(0.1)──→ STEP 2 (sequential dependency)       │
-└────────────────────────────────────────────────────────────┘
-```
-
-#### 1. Discretized Differential Equations for Node Activation
-LWM represents tasks, tools, observations, and feedback as nodes in a graph. Each node has an activation level $a_i \in [0, 1]$ representing its salience. With every system tick, node activations update according to a discretized differential approximation:
-
-$$\frac{da_i}{dt} = -\gamma_i a_i + (1 - a_i) \left( \sum_{j} (w_{ji} a_j) + g_i \right)$$
-
-Where:
-- $\gamma_i$ is the node-specific decay rate (goal nodes decay extremely slowly, while transient tool logs or feedback decay rapidly).
-- $g_i$ is the constant goal bias (acting as a centravity pull that anchors critical goals).
-- $w_{ji}$ is the directed edge weight from node $j$ to node $i$.
-- $\sum_{j} (w_{ji} a_j)$ represents the propagating activation from connected active nodes.
-
-#### 2. Synaptic Plasticity via Hebbian Learning
-To capture causal relationships between steps and errors, edges between nodes dynamically adapt using Hebbian learning rules (nodes that fire together, wire together):
-
-$$\frac{dw_{ji}}{dt} = \eta \cdot a_j \cdot a_i - \lambda_w \cdot w_{ji}$$
-
-Where:
-- $\eta$ is the learning rate.
-- $\lambda_w$ is the connection weight decay.
-
-If a specific execution step repeatedly triggers a compile error, the edge between them strengthens, raising the salience of the error and feeding it directly into the LLM system prompt. When a step is successfully completed, its stimulus is dampened, causing it to decay naturally from active focus.
-
-#### 3. Human-in-the-Loop Goal Approval Gate
-Before execution starts, LWM enforces a safety gate:
-1. The orchestrator generates a structured execution plan.
-2. LWM initializes a goal node for the root task and each plan step.
-3. A **Goal Confirmation Artifact** is generated showing the LWM's initial state.
-4. The agent transitions to the `waiting_goal_approval` state, pausing execution.
-5. Once a user approves via the REST API or CLI, the agent resumes execution.
+**Kodara** es un entorno local 100% offline para Linux diseñado para **Desarrollo Seguro, Ciberseguridad Táctica (Red/Blue Team) y Evolución Autónoma**. Combina una interfaz limpia centrada en **Proyectos** (inspirada en Antigravity), ejecución directa en **Modo `🛡️ Turbo`** para ambientes autorizados, un **Puente MCP de Ciberseguridad** y el motor **Kodara Evolution Engine** en **Rust + TypeScript**.
 
 ---
 
-## ✨ Core Features (V2 Architecture)
+## ✨ Características Principales
 
-### 1. 📉 True Vector RAG (Semantic Token Reduction)
-Instead of dumping entire source files into the LLM, OpenCentravity performs Tool-Level RAG. When an agent requests context, the `semantic_search` tool chunks the codebase, generates vector embeddings locally using **Gemini (`text-embedding-004`)**, performs **Cosine Similarity** calculations, and returns only the most relevant snippets.
-*Result: Context payload is reduced from 50,000+ tokens to under 500.*
-
-### 2. 🐍 Containerized Python Sandbox (Pass-by-Reference Memory)
-Passing large datasets through an LLM chat window degrades performance. OpenCentravity enforces a **Pass-by-Reference** workflow. Agents write and execute Python scripts within a secure **Docker container**. Data files (CSVs, databases) are saved to a shared workspace volume. One agent pulls or generates data, and the next reads it directly from disk. The LLM acts purely as a coordinator, never touching raw data.
-
-### 3. ⚡ Real Z3 SMT Formal Verification
-LLMs write code by probabilistic guessing. OpenCentravity mathematically proves correctness. Using the official **Microsoft `z3-solver` WASM library**, agents verify:
-- Array bounds safety (out-of-bounds checks).
-- Null/undefined dereference safety.
-- Integer overflow and underflow invariants.
-If verification fails, Z3 generates a concrete mathematical counterexample, forcing the agent to fix the bug before proceeding.
-
-### 4. 🤖 Multi-Agent Protocol & Persistent State
-- **Delegate Task Tool:** Agents can spawn specialized sub-agents with narrow scopes to solve complex sub-tasks in parallel.
-- **LibSQL / SQLite Database Persistence:** All agents, plans, execution steps, and messages are persisted in a local database (`data/opencentravity.db`). Agents can survive server restarts and resume execution without losing progress.
+### 1. Arquitectura de Dos Memorias Independientes (SQLite)
+Kodara separa física y lógicamente el aprendizaje de tus aplicaciones del diagnóstico interno del propio IDE:
+* **🧠 `Kodara Project Memory` (`src/kodara/evolution/project-memory.ts`)**:
+  * Aprende exclusivamente de los errores de compilación, fallos de pruebas, dependencias y hallazgos CWE que encuentra al **desarrollar y auditar aplicaciones** (Rust, TypeScript, Python).
+  * Incrementa automáticamente el contador de reutilización (`times_reused`) e inyecta las soluciones verificadas en el contexto del proyecto activo.
+* **⚙️ `Kodara Core Memory` (`src/kodara/evolution/core-memory.ts`)**:
+  * Registra exclusivamente problemas internos del propio motor Kodara (latencia de inferencia, parsers, concurrencia SQLite) y genera **propuestas de mejora supervisadas** en ramas aisladas (`~/.local/share/kodara/self-patches/`).
 
 ---
 
-## 🏗️ Architecture
-
-```mermaid
-graph TB
-    CLI["CLI (Commander.js)"] --> ORCH
-    API["REST API (Fastify :3777)"] --> ORCH
-    
-    subgraph Engine Core
-        ORCH["Agent Orchestrator"]
-        AGENT["Agent (Plan→Approve→Execute→Verify)"]
-        LWM["Liquid Working Memory"]
-        STATE[(LibSQL SQLite State)]
-        ORCH --> AGENT
-        AGENT <--> STATE
-        AGENT <--> LWM
-    end
-    
-    subgraph AI Layer
-        GW["Model Gateway"]
-        GW --> MOCK["Mock"]
-        GW --> GEMINI["Gemini"]
-        GW --> OLLAMA["Ollama"]
-        GW --> OPENAI["OpenAI"]
-        GW --> ATLAS["Atlas Cloud"]
-        GW --> ANTHROPIC["Anthropic"]
-    end
-    
-    subgraph "Tools Layer"
-        FS["read_file / write_file"]
-        TERM["run_command"]
-        RAG["semantic_search (Cosine Similarity) 📉"]
-        SANDBOX["python_sandbox (Docker + HitL) 🐍"]
-        Z3["z3_verify (SMT-LIB2) ⚡"]
-        DELEGATE["delegate_task 🤖"]
-    end
-    
-    subgraph Security & Trust
-        ART["Artifact Store"]
-        AUDIT["Audit Logger"]
-        POLICY["Policy Engine"]
-    end
-    
-    AGENT --> GW
-    AGENT --> FS & TERM & RAG & SANDBOX & Z3 & DELEGATE
-    AGENT --> ART & AUDIT
-    POLICY --> FS & TERM & SANDBOX
-    LWM -.->|"Context Injection"| GW
-    LWM -.->|"Telemetry"| API
-```
+### 2. Interfaz de Proyectos Estilo Antigravity + Modo `🛡️ Turbo` Sin Fricción
+* **Columna Izquierda (`Projects`)**: Gestión multiproyecto (`SamulibreLinux`, `WiSharkOpen`, `Ollama`, `CLI Project`) con historial persistente de conversaciones en SQLite.
+* **Columna Central (Flujo de Trabajo + Selector `🛡️ Turbo ⌄`)**:
+  * Dado que Kodara opera en **ambientes con permisos explícitos**, el modo **`🛡️ Turbo`** está activo por defecto para ejecutar auditorías, escaneos, compilaciones y reparaciones en sandbox **de forma directa e inmediata sin bloqueos ni tarjetas intermedias**.
+  * Incluye **Selector de Perfiles de Modelos con Consejero Integrado**:
+    1. `Qwen2.5-Coder 7B / Qwen3-Coder-30B-A3B` — Desarrollo Seguro, Scripting y Herramientas MCP.
+    2. `GLM-4.7-Flash` — Perfil Balanceado y Agentes Rápidos.
+    3. `Gemma-4-26B-A4B` — Análisis de Logs, Nmap, SIEM y Triaje.
+    4. `Devstral-Small-24B / DeepSeek-R1-14B` — Auditoría de Código (SAST) y Razonamiento Profundo.
+* **Columna Derecha (Workbench con Pestañas)**:
+  * Acceso en un clic a **`🧠 Kodara Project Memory`**, **`⚙️ Kodara Core Memory`** y **`🛡️ Arsenal & Activos`**.
 
 ---
 
-## 🚀 Quick Start
+### 3. Motor de Inferencia Local Optimizado para Hardware Linux
+* **100% Offline sobre Ollama / OpenAI Local API**:
+  * Fuerza automáticamente `num_ctx: 32768` (ventana de 32k tokens para evitar truncamiento silencioso en bucles de herramientas) y `num_threads: 8` (mapeado a los núcleos físicos del procesador AMD Ryzen 9 con aceleración en GPU NVIDIA RTX).
+* **Indexador Profundo de Proyectos (`src/indexer/project-indexer.ts`)**:
+  * Escanea recursivamente workspaces multi-crate en Rust (`Cargo.toml`, `src/lib.rs`) y proyectos TypeScript para alimentar al modelo con firmas reales.
 
-### Installation
+---
 
+### 4. Puente MCP de Ciberseguridad y Pre-procesador Anti-Desbordamiento
+* **Puente MCP (`src/kodara/mcp-bridge.ts`)**:
+  * Envuelve bajo esquemas JSON Schema validados 9 herramientas: `nmap`, `semgrep`, `trivy`, `whatweb`, `nuclei`, `tshark`, `whois`, `ffuf` y `gobuster`.
+  * Detecta binarios instalados en Linux y cuenta con analizador SAST/SCA y Web nativo integrado de respaldo.
+* **Compresor Anti-Desbordamiento (`src/kodara/output-preprocessor.ts`)**:
+  * Intercepta salidas extensas (> 200 líneas) y extrae únicamente puertos abiertos, servicios, hallazgos CWE/CVE y notas críticas en un resumen estructurado (`llmDigest`) antes de pasarlo al LLM.
+* **Árbol de Objetivos en Vivo y Exportador Markdown (`src/kodara/workspace-db.ts`)**:
+  * Construye automáticamente el mapa `Proyecto/IP ➔ Puertos ➔ Servicios ➔ Vulnerabilidades ➔ Notas` y exporta informes ejecutivos en Markdown con un solo clic (`/api/kodara/report`).
+
+---
+
+### 5. Kodara Evolution Engine (Módulos 1 al 8 en Rust + TypeScript)
+
+| Módulo | Componente | Descripción |
+| :--- | :--- | :--- |
+| **Núcleo Rust** | `rust-evolution-core/src/main.rs` | Normalización determinista de firmas (`RUSTC_E0308`, etc.), clasificación en las 5 categorías y sanitización de secretos. |
+| **Módulo 1** | `src/kodara/evolution/telemetry-otel.ts` | Telemetría local basada en **OpenTelemetry** con los 13 campos obligatorios, métricas de CPU/RAM/latencia/tokens y redacción PII (`PrivacyScrubber`). |
+| **Módulo 2** | `src/kodara/evolution/diagnostic-agent.ts` | **Kodara Diagnostic Agent**: distingue las 5 categorías (`PROJECT_CODE_ERROR`, `KODARA_ENGINE_ERROR`, `EXTERNAL_TOOL_ERROR`, `CONFIG_DEPENDENCY_ERROR`, `AI_AGENT_FAILURE`), naturaleza (`DETERMINISTIC`, `INTERMITTENT`, `ENVIRONMENTAL`) y traza de decisión. |
+| **Módulo 3** | `src/kodara/evolution/repair-agent.ts` | **Kodara Repair Agent**: ciclo de autocorrección en sandbox aislado (máx. 3 intentos), compilación real con `rustc` y ejecución de `rustc --test` / `bun test`, con reversión automática si falla la verificación. |
+| **Módulo 4** | `src/kodara/evolution/evolution-db.ts` | **Kodara Experience Memory**: persistencia SQLite con estados `VERIFIED`, `FAILED` y `PENDING_REVALIDATION` ante cambios de versión de herramientas. |
+| **Módulo 5** | `src/kodara/evolution/learning-agent.ts` | **Kodara Learning Agent**: bloqueo automático de estrategias que fallan reiteradamente (*Negative Knowledge*) y mejora de prompts. |
+| **Módulo 6** | `src/kodara/evolution/self-improvement-agent.ts` | **Kodara Self-Improvement Agent**: generación aislada de parches candidatos para el IDE con protección frente a *Prompt Injection*. |
+| **Módulo 7 & 8** | `src/kodara/evolution/index.ts` | Suite de evaluación reproducible (MTTR, tasa de éxito, cero regresiones) y Panel de Observabilidad en tiempo real. |
+
+---
+
+## 🚀 Instalación y Ejecución Rápida en Linux
+
+### 1. Compilar el Núcleo de Evolución en Rust
 ```bash
-# Clone the repository
-git clone https://github.com/mkrishna793/open-velocity.git
-cd open-velocity
-
-# Install dependencies inside the newcore engine
-cd newcore
-npm install
-
-# Setup environment variables
-cp .env.example .env
+cd rust-evolution-core
+cargo test
+cargo build --release
+cd ..
 ```
 
-To use Atlas Cloud, set its API key and select the built-in model:
-
+### 2. Instalar Dependencias y Ejecutar Pruebas Automatizadas
 ```bash
-ATLASCLOUD_API_KEY=your-api-key
-ATLASCLOUD_API_BASE=https://api.atlascloud.ai/v1
-DEFAULT_MODEL=atlas-cloud:qwen/qwen3.8-max
+bun install
+bun test src/kodara/evolution/
 ```
 
-### Usage (CLI)
-
+### 3. Iniciar el Servidor Kodara
 ```bash
-# Check engine status and available tools
-npm run cli info
-npm run cli tools
-
-# Run an agent (will pause at waiting_goal_approval)
-npm run cli run "Create a plan for developing a new feature"
-
-# Start interactive chat
-npm run cli chat
-```
-
-### Running Server
-```bash
-npm run server
-```
-Exposes the API on port `3777`.
-
----
-
-## 📡 LWM API Reference
-
-### 1. Telemetry
-Returns real-time cognitive telemetry of an agent's memory graph.
-- **Protocol:** `GET`
-- **Route:** `/agents/:id/memory/telemetry`
-- **Response:**
-```json
-{
-  "telemetry": {
-    "activeFocus": "goal:step2",
-    "activeGoals": ["root:task", "goal:step2"],
-    "cognitiveLoad": 0,
-    "swarmAttention": [
-      { "nodeId": "goal:step2", "activation": 0.85 },
-      { "nodeId": "root:task", "activation": 0.92 }
-    ]
-  },
-  "nodes": [...],
-  "edges": [...]
-}
-```
-
-### 2. Goal Approval
-Approves the agent's goals and resumes execution from the `waiting_goal_approval` state.
-- **Protocol:** `POST`
-- **Route:** `/agents/:id/memory/approve`
-
-### 3. Manual Stimulus Injection
-Manually injects an activation signal into a specific memory node.
-- **Protocol:** `POST`
-- **Route:** `/agents/:id/memory/stimulus`
-- **Payload:**
-```json
-{
-  "nodeId": "goal:step3",
-  "intensity": 0.5,
-  "content": "User redirected focus to step 3"
-}
+bun run src/cli.ts serve
+# Servidor activo en http://127.0.0.1:3777
 ```
 
 ---
 
-## 🧪 Testing
+## 🔌 Endpoints Principales de la API
 
-OpenCentravity contains a robust test suite covering memory dynamics, differential equation decay, Hebbian plasticity, and agent lifecycle integration.
-
-```bash
-npm test
-```
-
-The test files validate:
-- Node activation decay dynamics over ticks.
-- Goal bias anchoring (goals resist decay).
-- Edge propagation and Hebbian weight adjustments.
-- Message history pruning and LWM prompt prefix synthesis.
-- End-to-end agent planning, goal confirmation, and approval state-machine transitions.
+* `GET /api/projects` — Árbol de proyectos y conversaciones en SQLite.
+* `POST /chat/stream` — Streaming SSE con modo `turbo` directo, `num_ctx: 32768`, `num_threads: 8` e inyección automática de `Kodara Project Memory`.
+* `GET /api/kodara/memory/project` & `POST /api/kodara/memory/project` — Consulta y registro en **Kodara Project Memory**.
+* `GET /api/kodara/memory/core` & `POST /api/kodara/memory/core` — Consulta y propuestas supervisadas en **Kodara Core Memory**.
+* `GET /api/kodara/arsenal`, `POST /api/kodara/propose`, `POST /api/kodara/execute` — Puente MCP de Ciberseguridad.
+* `GET /api/kodara/targets` & `GET /api/kodara/report` — Mapa de activos en vivo e informe técnico en Markdown.
+* `GET /api/kodara/evolution/state` & `POST /api/kodara/evolution/benchmark` — Estado de observabilidad y benchmark reproducible de **Kodara Evolution Engine**.
 
 ---
 
-## 📜 License
-MIT License
+## 📄 Licencia
+MIT — *"Your Code. Your AI. Your Rules."*

@@ -4,8 +4,128 @@
 // ═══════════════════════════════════════════════════════════════
 
 import Fastify from 'fastify';
+import { readFileSync, existsSync, statSync, readdirSync } from 'fs';
+import { resolve, dirname, join, isAbsolute } from 'path';
+import { fileURLToPath } from 'url';
 import { loadConfig } from './config/index.js';
 import { AgentOrchestrator } from './orchestrator/index.js';
+import { memoryManager } from './memory/engineering-memory.js';
+import { ProjectIndexer } from './indexer/project-indexer.js';
+import { projectsTable } from './db/index.js';
+import { CybersecurityMCPBridge } from './kodara/mcp-bridge.js';
+import { OutputPreprocessor } from './kodara/output-preprocessor.js';
+import { KodaraWorkspaceDB } from './kodara/workspace-db.js';
+import {
+  KodaraEvolutionEngine,
+  KodaraEvolutionDB,
+  KodaraOpenTelemetry,
+  KodaraProjectMemory,
+  KodaraCoreMemory,
+} from './kodara/evolution/index.js';
+
+// ── Detector de Intención Táctica MCP (Genera tarjeta HITL automáticamente) ──
+function detectTacticalToolIntent(userMessage: string) {
+  const lower = userMessage.toLowerCase();
+  const ipOrHostMatch = userMessage.match(/(?:https?:\/\/[^\s]+|\b(?:\d{1,3}\.){3}\d{1,3}\b|\/home\/[^\s,;:]+)/i);
+  const target = ipOrHostMatch ? ipOrHostMatch[0] : '127.0.0.1';
+
+  if (lower.includes('nmap') || lower.includes('escanea') || lower.includes('puertos')) {
+    return CybersecurityMCPBridge.createHITLProposal('nmap', target);
+  }
+  if (lower.includes('semgrep') || lower.includes('sast') || lower.includes('audita el código') || lower.includes('auditar codigo')) {
+    const codeTarget = target.startsWith('/') ? target : '/home/saghet/Documents/SamulibreLinux';
+    return CybersecurityMCPBridge.createHITLProposal('semgrep', codeTarget);
+  }
+  if (lower.includes('trivy') || lower.includes('dependencias') || lower.includes('cve')) {
+    const codeTarget = target.startsWith('/') ? target : '/home/saghet/Documents/SamulibreLinux';
+    return CybersecurityMCPBridge.createHITLProposal('trivy', codeTarget);
+  }
+  if (lower.includes('whatweb') || lower.includes('cabeceras') || lower.includes('tecnologías web')) {
+    const webTarget = target.startsWith('http') ? target : 'http://127.0.0.1:3777';
+    return CybersecurityMCPBridge.createHITLProposal('whatweb', webTarget);
+  }
+  if (lower.includes('nuclei') || lower.includes('vulnerabilidades web')) {
+    const webTarget = target.startsWith('http') ? target : 'http://127.0.0.1:3777';
+    return CybersecurityMCPBridge.createHITLProposal('nuclei', webTarget);
+  }
+  if (lower.includes('tshark') || lower.includes('tráfico') || lower.includes('paquetes')) {
+    return CybersecurityMCPBridge.createHITLProposal('tshark', 'any');
+  }
+  if (lower.includes('whois') || lower.includes('osint') || lower.includes('dominio')) {
+    return CybersecurityMCPBridge.createHITLProposal('whois', target);
+  }
+  return null;
+}
+
+// ── Resolución de Perfiles de Modelos Kodara (Ryzen 9 + 32 GB RAM + RTX 4060) ──
+function resolveKodaraModelProfile(requestedProfile?: string): {
+  ollamaModel: string;
+  profileName: string;
+  rolePersona: string;
+} {
+  const raw = requestedProfile?.replace(/^ollama:/, '') || 'qwen2.5-coder:7b';
+
+  if (raw.includes('GLM-4.7-Flash') || raw.includes('glm')) {
+    return {
+      ollamaModel: 'qwen2.5-coder:7b',
+      profileName: 'GLM-4.7-Flash (30B-A3B MoE) — Balanceado / Agentes Rápidos',
+      rolePersona: 'Actúas bajo el perfil GLM-4.7-Flash (Agentes Tácticos Rápidos). Prioriza velocidad de respuesta, planes operativos concisos y orquestación ágil Red/Blue Team.'
+    };
+  }
+  if (raw.includes('Qwen3-Coder-30B-A3B') || raw.includes('qwen3-coder')) {
+    return {
+      ollamaModel: 'qwen2.5-coder:7b',
+      profileName: 'Qwen3-Coder-30B-A3B — Desarrollo Seguro y Herramientas MCP',
+      rolePersona: 'Actúas bajo el perfil Qwen3-Coder-30B-A3B. Especialista en Desarrollo Seguro (SecDevOps), creación de scripts defensivos en Rust/Python/Bash e invocación precisa de herramientas MCP.'
+    };
+  }
+  if (raw.includes('Gemma-4-26B-A4B') || raw.includes('gemma')) {
+    return {
+      ollamaModel: 'qwen2.5-coder:7b',
+      profileName: 'Gemma-4-26B-A4B — Análisis de Logs, Nmap, SIEM y Triaje',
+      rolePersona: 'Actúas bajo el perfil Gemma-4-26B-A4B. Especialista Blue Team en correlación de eventos SIEM, lectura de trazas Nmap/TShark, triaje de incidentes y detección de anomalías.'
+    };
+  }
+  if (raw.includes('Devstral-Small-24B') || raw.includes('DeepSeek-R1-14B') || raw.includes('deepseek')) {
+    return {
+      ollamaModel: 'qwen2.5-coder:7b',
+      profileName: 'Devstral-Small-24B / DeepSeek-R1-14B — Auditoría SAST y Razonamiento Profundo',
+      rolePersona: 'Actúas bajo el perfil Devstral-Small-24B / DeepSeek-R1-14B. Auditor principal de código estático (SAST), análisis de vulnerabilidades CWE/OWASP, memoria segura en Rust y remediación profunda.'
+    };
+  }
+
+  return {
+    ollamaModel: raw === 'smollm:135m' || raw === 'qwen2.5-coder:0.5b' ? raw : 'qwen2.5-coder:7b',
+    profileName: `${raw} — Motor Local en GPU`,
+    rolePersona: 'Actúas como Arquitecto Principal de Ciberseguridad y Desarrollo Seguro de Kodara.'
+  };
+}
+
+// ── Extractor e Inspector de Proyectos Locales (Estilo Antigravity) ──
+function extractProjectContext(userMessage: string, isMicroModel = false): { contextText: string; detectedPath: string | null } {
+  // Detectar rutas absolutas (/home/...) o relativas
+  const match = userMessage.match(/(\/(?:home|var|tmp|etc|usr|[a-zA-Z0-9_\-\.]+)\/[a-zA-Z0-9_\-\.\/]+)/);
+  if (!match) return { contextText: '', detectedPath: null };
+
+  const candidatePath = match[1].replace(/[.,;:!?]+$/, '');
+  if (!existsSync(candidatePath)) return { contextText: '', detectedPath: null };
+
+  try {
+    const stat = statSync(candidatePath);
+    if (!stat.isDirectory()) return { contextText: '', detectedPath: null };
+
+    // Indexación profunda con ProjectIndexer
+    const deepIndex = ProjectIndexer.index(candidatePath, isMicroModel ? 2000 : 25000);
+    if (deepIndex) {
+      const finalIndex = isMicroModel ? deepIndex.slice(0, 1800) : deepIndex;
+      return { contextText: finalIndex, detectedPath: candidatePath };
+    }
+
+    return { contextText: '', detectedPath: candidatePath };
+  } catch (err) {
+    return { contextText: '', detectedPath: null };
+  }
+}
 import type { EngineEvent } from './types/index.js';
 import * as swarmsTable from './db/tables/swarms.js';
 import * as agentsTable from './db/tables/agents.js';
@@ -21,31 +141,531 @@ export async function startServer(orchestrator?: AgentOrchestrator) {
 
   const app = Fastify({ logger: { level: config.logLevel } });
 
+  // ── Web Dashboard UI ──
+  app.get('/', async (req, reply) => {
+    const htmlPath = resolve(dirname(fileURLToPath(import.meta.url)), 'web/dashboard.html');
+    const html = readFileSync(htmlPath, 'utf-8');
+    reply.type('text/html').send(html);
+  });
+  app.get('/app', async (req, reply) => {
+    const htmlPath = resolve(dirname(fileURLToPath(import.meta.url)), 'web/dashboard.html');
+    const html = readFileSync(htmlPath, 'utf-8');
+    reply.type('text/html').send(html);
+  });
+
   // ── Health ──
   app.get('/health', async () => ({ status: 'ok', engine: 'OpenCentravity', version: '0.1.0' }));
 
   // ── Engine Info ──
   app.get('/info', async () => engine.getEngineInfo());
 
-  // ── Models ──
+  // ── Models (Prioridad Local y Descripciones en Español) ──
   app.get('/models', async () => {
-    const models = engine.getGateway().getAvailableModels();
-    const providers = await engine.getGateway().getAvailableProviders();
-    return { providers, models };
+    const localizedModels: any[] = [];
+    
+    // 1. Consultar modelos instalados localmente en Ollama
+    try {
+      const resp = await fetch(`${config.ollamaBaseUrl}/api/tags`, { signal: AbortSignal.timeout(1500) });
+      if (resp.ok) {
+        const data = await resp.json() as { models?: Array<{ name: string; size: number }> };
+        if (data.models && data.models.length > 0) {
+          for (const m of data.models) {
+            let label = m.name;
+            let role = 'Modelo local en GPU';
+            if (m.name.includes('qwen2.5-coder')) {
+              role = 'Especialista en Programación y Código (GPU)';
+            } else if (m.name.includes('deepseek-r1')) {
+              role = 'Razonamiento Profundo y Lógica (GPU)';
+            } else if (m.name.includes('smollm')) {
+              role = 'Inferencia Ultrarrápida en GPU';
+            } else if (m.name.includes('llama')) {
+              role = 'Asistente General Multiuso (GPU)';
+            }
+            let priority = 10;
+            if (m.name.includes('qwen2.5-coder:7b') || m.name.includes('coder:7b')) {
+              role = 'Modelo de Máxima Potencia para Proyectos Masivos (7B - GPU)';
+              priority = 200;
+            } else if (m.name.includes('qwen2.5-coder:1.5b')) {
+              role = 'Especialista en Programación y Código (1.5B - GPU)';
+              priority = 150;
+            } else if (m.name.includes('qwen2.5-coder')) {
+              role = 'Especialista en Programación y Código (GPU)';
+              priority = 100;
+            } else if (m.name.includes('deepseek')) {
+              role = 'Razonamiento Profundo y Lógica (GPU)';
+              priority = 80;
+            } else if (m.name.includes('llama')) {
+              role = 'Asistente General Multiuso (GPU)';
+              priority = 60;
+            } else if (m.name.includes('smollm')) {
+              role = 'Micro-modelo de Pruebas Rápidas';
+              priority = 20;
+            }
+
+            localizedModels.push({
+              id: m.name,
+              provider: 'ollama',
+              displayName: `${m.name} — ${role}`,
+              isLocal: true,
+              isRecommended: false,
+              priority
+            });
+          }
+        }
+      }
+    } catch {
+      // Ollama no respondió a tiempo
+    }
+
+    // Ordenar modelos para que los especialistas en código aparezcan primero
+    localizedModels.sort((a, b) => (b.priority || 0) - (a.priority || 0));
+    if (localizedModels.length > 0) {
+      localizedModels[0].isRecommended = true;
+    }
+
+    // Si aún no hay modelos listados en Ollama, agregar los preconfigurados
+    if (localizedModels.length === 0) {
+      localizedModels.push({
+        id: 'smollm:135m',
+        provider: 'ollama',
+        displayName: 'SmolLM 135M — Inferencia Ultrarrápida en GPU',
+        isLocal: true,
+        isRecommended: true
+      });
+    }
+
+    // 2. Modelos en la nube o simulación (colocados al final)
+    localizedModels.push({
+      id: 'mock-default',
+      provider: 'mock',
+      displayName: 'Simulador de Desarrollo (Pruebas Offline)',
+      isLocal: false,
+      isRecommended: false
+    });
+
+    return { models: localizedModels };
   });
 
   // ── Tools ──
   app.get('/tools', async () => {
     const tools = engine.getTools().getAll();
-    return tools.map(t => ({ name: t.name, description: t.description, parameters: t.parameters }));
+    const localizedTools: Record<string, { nombre: string; desc: string }> = {
+      read_file: { nombre: 'Lectura de archivos', desc: 'Examina el código o contenido de cualquier archivo del espacio de trabajo.' },
+      write_file: { nombre: 'Creación y edición de archivos', desc: 'Escribe, modifica y estructura código o archivos de configuración.' },
+      list_directory: { nombre: 'Explorador de directorios', desc: 'Navega por carpetas y lista archivos del proyecto.' },
+      run_command: { nombre: 'Ejecutor de comandos del sistema', desc: 'Corre comandos de consola, pruebas unitarias y empaquetadores.' },
+      search_code: { nombre: 'Búsqueda en código', desc: 'Localiza funciones, clases o texto en todo el proyecto mediante expresiones regulares.' },
+      semantic_search: { nombre: 'Búsqueda semántica inteligente', desc: 'Encuentra bloques de código relevantes mediante similitud vectorial.' },
+      python_sandbox: { nombre: 'Entorno aislado de Python', desc: 'Ejecuta scripts y cálculos de forma segura.' },
+      delegate_task: { nombre: 'Protocolo de agentes autónomos', desc: 'Despliega un subagente para resolver una subtarea especializada en paralelo.' },
+      git_operation: { nombre: 'Gestor de Git', desc: 'Consulta estado, diferencias, historiales y gestiona confirmaciones (commits).' },
+      lint_code: { nombre: 'Analizador de calidad de código', desc: 'Detecta errores sintácticos y estilo de código con ESLint o linters de Python.' },
+      type_check: { nombre: 'Verificador de tipos', desc: 'Comprueba la integridad de tipos en TypeScript o Python.' },
+      message_agent: { nombre: 'Mensajería entre agentes', desc: 'Comunica agentes en un equipo de trabajo para coordinar planes.' },
+      acquire_lock: { nombre: 'Control de concurrencia de archivos', desc: 'Evita colisiones cuando múltiples agentes editan simultáneamente.' },
+      release_lock: { nombre: 'Liberación de recursos', desc: 'Libera los archivos bloqueados al finalizar una edición.' },
+      z3_verify: { nombre: 'Verificación formal con Z3', desc: 'Comprobación matemática de invariantes lógicos.' },
+    };
+
+    return tools.map(t => ({
+      name: t.name,
+      displayName: localizedTools[t.name]?.nombre || t.name,
+      description: localizedTools[t.name]?.desc || t.description,
+      parameters: t.parameters
+    }));
   });
 
-  // ── Chat (Direct LLM access) ──
+  // ── Gestión de Proyectos e Historial (Estilo Antigravity IDE) ──
+  app.get('/api/projects', async () => {
+    return await projectsTable.listProjectsWithConversations();
+  });
+
+  app.post<{ Params: { id: string }; Body: { title: string } }>('/api/projects/:id/conversations', async (req) => {
+    const title = req.body?.title || 'Nueva Conversación';
+    return await projectsTable.createConversation(req.params.id, title);
+  });
+
+  app.get<{ Params: { id: string } }>('/api/conversations/:id/messages', async (req) => {
+    return await projectsTable.getConversationMessages(req.params.id);
+  });
+
+  app.post<{ Params: { id: string }; Body: { role: 'user' | 'assistant'; content: string; meta?: any } }>(
+    '/api/conversations/:id/messages',
+    async (req) => {
+      const { role, content, meta } = req.body;
+      return await projectsTable.saveProjectMessage(req.params.id, role, content, meta);
+    }
+  );
+
+  // ── Módulos de Ciberseguridad Táctica KODARA ("Your code, Your IA, Your Rules") ──
+  app.get('/api/kodara/arsenal', async () => {
+    return CybersecurityMCPBridge.getCatalog();
+  });
+
+  app.post<{ Body: { toolId: string; target: string; customCommand?: string } }>('/api/kodara/propose', async (req) => {
+    const { toolId, target, customCommand } = req.body;
+    return CybersecurityMCPBridge.createHITLProposal(toolId, target, customCommand);
+  });
+
+  app.post<{ Body: { toolId: string; target: string; command: string; installed: boolean; intrusionLevel: string } }>(
+    '/api/kodara/execute',
+    async (req) => {
+      const startMs = Date.now();
+      const { toolId, target, command, installed, intrusionLevel } = req.body;
+      const parsed = OutputPreprocessor.executeAndPreprocess(toolId, target, command, Boolean(installed));
+      await KodaraWorkspaceDB.recordExecution(parsed, intrusionLevel || 'Moderado');
+      await KodaraOpenTelemetry.emitEvent({
+        projectId: target,
+        agentId: 'kodara-mcp-bridge',
+        component: `tool:${toolId}`,
+        operation: command,
+        rawLog: parsed.llmDigest,
+        severity: parsed.findings.some((f) => f.severity === 'CRITICAL' || f.severity === 'HIGH') ? 'WARN' : 'INFO',
+        resolutionStatus: 'SUCCESS',
+        errorCategoryOverride: 'NONE',
+        errorSignatureOverride: `TOOL_OK_${toolId.toUpperCase()}`,
+        metrics: {
+          compileTimeMs: Date.now() - startMs,
+          inferenceLatencyMs: 0,
+          tokensUsed: Math.round(parsed.llmDigest.length / 4),
+          testPassedCount: 1,
+          testFailedCount: 0,
+        },
+      });
+      const targetTree = await KodaraWorkspaceDB.getTargetTree();
+      return { ok: true, parsed, targetTree };
+    }
+  );
+
+  app.get('/api/kodara/targets', async () => {
+    return await KodaraWorkspaceDB.getTargetTree();
+  });
+
+  app.post<{ Body: { target: string; note: string } }>('/api/kodara/targets/note', async (req) => {
+    await KodaraWorkspaceDB.addNote(req.body.target, req.body.note);
+    return await KodaraWorkspaceDB.getTargetTree();
+  });
+
+  app.get('/api/kodara/audit-logs', async () => {
+    return await KodaraWorkspaceDB.getAuditLogs(30);
+  });
+
+  app.get('/api/kodara/report', async (_req, reply) => {
+    const reportMd = await KodaraWorkspaceDB.exportMarkdownReport();
+    reply.header('Content-Type', 'text/markdown; charset=utf-8');
+    return reportMd;
+  });
+
+  // ── KODARA EVOLUTION ENGINE (Módulos 1 al 8: Telemetría, Diagnóstico, Autocorrección y Observabilidad) ──
+  app.get('/api/kodara/evolution/state', async () => {
+    return await KodaraEvolutionEngine.getObservabilityDashboardState();
+  });
+
+  app.post<{
+    Body: {
+      projectId: string;
+      component: string;
+      operation: string;
+      rawLog: string;
+      brokenSourceCode?: string;
+      sourceFileName?: string;
+      autoRepair?: boolean;
+    };
+  }>('/api/kodara/evolution/incident', async (req) => {
+    return await KodaraEvolutionEngine.processOperationOrIncident(req.body);
+  });
+
+  app.post('/api/kodara/evolution/benchmark', async () => {
+    const benchmark = await KodaraEvolutionEngine.runReproducibleBenchmarkSuite();
+    const state = await KodaraEvolutionEngine.getObservabilityDashboardState();
+    return { benchmark, state };
+  });
+
+  app.post<{
+    Body: {
+      telemetry_enabled?: boolean;
+      redact_secrets?: boolean;
+      autonomous_repair_enabled?: boolean;
+      max_auto_attempts?: number;
+    };
+  }>('/api/kodara/evolution/config', async (req) => {
+    const updated = await KodaraEvolutionDB.updateConfig(req.body);
+    return { ok: true, config: updated };
+  });
+
+  app.post('/api/kodara/evolution/purge', async () => {
+    const res = await KodaraEvolutionDB.purgeTelemetryHistory();
+    return { ok: true, ...res };
+  });
+
+  app.post<{
+    Params: { id: string };
+    Body: { status: 'APPROVED' | 'REJECTED' };
+  }>('/api/kodara/evolution/proposals/:id/decision', async (req) => {
+    await KodaraEvolutionDB.updateSelfImprovementStatus(req.params.id, req.body.status);
+    return { ok: true, proposals: await KodaraEvolutionDB.listSelfImprovementProposals() };
+  });
+
+  // ── DOS MEMORIAS INDEPENDIENTES: Kodara Project Memory & Kodara Core Memory ──
+  app.get<{ Querystring: { projectId?: string } }>('/api/kodara/memory/project', async (req) => {
+    return await KodaraProjectMemory.listMemories(req.query?.projectId);
+  });
+
+  app.post<{
+    Body: {
+      projectId: string;
+      projectName: string;
+      language?: 'rust' | 'typescript' | 'python' | 'security' | 'general';
+      errorSignature: string;
+      errorContext: string;
+      rootCause: string;
+      verifiedFix: string;
+    };
+  }>('/api/kodara/memory/project', async (req) => {
+    const entry = await KodaraProjectMemory.recordApplicationLearning(req.body);
+    return { ok: true, entry };
+  });
+
+  app.get('/api/kodara/memory/core', async () => {
+    return await KodaraCoreMemory.listCoreMemories();
+  });
+
+  app.post<{
+    Body: {
+      ideComponent: string;
+      issueSignature: string;
+      telemetrySummary: string;
+      rootCause: string;
+      supervisedProposal: string;
+    };
+  }>('/api/kodara/memory/core', async (req) => {
+    const entry = await KodaraCoreMemory.recordInternalIdeIssue(req.body);
+    return { ok: true, entry };
+  });
+
+  app.post<{
+    Params: { id: string };
+    Body: { status: 'APPROVED' | 'REJECTED' };
+  }>('/api/kodara/memory/core/:id/decision', async (req) => {
+    await KodaraCoreMemory.updateApprovalStatus(req.params.id, req.body.status);
+    return { ok: true, entries: await KodaraCoreMemory.listCoreMemories() };
+  });
+
+  // ── Sistema de Memoria y Telemetría de Ingeniería ──
+  app.get('/memory', async () => {
+    return memoryManager.getMemory();
+  });
+
+  app.post<{ Body: { rule: string } }>('/memory', async (req, reply) => {
+    if (!req.body?.rule) return reply.code(400).send({ error: 'Falta campo rule' });
+    memoryManager.addRule(req.body.rule);
+    return { ok: true, memory: memoryManager.getMemory() };
+  });
+
+  // ── Chat con Streaming en Tiempo Real, Modo Turbo Directo y Memorias Duales ──
+  app.post<{
+    Body: {
+      model?: string;
+      message: string;
+      history?: unknown[];
+      conversationId?: string;
+      projectId?: string;
+      executionMode?: 'turbo' | 'supervised';
+    };
+  }>('/chat/stream', async (req, reply) => {
+    const { model, message, history, projectId, executionMode } = req.body;
+    const isTurboMode = (executionMode || 'turbo') === 'turbo';
+    const resolvedProfile = resolveKodaraModelProfile(model);
+    const actualModel = resolvedProfile.ollamaModel;
+
+    const getNow = () => new Date().toLocaleTimeString('es-ES', { hour12: false });
+
+    // Preparar encabezados SSE
+    reply.raw.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
+    reply.raw.setHeader('Cache-Control', 'no-cache');
+    reply.raw.setHeader('Connection', 'keep-alive');
+    reply.raw.setHeader('Access-Control-Allow-Origin', '*');
+
+    // 1. Comando de aprendizaje rápido (/recordar o /learn)
+    if (message.startsWith('/recordar ') || message.startsWith('/learn ')) {
+      const rule = message.replace(/^\/(?:recordar|learn)\s+/, '').trim();
+      memoryManager.addRule(rule);
+      await KodaraProjectMemory.recordApplicationLearning({
+        projectId: projectId || 'proj_samulibre',
+        projectName: projectId === 'proj_wishark' ? 'WiSharkOpen' : projectId === 'proj_ollama' ? 'Ollama' : 'SamulibreLinux',
+        language: 'general',
+        errorSignature: `USER_RULE_${Date.now().toString(36).toUpperCase()}`,
+        errorContext: 'Directriz explícita de arquitectura o seguridad registrada por el usuario.',
+        rootCause: 'Preferencia operativa del proyecto.',
+        verifiedFix: rule,
+      });
+      reply.raw.write(`data: ${JSON.stringify({ log: { time: getNow(), text: `🧠 Kodara Project Memory actualizada: ${rule}`, level: 'success' } })}\n\n`);
+      reply.raw.write(`data: ${JSON.stringify({ chunk: `🧠 **Kodara Project Memory actualizada con éxito:**\n\nHe registrado en la memoria del proyecto la siguiente solución/regla:\n> *«${rule}»*\n\nSe aplicará automáticamente en este proyecto.`, done: true })}\n\n`);
+      reply.raw.end();
+      return;
+    }
+
+    reply.raw.write(`data: ${JSON.stringify({ log: { time: getNow(), text: `⚡ Modo ${isTurboMode ? 'TURBO (Ejecución Directa Autorizada)' : 'Supervisado'} • Perfil: ${resolvedProfile.profileName}`, level: 'info' } })}\n\n`);
+
+    // 1.5. Detector de Intención Táctica: En modo TURBO ejecuta directamente sin impedimentos
+    let turboToolDigest = '';
+    const hitlProposal = detectTacticalToolIntent(message);
+    if (hitlProposal) {
+      if (isTurboMode) {
+        reply.raw.write(`data: ${JSON.stringify({ log: { time: getNow(), text: `🚀 [Modo Turbo] Ejecutando directamente ${hitlProposal.toolName}: ${hitlProposal.command}`, level: 'success' } })}\n\n`);
+        const parsed = OutputPreprocessor.executeAndPreprocess(
+          hitlProposal.toolId,
+          hitlProposal.target,
+          hitlProposal.command,
+          hitlProposal.installed
+        );
+        await KodaraWorkspaceDB.recordExecution(parsed, hitlProposal.intrusionLevel);
+        turboToolDigest = parsed.llmDigest;
+        reply.raw.write(`data: ${JSON.stringify({ turboExecuted: { proposal: hitlProposal, parsed } })}\n\n`);
+      } else {
+        reply.raw.write(`data: ${JSON.stringify({ log: { time: getNow(), text: `🛡️ Modo Supervisado: Propuesta para ${hitlProposal.toolName}`, level: 'warning' } })}\n\n`);
+        reply.raw.write(`data: ${JSON.stringify({ hitlProposal })}\n\n`);
+      }
+    }
+
+    const isMicro = actualModel.includes('135m');
+    const numCtx = isMicro ? 2048 : 32768;
+    const numThreads = 8;
+
+    // 2. Inspección automática de proyectos locales si se menciona una ruta
+    const { contextText, detectedPath } = extractProjectContext(message, isMicro);
+    if (detectedPath) {
+      reply.raw.write(`data: ${JSON.stringify({ log: { time: getNow(), text: `🔍 Indexando estructura completa del proyecto en ${detectedPath}...`, level: 'info' } })}\n\n`);
+    }
+
+    // 3. Inyección de Kodara Project Memory + Memoria de Ingeniería
+    const memoryContext = memoryManager.generateSystemContext(detectedPath || undefined);
+    const projectMemoryBlock = await KodaraProjectMemory.buildProjectMemoryPromptBlock(projectId);
+    reply.raw.write(`data: ${JSON.stringify({ log: { time: getNow(), text: `🧠 Consultando Kodara Project Memory para reutilizar soluciones verificadas.`, level: 'info' } })}\n\n`);
+
+    const systemPrompt = `Eres KODARA ("Your Code. Your AI. Your Rules."), operando en un ambiente local autorizado en modo ${isTurboMode ? 'TURBO sin restricciones ni bloqueos' : 'Supervisado'}.
+${resolvedProfile.rolePersona}
+Responde SIEMPRE en español con lenguaje técnico, directo, estructurado y accionable.
+No pongas advertencias éticas innecesarias ni bloqueos: el entorno cuenta con permisos explícitos.
+${memoryContext}
+${projectMemoryBlock}`;
+
+    const chatMessages = [
+      { role: 'system', content: systemPrompt },
+      ...(history as any[] ?? []).map((m: any) => ({
+        role: m.role === 'user' ? 'user' : 'assistant',
+        content: m.content
+      })),
+      {
+        role: 'user',
+        content: `${contextText ? `${contextText}\n\n` : ''}${turboToolDigest ? `${turboToolDigest}\n\n` : ''}${message}`
+      }
+    ];
+
+    reply.raw.write(`data: ${JSON.stringify({ log: { time: getNow(), text: `🚀 Motor local (${actualModel}) • Ryzen 9 (${numThreads} hilos físicos) + RTX 4060 • num_ctx: ${numCtx}`, level: 'info' } })}\n\n`);
+
+    try {
+      const ollamaResp = await fetch(`${config.ollamaBaseUrl}/api/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: actualModel,
+          messages: chatMessages,
+          stream: true,
+          options: {
+            temperature: 0.15,
+            repeat_penalty: 1.25,
+            repeat_last_n: 256,
+            top_p: 0.9,
+            num_ctx: numCtx,
+            num_threads: numThreads
+          }
+        })
+      });
+
+      if (!ollamaResp.ok || !ollamaResp.body) {
+        reply.raw.write(`data: ${JSON.stringify({ log: { time: getNow(), text: `⚠️ Respuesta inesperada de Ollama, activando motor alternativo...`, level: 'warning' } })}\n\n`);
+        const fallback = await engine.getGateway().complete({
+          model: model ?? config.defaultModel,
+          messages: [{ role: 'user', content: message }]
+        });
+        reply.raw.write(`data: ${JSON.stringify({ chunk: fallback.content, done: true })}\n\n`);
+        reply.raw.end();
+        return;
+      }
+
+      reply.raw.write(`data: ${JSON.stringify({ log: { time: getNow(), text: `📡 Inferencia iniciada. Transmitiendo tokens en tiempo real...`, level: 'success' } })}\n\n`);
+
+      const reader = ollamaResp.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+      const recentLines: string[] = [];
+      let loopStopped = false;
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+
+        for (const line of lines) {
+          if (!line.trim()) continue;
+          try {
+            const parsed = JSON.parse(line);
+            const chunk = parsed.message?.content || parsed.response || '';
+
+            // Detector anti-bucles y anti-basura en el stream
+            if (chunk.includes('\n')) {
+              const sublines = chunk.split('\n').map((s: string) => s.trim()).filter((s: string) => s.length > 8);
+              for (const sl of sublines) {
+                if (recentLines.length >= 2 && recentLines[recentLines.length - 1] === sl && recentLines[recentLines.length - 2] === sl) {
+                  loopStopped = true;
+                  break;
+                }
+                recentLines.push(sl);
+                if (recentLines.length > 20) recentLines.shift();
+              }
+            }
+
+            if (loopStopped) {
+              reply.raw.write(`data: ${JSON.stringify({ log: { time: getNow(), text: `🛡️ Filtro anti-bucles activado: detenido texto redundante.`, level: 'warning' } })}\n\n`);
+              reply.raw.write(`data: ${JSON.stringify({ chunk: '\n\n*(Análisis estructurado finalizado)*', done: true })}\n\n`);
+              break;
+            }
+
+            reply.raw.write(`data: ${JSON.stringify({ chunk, done: parsed.done || false })}\n\n`);
+          } catch {}
+        }
+        if (loopStopped) break;
+      }
+
+      if (buffer.trim() && !loopStopped) {
+        try {
+          const parsed = JSON.parse(buffer);
+          reply.raw.write(`data: ${JSON.stringify({ chunk: parsed.message?.content || parsed.response || '', done: true })}\n\n`);
+        } catch {}
+      }
+
+      reply.raw.write(`data: ${JSON.stringify({ log: { time: getNow(), text: `✅ Tarea completada exitosamente. Modelo en reposo.`, level: 'success' } })}\n\n`);
+      reply.raw.write(`data: ${JSON.stringify({ done: true })}\n\n`);
+      reply.raw.end();
+    } catch (err: any) {
+      reply.raw.write(`data: ${JSON.stringify({ log: { time: getNow(), text: `❌ Error en el procesamiento: ${err.message}`, level: 'error' } })}\n\n`);
+      reply.raw.write(`data: ${JSON.stringify({ error: err.message || 'Error de comunicación local' })}\n\n`);
+      reply.raw.end();
+    }
+  });
+
+  // ── Chat estándar (Direct LLM access) ──
   app.post<{ Body: { model?: string; message: string; history?: unknown[] } }>('/chat', async (req) => {
     const { model, message, history } = req.body;
+    const { contextText, detectedPath } = extractProjectContext(message);
+    const memoryContext = memoryManager.generateSystemContext(detectedPath || undefined);
+    const effectiveMessage = `${memoryContext}${contextText ? `${contextText}\n\n` : ''}Instrucción del usuario:\n${message}`;
     const messages = [
       ...(history as any[] ?? []),
-      { role: 'user' as const, content: message },
+      { role: 'user' as const, content: effectiveMessage },
     ];
     const response = await engine.getGateway().complete({
       model: model ?? config.defaultModel,

@@ -106,22 +106,26 @@ export class ModelGateway {
   }
 
   resolveModel(modelSpec: string): { provider: string; model: string } {
-    // Format: "provider:model" or just "model" or just "provider"
-    if (modelSpec.includes(':')) {
-      const [provider, model] = modelSpec.split(':', 2);
-      return { provider, model };
+    // Check if it's a model id directly registered (e.g. "qwen2.5-coder:7b", "smollm:135m")
+    const providerName = this.modelToProvider.get(modelSpec);
+    if (providerName) {
+      return { provider: providerName, model: modelSpec };
+    }
+
+    // Format: "provider:model" (e.g. "ollama:qwen2.5-coder:7b")
+    const firstColon = modelSpec.indexOf(':');
+    if (firstColon !== -1) {
+      const provider = modelSpec.slice(0, firstColon);
+      const model = modelSpec.slice(firstColon + 1);
+      if (this.providers.has(provider)) {
+        return { provider, model };
+      }
     }
 
     // Check if it's a provider name
     if (this.providers.has(modelSpec)) {
       const provider = this.providers.get(modelSpec)!;
       return { provider: modelSpec, model: provider.models[0]?.id ?? modelSpec };
-    }
-
-    // Check if it's a model id
-    const providerName = this.modelToProvider.get(modelSpec);
-    if (providerName) {
-      return { provider: providerName, model: modelSpec };
     }
 
     // Default

@@ -135,8 +135,19 @@ export class PolicyEngine implements PolicyChecker {
   }
 
   private isWithinWorkspace(target: string, workspaceDir: string): boolean {
+    const config = getConfig();
     const resolved = isAbsolute(target) ? target : resolve(workspaceDir, target);
+    
+    // Check against current workspaceDir
     const rel = relative(workspaceDir, resolved);
-    return !rel.startsWith('..') && !isAbsolute(rel);
+    if (!rel.startsWith('..') && !isAbsolute(rel)) return true;
+
+    // Check against configured workspaceRoot (e.g. /home/saghet/Documents)
+    if (config.workspaceRoot) {
+      const relRoot = relative(config.workspaceRoot, resolved);
+      if (!relRoot.startsWith('..') && !isAbsolute(relRoot)) return true;
+    }
+
+    return false;
   }
 }

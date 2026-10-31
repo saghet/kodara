@@ -5,7 +5,8 @@
 
 import { z } from 'zod';
 import { readFileSync, existsSync } from 'fs';
-import { resolve } from 'path';
+import { resolve, dirname } from 'path';
+import { fileURLToPath } from 'url';
 
 // ── Schema ──
 
@@ -83,9 +84,10 @@ function loadEnvFile(path: string): Record<string, string> {
 }
 
 export function loadConfig(overrides?: Partial<Config>): Config {
-  // Load .env file from project root
-  const envPath = resolve(process.cwd(), '.env');
-  const envVars = { ...loadEnvFile(envPath), ...process.env };
+  // Load .env file from local directory, project directory, or user config
+  const localEnv = resolve(process.cwd(), '.env');
+  const projectEnv = resolve(dirname(fileURLToPath(import.meta.url)), '../..', '.env');
+  const envVars = { ...loadEnvFile(projectEnv), ...loadEnvFile(localEnv), ...process.env };
 
   const raw = {
     port: envVars.PORT ? parseInt(envVars.PORT, 10) : undefined,

@@ -1,0 +1,7 @@
+[package]
+name = "kodara-evolution-core"
+version = "0.1.0"
+edition = "2021"
+description = "Kodara Evolution Engine — Rust Core for Error Signature Normalization, Privacy Scrubbing & Fast Classification"
+
+[dependencies]

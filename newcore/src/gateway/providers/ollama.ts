@@ -9,6 +9,9 @@ import type {
 export class OllamaProvider implements ModelProvider {
   readonly name = 'ollama';
   readonly models: ModelInfo[] = [
+    { id: 'qwen2.5-coder:7b', provider: 'ollama', name: 'Qwen 2.5 Coder 7B (Local)', contextWindow: 32_768, maxOutputTokens: 8_192, supportsTools: true, supportsStreaming: true, costPerInputToken: 0, costPerOutputToken: 0 },
+    { id: 'deepseek-r1:8b', provider: 'ollama', name: 'DeepSeek R1 8B (Local)', contextWindow: 32_768, maxOutputTokens: 8_192, supportsTools: true, supportsStreaming: true, costPerInputToken: 0, costPerOutputToken: 0 },
+    { id: 'smollm:135m', provider: 'ollama', name: 'SmolLM 135M (Local Test)', contextWindow: 2_048, maxOutputTokens: 1_024, supportsTools: false, supportsStreaming: true, costPerInputToken: 0, costPerOutputToken: 0 },
     { id: 'llama3', provider: 'ollama', name: 'Llama 3 (Local)', contextWindow: 8_192, maxOutputTokens: 4_096, supportsTools: false, supportsStreaming: true, costPerInputToken: 0, costPerOutputToken: 0 },
     { id: 'codellama', provider: 'ollama', name: 'Code Llama (Local)', contextWindow: 16_384, maxOutputTokens: 4_096, supportsTools: false, supportsStreaming: true, costPerInputToken: 0, costPerOutputToken: 0 },
     { id: 'deepseek-coder', provider: 'ollama', name: 'DeepSeek Coder (Local)', contextWindow: 16_384, maxOutputTokens: 4_096, supportsTools: false, supportsStreaming: true, costPerInputToken: 0, costPerOutputToken: 0 },

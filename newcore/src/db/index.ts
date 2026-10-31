@@ -224,6 +224,7 @@ export * as locks      from './tables/locks.js';
 export * as lwm        from './tables/lwm-snapshots.js';
 export * as cost       from './tables/cost-events.js';
 export * as audit      from './tables/audit.js';
+export * as projectsTable from './tables/projects.js';
 
 // Migration + backup utilities
 export { runMigrations, migrationStatus, discoverMigrations } from './migrate.js';
