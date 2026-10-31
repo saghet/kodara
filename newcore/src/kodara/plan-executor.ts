@@ -114,8 +114,10 @@ export class KodaraPlanExecutor {
       // Eliminar enlaces falsos javascript:void o imgur simulando botones
       .replace(/\[!\[[^\]]*\]\([^)]*\)\]\(javascript:[^)]*\)/gi, '')
       .replace(/\[[^\]]*proceder[^\]]*\]\(javascript:[^)]*\)/gi, '')
+      // Eliminar marcadores en texto plano como [▶ Proceed], [Proceed], [▶ Proceder], [Proceder]
+      .replace(/\[\s*(?:▶|►|>)?\s*(?:Proceed|Proceder|Ejecutar(?:\s+Plan|\s+Ahora)?)\s*\]/gi, '')
       // Eliminar encabezados de "Botón Proceder" falsos
-      .replace(/#*\s*\*\*?Botón\s+"?Proceder"?\*\*?:?/gi, '')
+      .replace(/#*\s*\*\*?Botón\s+"?(?:Proceder|Proceed)"?\*\*?:?/gi, '')
       .replace(/Para proceder al plan propuesto\s*:/gi, '')
       // Eliminar la frase de representación simbólica
       .replace(/\*\*?Nota:?\*\*?\s*Este botón es una representación simbólica[^\n]*/gi, '')
@@ -128,18 +130,26 @@ export class KodaraPlanExecutor {
    * Detecta si el mensaje del usuario o la respuesta del modelo constituye un plan de trabajo o mejora
    */
   public static shouldAttachExecutablePlan(userMessage: string, aiResponse: string): boolean {
-    const u = userMessage.toLowerCase();
-    const a = aiResponse.toLowerCase();
+    const u = (userMessage || '').toLowerCase();
+    const a = (aiResponse || '').toLowerCase();
     return (
       u.includes('plan') ||
       u.includes('mejora') ||
       u.includes('procede') ||
-      u.includes('implementa') ||
-      u.includes('audita') ||
-      u.includes('compila') ||
-      a.includes('plan de trabajo') ||
+      u.includes('implement') ||
+      u.includes('audit') ||
+      u.includes('compil') ||
+      u.includes('solucion') ||
+      u.includes('corrig') ||
+      u.includes('crea') ||
+      u.includes('analiza') ||
+      u.includes('revisa') ||
+      a.includes('plan') ||
+      a.includes('paso 1') ||
       a.includes('fase 1') ||
-      a.includes('1.')
+      a.includes('resumen') ||
+      a.includes('1.') ||
+      a.includes('###')
     );
   }
 

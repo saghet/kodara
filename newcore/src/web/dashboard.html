@@ -1607,10 +1607,49 @@
       if (!text) return '';
       return text
         .replace(/\[!\[[^\]]*\]\([^)]*\)\]\(javascript:[^)]*\)/gi, '')
-        .replace(/#*\s*\*\*?Botón\s+"?Proceder"?\*\*?:?/gi, '')
+        .replace(/\[[^\]]*proceder[^\]]*\]\(javascript:[^)]*\)/gi, '')
+        .replace(/\[\s*(?:▶|►|>)?\s*(?:Proceed|Proceder|Ejecutar(?:\s+Plan|\s+Ahora)?)\s*\]/gi, '')
+        .replace(/#*\s*\*\*?Botón\s+"?(?:Proceder|Proceed)"?\*\*?:?/gi, '')
         .replace(/Para proceder al plan propuesto\s*:/gi, '')
         .replace(/\*\*?Nota:?\*\*?\s*Este botón es una representación simbólica[^\n]*/gi, '')
+        .replace(/Nota:\s*Este botón es una representación simbólica[^\n]*/gi, '')
         .trim();
+    }
+
+    function isPlanOrActionResponse(userMsg, aiMsg) {
+      const u = (userMsg || '').toLowerCase();
+      const a = (aiMsg || '').toLowerCase();
+      return (
+        u.includes('plan') ||
+        u.includes('mejora') ||
+        u.includes('procede') ||
+        u.includes('implement') ||
+        u.includes('audit') ||
+        u.includes('compil') ||
+        u.includes('solucion') ||
+        u.includes('corrig') ||
+        u.includes('crea') ||
+        u.includes('analiza') ||
+        u.includes('revisa') ||
+        a.includes('plan') ||
+        a.includes('paso 1') ||
+        a.includes('fase 1') ||
+        a.includes('resumen') ||
+        a.includes('1.') ||
+        a.includes('###')
+      );
+    }
+
+    async function proceedWithLatestActivePlan() {
+      try {
+        const resp = await fetch(`/api/kodara/plans?projectId=${encodeURIComponent(activeProjectId)}`);
+        const plans = await resp.json();
+        if (plans && plans.length > 0) {
+          await proceedWithPlan(plans[0].plan_id);
+        } else {
+          await generateQuickExecutablePlan();
+        }
+      } catch {}
     }
 
     async function sendChatMessage() {
@@ -1643,40 +1682,76 @@
 
         const reader = resp.body.getReader();
         const decoder = new TextDecoder();
+        let sseBuffer = '';
         let fullText = '';
         let attachedPlanHtml = '';
+
+        const processSseLine = (ln) => {
+          if (!ln.startsWith('data: ')) return;
+          const payload = ln.slice(6).trim();
+          if (!payload || payload === '[DONE]') return;
+          try {
+            const data = JSON.parse(payload);
+            if (data.turboExecuted) {
+              fullText += data.turboExecuted.parsed.llmDigest + '\n\n---\n\n';
+              aiNode.innerHTML = formatMarkdown(stripSymbolicDisclaimersClient(fullText)) + attachedPlanHtml;
+              loadTargetTree();
+            }
+            if (data.chunk) {
+              fullText += data.chunk;
+              aiNode.innerHTML = formatMarkdown(stripSymbolicDisclaimersClient(fullText)) + attachedPlanHtml;
+              scrollChatBottom();
+            }
+            if (data.executablePlan) {
+              attachedPlanHtml = renderExecutablePlanCardHTML(data.executablePlan);
+              aiNode.innerHTML = formatMarkdown(stripSymbolicDisclaimersClient(fullText)) + attachedPlanHtml;
+              scrollChatBottom();
+            }
+          } catch {}
+        };
 
         while (true) {
           const { value, done } = await reader.read();
           if (done) break;
-          const chunkStr = decoder.decode(value, { stream: true });
-          const lines = chunkStr.split('\n');
+          sseBuffer += decoder.decode(value, { stream: true });
+          const lines = sseBuffer.split('\n');
+          sseBuffer = lines.pop() || '';
           for (const ln of lines) {
-            if (!ln.startsWith('data: ')) continue;
-            const payload = ln.slice(6).trim();
-            if (!payload || payload === '[DONE]') continue;
-            try {
-              const data = JSON.parse(payload);
-              if (data.turboExecuted) {
-                fullText += data.turboExecuted.parsed.llmDigest + '\n\n---\n\n';
-                aiNode.innerHTML = formatMarkdown(stripSymbolicDisclaimersClient(fullText)) + attachedPlanHtml;
-                loadTargetTree();
-              }
-              if (data.chunk) {
-                fullText += data.chunk;
-                aiNode.innerHTML = formatMarkdown(stripSymbolicDisclaimersClient(fullText)) + attachedPlanHtml;
-                scrollChatBottom();
-              }
-              if (data.executablePlan) {
-                attachedPlanHtml = renderExecutablePlanCardHTML(data.executablePlan);
-                aiNode.innerHTML = formatMarkdown(stripSymbolicDisclaimersClient(fullText)) + attachedPlanHtml;
-                scrollChatBottom();
-              }
-            } catch {}
+            processSseLine(ln);
           }
+        }
+        if (sseBuffer.trim()) {
+          processSseLine(sseBuffer.trim());
         }
 
         const cleanFinal = stripSymbolicDisclaimersClient(fullText);
+
+        // Capa 3 (Garantía Infalible): Si el usuario pidió un plan/mejora o la respuesta es estructurada
+        // y aún no se adjuntó la tarjeta por cualquier razón, crearla e inyectarla siempre
+        if (!attachedPlanHtml && isPlanOrActionResponse(text, cleanFinal)) {
+          try {
+            const planResp = await fetch('/api/kodara/plans', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                projectId: activeProjectId,
+                projectName: activeProjectName,
+                projectPath: activeProjectPath,
+                title: `Plan de Acción Ejecutable — ${activeProjectName}`,
+                summary: `Plan de 4 fases listo para ejecutarse físicamente en Linux sobre ${activeProjectPath} (Indexación, SAST, Compilación/Tests en Sandbox y Kodara Project Memory).`,
+                markdownContent: cleanFinal
+              })
+            });
+            const planData = await planResp.json();
+            if (planData && planData.plan) {
+              attachedPlanHtml = renderExecutablePlanCardHTML(planData.plan);
+            }
+          } catch {}
+        }
+
+        aiNode.innerHTML = formatMarkdown(cleanFinal) + attachedPlanHtml;
+        scrollChatBottom();
+
         chatHistory.push({ role: 'user', content: text });
         chatHistory.push({ role: 'assistant', content: cleanFinal });
         loadProjectMemory();
@@ -1754,7 +1829,7 @@
     }
 
     function formatMarkdown(str) {
-      let out = escapeHtml(str);
+      let out = escapeHtml(stripSymbolicDisclaimersClient(str));
       out = out.replace(/```([a-zA-Z0-9_\-\+]*)\n([\s\S]*?)```/g, (_m, _lang, code) => `<div class="code-block"><pre>${code.trim()}</pre></div>`);
       out = out.replace(/`([^`]+)`/g, '<code style="background:#23232c;color:#38bdf8;padding:1px 5px;border-radius:4px;font-family:var(--font-mono)">$1</code>');
       out = out.replace(/\*\*([^*]+)\*\*/g, '<b style="color:#fff">$1</b>');

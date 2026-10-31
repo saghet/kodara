@@ -17,12 +17,16 @@ describe('Kodara Executable Plan Engine ("[▶ Proceed]" Real Execution)', () =>
       'Para proceder al plan propuesto:',
       '[![Antigraviti](https://i.imgur.com/2ZJLwzQ.png)](javascript:void(0);alert("Plan de trabajo iniciado"))',
       '**Nota:** Este botón es una representación simbólica y no ejecuta ninguna acción específica dentro del entorno actual.',
+      '[▶ Proceed]',
+      '[Proceder]',
     ].join('\n');
 
     const cleaned = KodaraPlanExecutor.stripSymbolicButtonHallucinations(hallucinated);
     expect(cleaned).not.toContain('imgur.com');
     expect(cleaned).not.toContain('javascript:void');
     expect(cleaned).not.toContain('representación simbólica');
+    expect(cleaned).not.toContain('[▶ Proceed]');
+    expect(cleaned).not.toContain('[Proceder]');
     expect(cleaned).toContain('Pruebas Automatizadas Extensas');
   });
 

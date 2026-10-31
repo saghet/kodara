@@ -812,7 +812,7 @@ export async function startServer(orchestrator?: AgentOrchestrator) {
     const systemPrompt = `Eres KODARA ("Your Code. Your AI. Your Rules."), operando en un ambiente local autorizado en modo ${isTurboMode ? 'TURBO sin restricciones ni bloqueos' : 'Supervisado'}.
 ${resolvedProfile.rolePersona}
 Responde SIEMPRE en español con lenguaje técnico, directo, estructurado y accionable.
-REGLA CRÍTICA DE INTERFAZ: Kodara adjunta automáticamente una Tarjeta de Artefacto Nativa con un botón real "[▶ Proceed]" al final de tus planes. Por lo tanto, JAMÁS dibujes botones falsos en Markdown (como imgur o javascript:void(0)) y JAMÁS escribas "Nota: Este botón es una representación simbólica".
+REGLA CRÍTICA DE INTERFAZ: El sistema gráfico de Kodara renderiza automáticamente su propia tarjeta de ejecución debajo de tu mensaje. Por lo tanto, finaliza tu respuesta directamente con el resumen técnico; NUNCA escribas botones en texto ni entre corchetes, NUNCA uses javascript:void(0) y NUNCA escribas notas sobre botones simbólicos.
 ${memoryContext}
 ${projectMemoryBlock}`;
 
@@ -855,7 +855,20 @@ ${projectMemoryBlock}`;
           model: model ?? config.defaultModel,
           messages: [{ role: 'user', content: message }]
         });
-        reply.raw.write(`data: ${JSON.stringify({ chunk: fallback.content, done: true })}\n\n`);
+        const cleanFallback = KodaraPlanExecutor.stripSymbolicButtonHallucinations(fallback.content);
+        reply.raw.write(`data: ${JSON.stringify({ chunk: cleanFallback, done: false })}\n\n`);
+        if (KodaraPlanExecutor.shouldAttachExecutablePlan(message, cleanFallback)) {
+          const fallbackPlan = await KodaraPlanExecutor.createExecutablePlan({
+            projectId: projectId || 'proj_samulibre',
+            projectName: projectName || 'SamulibreLinux',
+            projectPath: effectiveProjectPath,
+            title: `Plan de Acción Ejecutable — ${projectName || 'SamulibreLinux'}`,
+            summary: 'Plan de 4 fases listo para ejecutarse físicamente en Linux (Indexación, SAST, Compilación/Tests en Sandbox y consolidación en Kodara Project Memory).',
+            markdownContent: cleanFallback,
+          });
+          reply.raw.write(`data: ${JSON.stringify({ executablePlan: { ...fallbackPlan, markdown_content: '' } })}\n\n`);
+        }
+        reply.raw.write(`data: ${JSON.stringify({ done: true })}\n\n`);
         reply.raw.end();
         return;
       }
@@ -931,7 +944,8 @@ ${projectMemoryBlock}`;
           summary: 'Plan de 4 fases listo para ejecutarse físicamente en Linux (Indexación, SAST, Compilación/Tests en Sandbox y consolidación en Kodara Project Memory).',
           markdownContent: cleanedFinal,
         });
-        reply.raw.write(`data: ${JSON.stringify({ sanitizedFullContent: cleanedFinal, executablePlan: planArtifact })}\n\n`);
+        // Enviar payload SSE compacto (< 600 bytes) para evitar fragmentación TCP en respuestas extensas
+        reply.raw.write(`data: ${JSON.stringify({ executablePlan: { ...planArtifact, markdown_content: '' } })}\n\n`);
       }
 
       reply.raw.write(`data: ${JSON.stringify({ log: { time: getNow(), text: `✅ Tarea completada exitosamente. Modelo en reposo.`, level: 'success' } })}\n\n`);
