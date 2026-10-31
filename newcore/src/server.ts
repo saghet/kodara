@@ -15,6 +15,7 @@ import { projectsTable } from './db/index.js';
 import { CybersecurityMCPBridge } from './kodara/mcp-bridge.js';
 import { OutputPreprocessor } from './kodara/output-preprocessor.js';
 import { KodaraWorkspaceDB } from './kodara/workspace-db.js';
+import { KodaraPlanExecutor } from './kodara/plan-executor.js';
 import {
   KodaraEvolutionEngine,
   KodaraEvolutionDB,
@@ -286,7 +287,11 @@ export async function startServer(orchestrator?: AgentOrchestrator) {
   });
 
   app.get<{ Params: { id: string } }>('/api/conversations/:id/messages', async (req) => {
-    return await projectsTable.getConversationMessages(req.params.id);
+    const msgs = await projectsTable.getConversationMessages(req.params.id);
+    return msgs.map((m: any) => ({
+      ...m,
+      content: KodaraPlanExecutor.stripSymbolicButtonHallucinations(m.content || ''),
+    }));
   });
 
   app.post<{ Params: { id: string }; Body: { role: 'user' | 'assistant'; content: string; meta?: any } }>(
@@ -451,6 +456,30 @@ export async function startServer(orchestrator?: AgentOrchestrator) {
     return { ok: true, entries: await KodaraCoreMemory.listCoreMemories() };
   });
 
+  // ── MOTOR DE PLANES EJECUTABLES Y BOTÓN REAL "[▶ PROCEED]" (ESTILO ANTIGRAVITY) ──
+  app.get<{ Querystring: { projectId?: string } }>('/api/kodara/plans', async (req) => {
+    return await KodaraPlanExecutor.listPlans(req.query?.projectId);
+  });
+
+  app.post<{
+    Body: {
+      projectId: string;
+      projectName: string;
+      projectPath: string;
+      title: string;
+      summary: string;
+      markdownContent: string;
+    };
+  }>('/api/kodara/plans', async (req) => {
+    const plan = await KodaraPlanExecutor.createExecutablePlan(req.body);
+    return { ok: true, plan };
+  });
+
+  app.post<{ Params: { id: string } }>('/api/kodara/plans/:id/execute', async (req) => {
+    const executedPlan = await KodaraPlanExecutor.executePlanById(req.params.id);
+    return { ok: true, plan: executedPlan };
+  });
+
   // ── Sistema de Memoria y Telemetría de Ingeniería ──
   app.get('/memory', async () => {
     return memoryManager.getMemory();
@@ -470,10 +499,12 @@ export async function startServer(orchestrator?: AgentOrchestrator) {
       history?: unknown[];
       conversationId?: string;
       projectId?: string;
+      projectName?: string;
+      projectPath?: string;
       executionMode?: 'turbo' | 'supervised';
     };
   }>('/chat/stream', async (req, reply) => {
-    const { model, message, history, projectId, executionMode } = req.body;
+    const { model, message, history, projectId, projectName, projectPath, executionMode } = req.body;
     const isTurboMode = (executionMode || 'turbo') === 'turbo';
     const resolvedProfile = resolveKodaraModelProfile(model);
     const actualModel = resolvedProfile.ollamaModel;
@@ -492,7 +523,7 @@ export async function startServer(orchestrator?: AgentOrchestrator) {
       memoryManager.addRule(rule);
       await KodaraProjectMemory.recordApplicationLearning({
         projectId: projectId || 'proj_samulibre',
-        projectName: projectId === 'proj_wishark' ? 'WiSharkOpen' : projectId === 'proj_ollama' ? 'Ollama' : 'SamulibreLinux',
+        projectName: projectName || (projectId === 'proj_wishark' ? 'WiSharkOpen' : projectId === 'proj_ollama' ? 'Ollama' : 'SamulibreLinux'),
         language: 'general',
         errorSignature: `USER_RULE_${Date.now().toString(36).toUpperCase()}`,
         errorContext: 'Directriz explícita de arquitectura o seguridad registrada por el usuario.',
@@ -534,19 +565,20 @@ export async function startServer(orchestrator?: AgentOrchestrator) {
 
     // 2. Inspección automática de proyectos locales si se menciona una ruta
     const { contextText, detectedPath } = extractProjectContext(message, isMicro);
+    const effectiveProjectPath = detectedPath || projectPath || '/home/saghet/Documents/SamulibreLinux';
     if (detectedPath) {
       reply.raw.write(`data: ${JSON.stringify({ log: { time: getNow(), text: `🔍 Indexando estructura completa del proyecto en ${detectedPath}...`, level: 'info' } })}\n\n`);
     }
 
     // 3. Inyección de Kodara Project Memory + Memoria de Ingeniería
-    const memoryContext = memoryManager.generateSystemContext(detectedPath || undefined);
+    const memoryContext = memoryManager.generateSystemContext(effectiveProjectPath);
     const projectMemoryBlock = await KodaraProjectMemory.buildProjectMemoryPromptBlock(projectId);
     reply.raw.write(`data: ${JSON.stringify({ log: { time: getNow(), text: `🧠 Consultando Kodara Project Memory para reutilizar soluciones verificadas.`, level: 'info' } })}\n\n`);
 
     const systemPrompt = `Eres KODARA ("Your Code. Your AI. Your Rules."), operando en un ambiente local autorizado en modo ${isTurboMode ? 'TURBO sin restricciones ni bloqueos' : 'Supervisado'}.
 ${resolvedProfile.rolePersona}
 Responde SIEMPRE en español con lenguaje técnico, directo, estructurado y accionable.
-No pongas advertencias éticas innecesarias ni bloqueos: el entorno cuenta con permisos explícitos.
+REGLA CRÍTICA DE INTERFAZ: Kodara adjunta automáticamente una Tarjeta de Artefacto Nativa con un botón real "[▶ Proceed]" al final de tus planes. Por lo tanto, JAMÁS dibujes botones falsos en Markdown (como imgur o javascript:void(0)) y JAMÁS escribas "Nota: Este botón es una representación simbólica".
 ${memoryContext}
 ${projectMemoryBlock}`;
 
@@ -599,6 +631,7 @@ ${projectMemoryBlock}`;
       const reader = ollamaResp.body.getReader();
       const decoder = new TextDecoder();
       let buffer = '';
+      let accumulatedResponse = '';
       const recentLines: string[] = [];
       let loopStopped = false;
 
@@ -614,6 +647,7 @@ ${projectMemoryBlock}`;
           try {
             const parsed = JSON.parse(line);
             const chunk = parsed.message?.content || parsed.response || '';
+            accumulatedResponse += chunk;
 
             // Detector anti-bucles y anti-basura en el stream
             if (chunk.includes('\n')) {
@@ -634,7 +668,7 @@ ${projectMemoryBlock}`;
               break;
             }
 
-            reply.raw.write(`data: ${JSON.stringify({ chunk, done: parsed.done || false })}\n\n`);
+            reply.raw.write(`data: ${JSON.stringify({ chunk, done: false })}\n\n`);
           } catch {}
         }
         if (loopStopped) break;
@@ -643,8 +677,24 @@ ${projectMemoryBlock}`;
       if (buffer.trim() && !loopStopped) {
         try {
           const parsed = JSON.parse(buffer);
-          reply.raw.write(`data: ${JSON.stringify({ chunk: parsed.message?.content || parsed.response || '', done: true })}\n\n`);
+          const extra = parsed.message?.content || parsed.response || '';
+          accumulatedResponse += extra;
+          reply.raw.write(`data: ${JSON.stringify({ chunk: extra, done: false })}\n\n`);
         } catch {}
+      }
+
+      // Si el usuario pidió un plan, mejora o auditoría, crear y adjuntar un Artefacto de Plan Ejecutable Real con botón [▶ Proceed]
+      const cleanedFinal = KodaraPlanExecutor.stripSymbolicButtonHallucinations(accumulatedResponse);
+      if (KodaraPlanExecutor.shouldAttachExecutablePlan(message, cleanedFinal)) {
+        const planArtifact = await KodaraPlanExecutor.createExecutablePlan({
+          projectId: projectId || 'proj_samulibre',
+          projectName: projectName || 'SamulibreLinux',
+          projectPath: effectiveProjectPath,
+          title: `Plan de Acción Ejecutable — ${projectName || 'SamulibreLinux'}`,
+          summary: 'Plan de 4 fases listo para ejecutarse físicamente en Linux (Indexación, SAST, Compilación/Tests en Sandbox y consolidación en Kodara Project Memory).',
+          markdownContent: cleanedFinal,
+        });
+        reply.raw.write(`data: ${JSON.stringify({ sanitizedFullContent: cleanedFinal, executablePlan: planArtifact })}\n\n`);
       }
 
       reply.raw.write(`data: ${JSON.stringify({ log: { time: getNow(), text: `✅ Tarea completada exitosamente. Modelo en reposo.`, level: 'success' } })}\n\n`);

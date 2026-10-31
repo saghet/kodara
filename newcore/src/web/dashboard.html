@@ -687,14 +687,14 @@
       </div>
 
       <div class="ag-quick-actions">
+        <button class="ag-chip-btn" style="color:#60a5fa;border-color:rgba(59,130,246,0.45)" onclick="generateQuickExecutablePlan()">
+          <span>📋 Generar Plan Ejecutable</span>
+        </button>
         <button class="ag-chip-btn" onclick="executeDirectTurboTool('nmap', '127.0.0.1')">
           <span>🔍 Nmap Directo</span>
         </button>
         <button class="ag-chip-btn" onclick="executeDirectTurboTool('semgrep', activeProjectPath)">
           <span>🛡️ SAST Semgrep</span>
-        </button>
-        <button class="ag-chip-btn" onclick="executeDirectTurboTool('trivy', activeProjectPath)">
-          <span>📦 SCA Trivy</span>
         </button>
         <button class="ag-chip-btn" style="color:#34d399;border-color:rgba(16,185,129,0.35)" onclick="runTurboAutoRepairDemo()">
           <span>🔧 Auto-Repair Sandbox</span>
@@ -703,30 +703,15 @@
     </header>
 
     <div class="ag-chat-scroll" id="chatFlow">
-      <!-- Mensaje inicial del proyecto activo -->
-      <div class="ag-msg-ai">
+      <!-- Mensaje inicial del proyecto activo + Tarjeta de Plan Ejecutable Real -->
+      <div class="ag-msg-ai" id="initialWelcomeBlock">
         <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.45rem;color:#34d399;font-size:0.78rem;font-weight:600">
-          <span>✓ Proceeded with Dual Memory Architecture & Turbo Direct Execution</span>
+          <span>✓ Proceeded with Executable Plan Engine & Dual Memory Architecture</span>
         </div>
         <p style="margin-bottom:0.6rem">
-          Bienvenido a <b>Kodara</b> (<i>"Your Code. Your AI. Your Rules."</i>). El entorno está configurado con <b>permisos explícitos en modo <code>🛡️ Turbo</code></b> para ejecutar auditorías, compilaciones y reparaciones en tus proyectos sin bloqueos intermedios.
+          Bienvenido a <b>Kodara</b> (<i>"Your Code. Your AI. Your Rules."</i>). Cada plan propuesto incluye ahora el <b>Motor de Planes Ejecutables Nativo</b> con el botón real <b><code>▶ Proceed</code></b> que ejecuta físicamente compilaciones, auditorías SAST, pruebas en Sandbox y actualización de memorias en Linux.
         </p>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.65rem;margin:0.75rem 0">
-          <div class="ag-artifact-pill" onclick="switchWorkbenchTab('projectMemory')">
-            <div>
-              <div style="font-weight:600;color:#fff;font-size:0.8rem">🧠 Kodara Project Memory</div>
-              <div style="font-size:0.72rem;color:var(--text-secondary)">Aprende de errores y soluciones al desarrollar aplicaciones</div>
-            </div>
-            <span style="color:#22d3ee;font-size:0.75rem">Ver →</span>
-          </div>
-          <div class="ag-artifact-pill" onclick="switchWorkbenchTab('coreMemory')">
-            <div>
-              <div style="font-weight:600;color:#fff;font-size:0.8rem">⚙️ Kodara Core Memory</div>
-              <div style="font-size:0.72rem;color:var(--text-secondary)">Registra problemas internos del IDE y mejoras supervisadas</div>
-            </div>
-            <span style="color:#a855f7;font-size:0.75rem">Ver →</span>
-          </div>
-        </div>
+        <div id="defaultExecutablePlanSlot"></div>
       </div>
     </div>
 
@@ -957,15 +942,24 @@
       loadProjectMemory(projId);
 
       try {
-        const resp = await fetch(`/api/conversations/${convId}/messages`);
-        const msgs = await resp.json();
+        const [msgsResp, plansResp] = await Promise.all([
+          fetch(`/api/conversations/${convId}/messages`),
+          fetch(`/api/kodara/plans?projectId=${encodeURIComponent(projId)}`)
+        ]);
+        const msgs = await msgsResp.json();
+        const plans = await plansResp.json();
+        const latestPlan = plans && plans.length > 0 ? plans[0] : null;
+
         if (msgs && msgs.length > 0) {
           const flow = document.getElementById('chatFlow');
-          flow.innerHTML = msgs.map(m =>
-            m.role === 'user'
-              ? `<div class="ag-msg-user">${escapeHtml(m.content)}</div>`
-              : `<div class="ag-msg-ai">${formatMarkdown(m.content)}</div>`
-          ).join('');
+          flow.innerHTML = msgs.map((m, idx) => {
+            if (m.role === 'user') {
+              return `<div class="ag-msg-user">${escapeHtml(m.content)}</div>`;
+            }
+            const isLastAi = (idx === msgs.length - 1);
+            const planCardHtml = (isLastAi && latestPlan) ? renderExecutablePlanCardHTML(latestPlan) : '';
+            return `<div class="ag-msg-ai">${formatMarkdown(m.content)}${planCardHtml}</div>`;
+          }).join('');
           scrollChatBottom();
         }
       } catch {}
@@ -1192,12 +1186,153 @@
       loadCoreMemory();
     }
 
-    // ── 5. Chat Streaming con Modo Turbo Directo ──
+    // ── 5. Motor de Planes Ejecutables Reales con Botón "[▶ Proceed]" (Estilo Antigravity) ──
+    function renderExecutablePlanCardHTML(plan) {
+      if (!plan) return '';
+      const isCompleted = plan.status === 'COMPLETED';
+      const phasesHtml = (plan.phases || []).map(ph => `
+        <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.74rem;padding:0.25rem 0;border-bottom:1px solid rgba(255,255,255,0.04)">
+          <span style="color:#e2e8f0">${ph.status === 'COMPLETED' ? '✅' : '🔹'} <b>Fase ${ph.phase_number}:</b> ${escapeHtml(ph.title)}</span>
+          <span style="font-family:var(--font-mono);font-size:0.68rem;color:${ph.status === 'COMPLETED' ? '#34d399' : '#94a3b8'}">${ph.status}${ph.duration_ms ? ` (${ph.duration_ms}ms)` : ''}</span>
+        </div>
+      `).join('');
+
+      return `
+        <div id="planCard_${plan.plan_id}" style="background:#1c1c24;border:1px solid ${isCompleted ? 'rgba(16,185,129,0.45)' : '#3b82f6'};border-radius:10px;padding:0.9rem 1.05rem;margin-top:0.85rem;box-shadow:0 8px 24px rgba(0,0,0,0.35)">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem">
+            <div style="display:flex;align-items:center;gap:0.55rem">
+              <span style="font-size:1.05rem">📄</span>
+              <div>
+                <div style="font-weight:700;font-size:0.86rem;color:#fff">${escapeHtml(plan.title)}</div>
+                <div style="font-size:0.71rem;color:var(--text-secondary)">Artefacto de Plan Ejecutable Real • Proyecto: <code>${escapeHtml(plan.project_name)}</code></div>
+              </div>
+            </div>
+            <span id="planBadge_${plan.plan_id}" style="font-size:0.7rem;font-weight:700;padding:3px 8px;border-radius:5px;background:${isCompleted ? 'rgba(16,185,129,0.18)' : 'rgba(59,130,246,0.18)'};color:${isCompleted ? '#34d399' : '#60a5fa'}">
+              ${isCompleted ? '✓ PROCEEDED & VERIFIED' : 'READY TO PROCEED'}
+            </span>
+          </div>
+
+          <div style="font-size:0.77rem;color:#cbd5e1;margin-bottom:0.6rem;line-height:1.45">
+            ${escapeHtml(plan.summary)}
+          </div>
+
+          <div style="background:#121217;border:1px solid var(--border-subtle);border-radius:7px;padding:0.5rem 0.75rem;margin-bottom:0.75rem">
+            ${phasesHtml}
+          </div>
+
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span style="font-size:0.7rem;color:#34d399">⚡ Acción física directa en Linux (Indexación + SAST + rustc Sandbox + Project Memory)</span>
+            <div style="display:flex;gap:0.5rem">
+              <button
+                id="btnProceed_${plan.plan_id}"
+                onclick="proceedWithPlan('${plan.plan_id}')"
+                style="background:${isCompleted ? '#10b981' : '#3b82f6'};color:#fff;border:none;border-radius:7px;padding:0.45rem 1.05rem;font-size:0.8rem;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:0.4rem;box-shadow:0 4px 12px rgba(59,130,246,0.35)">
+                <span>${isCompleted ? '↻ Re-ejecutar Plan Real' : '▶ Proceed'}</span>
+              </button>
+            </div>
+          </div>
+
+          <div id="planExecOutput_${plan.plan_id}" style="margin-top:0.65rem;display:${plan.execution_report_md ? 'block' : 'none'}">
+            ${plan.execution_report_md ? formatMarkdown(plan.execution_report_md) : ''}
+          </div>
+        </div>
+      `;
+    }
+
+    async function proceedWithPlan(planId) {
+      const btn = document.getElementById('btnProceed_' + planId);
+      const badge = document.getElementById('planBadge_' + planId);
+      const outBox = document.getElementById('planExecOutput_' + planId);
+
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span>⏳ Ejecutando las 4 fases reales en Linux...</span>';
+      }
+      if (badge) {
+        badge.textContent = 'EXECUTING PHASES...';
+      }
+
+      try {
+        const resp = await fetch(`/api/kodara/plans/${planId}/execute`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        });
+        const data = await resp.json();
+        const executedPlan = data.plan;
+
+        const cardContainer = document.getElementById('planCard_' + planId);
+        if (cardContainer && executedPlan) {
+          cardContainer.outerHTML = renderExecutablePlanCardHTML(executedPlan);
+        } else if (outBox && executedPlan) {
+          outBox.style.display = 'block';
+          outBox.innerHTML = formatMarkdown(executedPlan.execution_report_md);
+        }
+
+        // Actualizar memorias y activos en vivo tras ejecutar el plan
+        loadProjectMemory();
+        loadCoreMemory();
+        loadTargetTree();
+        scrollChatBottom();
+      } catch (e) {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = '<span>▶ Reintentar Proceed</span>';
+        }
+        alert('Error ejecutando el plan: ' + e.message);
+      }
+    }
+
+    async function generateQuickExecutablePlan() {
+      appendUserBubble(`📋 Crear y proponer Plan de Trabajo Ejecutable para ${activeProjectName} (${activeProjectPath})`);
+      const aiNode = appendAiBlock('⏳ Generando Artefacto de Plan Ejecutable en SQLite...');
+      try {
+        const resp = await fetch('/api/kodara/plans', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            projectId: activeProjectId,
+            projectName: activeProjectName,
+            projectPath: activeProjectPath,
+            title: `Plan de Trabajo y Mejora Continua — ${activeProjectName}`,
+            summary: `Ejecución integral en 4 fases sobre ${activeProjectPath}: indexación de crates/módulos, auditoría SAST CWE, compilación y pruebas en Sandbox, y actualización de Kodara Project Memory.`,
+            markdownContent: `### Plan de Mejora Propuesto para ${activeProjectName}\nHaz clic en el botón **▶ Proceed** de la tarjeta inferior para ejecutar físicamente las 4 fases en tu entorno Linux.`
+          })
+        });
+        const data = await resp.json();
+        aiNode.innerHTML = formatMarkdown(data.plan.markdown_content) + renderExecutablePlanCardHTML(data.plan);
+        scrollChatBottom();
+      } catch (e) {
+        aiNode.innerHTML = `<span style="color:#ef4444">Error creando plan: ${e.message}</span>`;
+      }
+    }
+
+    async function loadInitialExecutablePlans() {
+      try {
+        const resp = await fetch(`/api/kodara/plans?projectId=${encodeURIComponent(activeProjectId)}`);
+        const plans = await resp.json();
+        const slot = document.getElementById('defaultExecutablePlanSlot');
+        if (slot && plans && plans.length > 0) {
+          slot.innerHTML = renderExecutablePlanCardHTML(plans[0]);
+        }
+      } catch {}
+    }
+
+    // ── 6. Chat Streaming con Modo Turbo Directo + Tarjeta Real [▶ Proceed] ──
     function handlePromptKey(e) {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
         sendChatMessage();
       }
+    }
+
+    function stripSymbolicDisclaimersClient(text) {
+      if (!text) return '';
+      return text
+        .replace(/\[!\[[^\]]*\]\([^)]*\)\]\(javascript:[^)]*\)/gi, '')
+        .replace(/#*\s*\*\*?Botón\s+"?Proceder"?\*\*?:?/gi, '')
+        .replace(/Para proceder al plan propuesto\s*:/gi, '')
+        .replace(/\*\*?Nota:?\*\*?\s*Este botón es una representación simbólica[^\n]*/gi, '')
+        .trim();
     }
 
     async function sendChatMessage() {
@@ -1221,6 +1356,8 @@
             message: text,
             history: chatHistory.slice(-8),
             projectId: activeProjectId,
+            projectName: activeProjectName,
+            projectPath: activeProjectPath,
             conversationId: activeConversationId,
             executionMode
           })
@@ -1229,6 +1366,7 @@
         const reader = resp.body.getReader();
         const decoder = new TextDecoder();
         let fullText = '';
+        let attachedPlanHtml = '';
 
         while (true) {
           const { value, done } = await reader.read();
@@ -1243,20 +1381,26 @@
               const data = JSON.parse(payload);
               if (data.turboExecuted) {
                 fullText += data.turboExecuted.parsed.llmDigest + '\n\n---\n\n';
-                aiNode.innerHTML = formatMarkdown(fullText);
+                aiNode.innerHTML = formatMarkdown(stripSymbolicDisclaimersClient(fullText)) + attachedPlanHtml;
                 loadTargetTree();
               }
               if (data.chunk) {
                 fullText += data.chunk;
-                aiNode.innerHTML = formatMarkdown(fullText);
+                aiNode.innerHTML = formatMarkdown(stripSymbolicDisclaimersClient(fullText)) + attachedPlanHtml;
+                scrollChatBottom();
+              }
+              if (data.executablePlan) {
+                attachedPlanHtml = renderExecutablePlanCardHTML(data.executablePlan);
+                aiNode.innerHTML = formatMarkdown(stripSymbolicDisclaimersClient(fullText)) + attachedPlanHtml;
                 scrollChatBottom();
               }
             } catch {}
           }
         }
 
+        const cleanFinal = stripSymbolicDisclaimersClient(fullText);
         chatHistory.push({ role: 'user', content: text });
-        chatHistory.push({ role: 'assistant', content: fullText });
+        chatHistory.push({ role: 'assistant', content: cleanFinal });
         loadProjectMemory();
       } catch (e) {
         aiNode.innerHTML = `<span style="color:#ef4444">Error: ${e.message}</span>`;
@@ -1346,6 +1490,7 @@
     window.addEventListener('DOMContentLoaded', () => {
       loadProjectsSidebar();
       loadProjectMemory();
+      loadInitialExecutablePlans();
     });
   </script>
 </body>
