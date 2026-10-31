@@ -31,12 +31,16 @@ export const CYBERSECURITY_ACADEMY_CURRICULUM: AcademicModule[] = [
       'Comprender cómo cartografiar activos digitales, consultar registros de nombres (DNS) y explorar puertos sin generar denegación de servicio, entendiendo las respuestas TCP/IP.',
     theoreticalFoundations: [
       'Modelo OSI vs TCP/IP: Encapsulamiento de tramas y datagramas',
+      'Física del Three-Way Handshake TCP: Banderas SYN (inicio), SYN/ACK (puerto abierto), RST (puerto cerrado) y caída por timeout (filtrado/firewall)',
+      'Gestión de Descriptores en Linux: Prevención del colapso del kernel (Errno 24 / Too many open files) mediante Semáforos Asíncronos',
       'Protocolos DNS: Registros A, AAAA, MX, TXT, SOA y transferencias de zona AXFR',
-      'Técnicas de escaneo: SYN Stealth Scan (half-open), TCP Connect, UDP Scan y ACK Scan',
+      'Técnicas de escaneo: SYN Stealth Scan (half-open), TCP Connect con Banner Grabbing no destructivo, UDP Scan y ACK Scan',
     ],
     softwareArchitecture: [
       'Uso de Sockets no bloqueantes (non-blocking) con epoll en Linux y kqueue en macOS',
-      'Bucle de eventos asíncrono con `tokio` en Rust para procesar miles de puertos en segundos',
+      'Control estricto de concurrencia mediante `asyncio.Semaphore` en Python o `tokio::sync::Semaphore` en Rust para acotar descriptores activos',
+      'Captura pasiva de banners de servicio leyendo hasta 128 bytes sin disparar alertas de intrusión',
+      'Bucle de eventos asíncrono con `tokio` en Rust para procesar miles de puertos en segundos con consumo mínimo de RAM',
       'Parser de paquetes con cabeceras raw usando `pnet` o `socket2`',
     ],
     rustTsLibraries: ['pnet', 'tokio', 'trust-dns-resolver / hickory-resolver', 'socket2'],

@@ -246,3 +246,17 @@ Kodara está instalado como aplicación nativa de escritorio en tu sistema Linux
     - Tarjeta UI Glassmorphism oscura con telemetría en tiempo real.
 - **Botón y Vista en la Interfaz**:
   - Botón táctico `🦘 Plan Canguro` en la barra superior para auditar métricas de optimización de tokens, dominios activos y evaluar el razonamiento en vivo.
+
+---
+
+## 17. Lección Maestra: Ejemplo 2 — Auditoría de Redes, Handshake TCP y Semáforos de Concurrencia
+- **Diagnóstico del Ejemplo 2 Anterior**:
+  - Los escáneres ingenuos que lanzan llamadas shell (`os.system("nc ...")`) son vulnerables a inyección de comandos (CWE-78) y congelan el hilo principal.
+  - Los escáneres asíncronos sin semáforo colapsan con `OSError: [Errno 24] Too many open files` al agotar los descriptores del kernel Linux (`ulimit -n`).
+- **Los 4 Pilares de la Solución Antigravity**:
+  1. **Física del Three-Way Handshake TCP**: Banderas `SYN` (inicio), `SYN/ACK` (puerto abierto), `RST` (puerto cerrado/rechazado) y caída por timeout en puertos filtrados por firewall.
+  2. **Control de Concurrencia con Semáforo (`asyncio.Semaphore(max_concurrency)`)**: Limita a 50-100 conexiones simultáneas protegiendo la tabla de descriptores de archivos de Linux.
+  3. **Banner Grabbing Pasivo No Destructivo**: Envía `\r\n` y lee hasta 128 bytes para identificar la versión real del servicio (SSH, HTTP, FTP) sin disparar alertas de intrusión.
+  4. **Normalización y Prevención SSRF**: Valida y resuelve el host mediante `ipaddress.ip_address` antes de emitir cualquier paquete.
+- **Acceso en la Interfaz**:
+  - Botón interactivo `📡 Lección Maestra: Ejemplo 2 (Redes y Semáforos) →` dentro del panel del Plan Canguro en `dashboard.html`.

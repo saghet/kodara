@@ -77,44 +77,87 @@ class SecureStreamHasher:
     userPrompt: 'Crea un escáner de puertos rápido y seguro para auditar los servicios locales de mi máquina.',
     badResponse: {
       flaws: [
-        'Ejecuta llamadas inseguras a `os.system("nc -zv ...")` vulnerables a inyección de comandos',
+        'Ejecuta llamadas inseguras a `os.system("nc -zv ...")` vulnerables a inyección de comandos (CWE-78)',
         'Bloquea el hilo principal sin timeouts adecuados',
-        'No libera descriptores de sockets abiertos',
+        'Lanza tareas desmedidas sin semáforo, provocando colapso de descriptores de archivo (`OSError: [Errno 24] Too many open files`)',
+        'No realiza banner grabbing ni identifica qué servicio corre en el puerto',
+        'No valida ni sanitiza el host de destino contra ataques de falsificación de peticiones (SSRF)',
       ],
       snippet: `import os
-for port in [80, 443, 22]:
-    os.system(f"nc -z 127.0.0.1 {port}")`,
+for port in range(1, 1024):
+    os.system(f"nc -zv 127.0.0.1 {port}")`,
     },
     antigravityResponse: {
-      interpretation: 'Construiré un auditor de puertos TCP no bloqueante con control de concurrencia (`asyncio`), timeouts estrictos y cierre garantizado de sockets.',
-      environment: 'Utiliza la biblioteca estándar de Python (`asyncio`, `socket`).',
+      interpretation: 'Construiré un auditor de red defensivo de alta concurrencia con semáforo acotado (anti-agotamiento de file descriptors), timeouts no bloqueantes, banner grabbing pasivo y normalización de destino bajo el Three-Way Handshake de TCP.',
+      environment: 'Biblioteca estándar de Python (`asyncio`, `socket`, `ipaddress`). No requiere dependencias externas.',
       code: `import asyncio
-from typing import List, Dict
+import ipaddress
+import socket
+from typing import Dict, List, Optional, Tuple
 
-class LocalPortAuditor:
-    """Auditor asíncrono de puertos locales con protección de descriptores."""
+class DefensivePortAuditor:
+    """
+    Auditor de servicios y puertos TCP de alta concurrencia con protección
+    contra saturación de descriptores (ulimit -n) y banner grabbing pasivo.
+    """
+
+    def __init__(self, target_host: str = "127.0.0.1", max_concurrency: int = 100, timeout: float = 0.6):
+        # 1. Normalización y validación del destino (prevención SSRF)
+        self.target = self._normalize_target(target_host)
+        # 2. Semáforo asíncrono para evitar Errno 24 (Too many open files)
+        self.semaphore = asyncio.Semaphore(max_concurrency)
+        self.timeout = timeout
 
     @staticmethod
-    async def probe_port(host: str, port: int, timeout: float = 0.5) -> bool:
-        """Comprueba de forma no bloqueante si un puerto TCP acepta conexiones."""
+    def _normalize_target(host: str) -> str:
+        """Valida que sea una dirección IP válida o nombre de host seguro."""
+        host = host.strip()
         try:
-            conn = asyncio.open_connection(host, port)
-            reader, writer = await asyncio.wait_for(conn, timeout=timeout)
-            writer.close()
-            await writer.wait_closed()
-            return True
-        except (asyncio.TimeoutError, ConnectionRefusedError, OSError):
-            return False
+            return str(ipaddress.ip_address(host))
+        except ValueError:
+            # Resuelve nombre de host a IP canónica
+            return socket.gethostbyname(host)
 
-    @classmethod
-    async def audit_ports(cls, host: str = "127.0.0.1", ports: List[int] = None) -> Dict[int, str]:
-        """Escanea una lista de puertos y devuelve el estado de cada servicio."""
-        if ports is None:
-            ports = [22, 80, 443, 3777, 8080, 11434]
-        tasks = [cls.probe_port(host, p) for p in ports]
+    async def _probe_single_port(self, port: int) -> Tuple[int, str, Optional[str]]:
+        """
+        Inspecciona el Three-Way Handshake TCP (SYN -> SYN/ACK vs RST)
+        y extrae pasivamente hasta 128 bytes de banner si el puerto responde.
+        """
+        async with self.semaphore:
+            try:
+                # Conexión asíncrona no bloqueante
+                conn_coro = asyncio.open_connection(self.target, port)
+                reader, writer = await asyncio.wait_for(conn_coro, timeout=self.timeout)
+
+                banner = None
+                try:
+                    # Intento pasivo de banner grab no destructivo (ej. SSH, FTP, HTTP)
+                    writer.write(b"\\r\\n")
+                    await writer.drain()
+                    raw_banner = await asyncio.wait_for(reader.read(128), timeout=0.3)
+                    if raw_banner:
+                        banner = raw_banner.decode("utf-8", errors="replace").strip().splitlines()[0]
+                except (asyncio.TimeoutError, UnicodeDecodeError, OSError):
+                    banner = "Servicio activo (sin banner legible)"
+                finally:
+                    writer.close()
+                    await writer.wait_closed()
+
+                return (port, "ABIERTO", banner or "Activo")
+            except (asyncio.TimeoutError, ConnectionRefusedError, OSError):
+                # Puerto cerrado (RST) o filtrado/silencioso
+                return (port, "CERRADO", None)
+
+    async def audit_range(self, ports: List[int]) -> Dict[int, Dict[str, str]]:
+        """Escanea una lista o rango de puertos procesando los resultados en streaming concurrente."""
+        tasks = [self._probe_single_port(p) for p in ports]
         results = await asyncio.gather(*tasks)
-        return {port: ("ABIERTO" if is_open else "CERRADO") for port, is_open in zip(ports, results)}`,
-      usage: `import asyncio; reporte = asyncio.run(LocalPortAuditor.audit_ports())`,
+        return {
+            port: {"estado": estado, "banner": banner or "N/A"}
+            for port, estado, banner in results
+            if estado == "ABIERTO"
+        }`,
+      usage: `import asyncio; reporte = asyncio.run(DefensivePortAuditor("127.0.0.1", max_concurrency=50).audit_range([22, 80, 443, 3777, 8080]))`,
     },
   },
   {

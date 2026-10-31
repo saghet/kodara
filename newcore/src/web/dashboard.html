@@ -2312,14 +2312,27 @@
                 ${domainsHtml}
               </div>
             </div>
-            <button onclick="requestCanguroAuditDemo()" style="font-size:0.7rem;background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.4);color:#fde68a;padding:0.25rem 0.6rem;border-radius:5px;cursor:pointer;font-weight:600">
-              🔍 Evaluar Razonamiento y Ruteo Dinámico en Vivo →
-            </button>
+            <div style="display:flex;gap:0.5rem;flex-wrap:wrap">
+              <button onclick="requestCanguroAuditDemo()" style="font-size:0.7rem;background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.4);color:#fde68a;padding:0.25rem 0.6rem;border-radius:5px;cursor:pointer;font-weight:600">
+                🔍 Evaluar Razonamiento y Ruteo Dinámico en Vivo →
+              </button>
+              <button onclick="requestMasterClassExemplar2()" style="font-size:0.7rem;background:rgba(56,189,248,0.15);border:1px solid rgba(56,189,248,0.4);color:#bae6fd;padding:0.25rem 0.6rem;border-radius:5px;cursor:pointer;font-weight:600">
+                📡 Lección Maestra: Ejemplo 2 (Redes y Semáforos) →
+              </button>
+            </div>
           </div>
         `;
         scrollChatBottom();
       } catch (e) {
         aiNode.innerHTML = `<span style="color:#ef4444">Error cargando estado del Plan Canguro: ${e.message}</span>`;
+      }
+    }
+
+    function requestMasterClassExemplar2() {
+      const input = document.getElementById('promptInput');
+      if (input) {
+        input.value = `Profesor, enséñame la clase magistral del Ejemplo 2 (Auditor de Puertos Defensivo): explica la física del Three-Way Handshake TCP, por qué ocurre el error Errno 24 (Too many open files), cómo lo solucionamos con semáforos de concurrencia y banner grabbing, y cómo se implementaría en Python y en Rust.`;
+        sendChatMessage();
       }
     }
 
