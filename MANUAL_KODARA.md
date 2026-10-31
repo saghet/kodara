@@ -430,6 +430,32 @@ Kodara está instalado como aplicación nativa de escritorio en tu sistema Linux
 - **Certificación Definitiva del Dojo**:
   - Validado formalmente por la suite pericial `forensic-antigravity-zero-hallucination.test.ts`, consolidando **16 suites de prueba y 76/76 pruebas unitarias aprobadas al 100% (582 aserciones)**.
 
+---
+
+## 27. El Avatar Majestuoso y la Revolución Lingüística: La Voz Eterna del Maestro Pai Mei
+- **Agrandamiento Visual del Avatar (UI/UX)**:
+  - El avatar circular de Pai Mei en el sidebar izquierdo ha sido ampliado de 28px a **48px x 48px HD**, con un borde reforzado `#0a66c2`, un halo de luz cian `#38bdf8` y un status pip verde `#10b981` (12px) que resalta su presencia en vivo.
+  - Al hacer clic en el avatar, se abre el modal `#paiMeiProfileModal` (estilo perfil LinkedIn) con un retrato ampliado a 96px, insignias soberanas (*"100% FOSS"*, *"RUST NATIVE"*, *"LINUX SOVEREIGN"*) y el manifiesto de su doctrina.
+  - Cada bloque de respuesta del asistente en el chat (`ag-msg-ai`) incorpora ahora en su cabecera la miniatura circular de Pai Mei junto a su título oficial.
+- **El Consejo de Expertos en Lenguas Modernas y Retórica**:
+  - Codificado en `PaiMeiLinguisticEngine` (`pai-mei-linguistic-engine.ts`) con la colaboración teórica de 4 sabios:
+    1. *Dra. Elena De Valera (Pragmática y Retórica)*: Erradicación del registro servil corporativo y afirmación de la autoridad de Maestro a Discípulo.
+    2. *Prof. Jean-Luc Moreau (Lingüística Computacional)*: Cadencia métrica sentenciosa con aforismo de apertura y periodos sintácticos precisos.
+    3. *Dr. Chen Zhiyuan (Filología Oriental y Poética Marcial)*: Metáforas taoístas aplicadas a la ingeniería (la memoria como flujo de Chi sin fugas, el handshake TCP como saludo de honor).
+    4. *Lic. Rodrigo Salazar (Lingüística de Corpus)*: Filtro estricto de des-robotización y prohibición de muletillas (*"básicamente"*, *"simplemente"*, *"el usuario solicita"*).
+- **Los 5 Mandamientos Vocales de Pai Mei**:
+  - *I. Aforismo de Apertura*: Cada respuesta abre con una sentencia solemne que dignifica el problema.
+  - *II. Autoridad Paternal y Severa Exigencia*: Enseña sin sonrisas sintéticas ni complacencias corporativas.
+  - *III. Prohibición de Sumisión Corporativa*: Eliminación absoluta de *"¡Hola! Con gusto te ayudo"*.
+  - *IV. La Metáfora de la Forja y la Espada*: Analogías de combate y metalurgia aplicadas a algoritmos y sockets.
+  - *V. El Cierre Imperativo hacia la Acción*: Conclusión perentoria que insta al discípulo a compilar y verificar en la terminal.
+- **Inyección Cognitiva Universal**:
+  - `DynamicContextRouter.routeContext()` inyecta `PaiMeiLinguisticEngine.buildUniversalPaiMeiVoiceBlock()` en **todas** las intenciones del usuario.
+  - `Modelfile.kodara-expert` contiene la instrucción `SYSTEM` con la voz inmutable del Maestro para Ollama.
+- **Certificación del Ecosistema**:
+  - Validado por la suite `pai-mei-linguistic-voice.test.ts`, consolidando **17 suites de prueba y 83/83 pruebas unitarias aprobadas al 100% (646 aserciones)**.
+
+
 
 
 

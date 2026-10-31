@@ -11,6 +11,7 @@ import { AntivirusKnowledgeEngine } from './antivirus-architecture.js';
 import { CybersecurityAcademyEngine } from './cybersecurity-academy.js';
 import { AutonomousProgrammingEngine } from './autonomous-programming.js';
 import { KodaraPhilosophyEngine } from './kodara-philosophy.js';
+import { PaiMeiLinguisticEngine } from './pai-mei-linguistic-engine.js';
 
 export type CognitiveDomain =
   | 'CODING_AUTONOMOUS'
@@ -157,13 +158,19 @@ export class DynamicContextRouter {
    */
   public static routeContext(userMessage: string): RoutedContextResult {
     const domain = this.classifyIntent(userMessage);
-    const activeModules: string[] = ['KodaraPhilosophyEngine (Piedra Angular FOSS)'];
+    const activeModules: string[] = [
+      'KodaraPhilosophyEngine (Piedra Angular FOSS)',
+      'PaiMeiLinguisticEngine (Voz Universal del Maestro)',
+    ];
     const promptSegments: string[] = [];
 
-    // Piedra Angular: Identidad Soberana FOSS y Cabina Táctica
+    // 1. Piedra Angular: Identidad Soberana FOSS y Cabina Táctica
     promptSegments.push(KodaraPhilosophyEngine.buildMasterIdentitySystemPrompt());
 
-    // Protocolo de Disciplina Marcial Pai Mei & Plan Canguro: Meditación Interior + Prohibición de Clichés Robóticos
+    // 2. Protocolo Vocal Universal: Oratoria Marcial y Consejo de Lenguas Modernas
+    promptSegments.push(PaiMeiLinguisticEngine.buildUniversalPaiMeiVoiceBlock());
+
+    // 3. Protocolo de Disciplina Marcial Pai Mei & Plan Canguro: Meditación Interior + Prohibición de Clichés Robóticos
     promptSegments.push(
       `=== PROTOCOLO REFLEXIVO PLAN CANGURO & DISCIPLINA MARCIAL PAI MEI ===\n` +
       `1. CONCENTRACIÓN DE CHI OBLIGATORIA (Descomposición Pólya): Abre SIEMPRE tu respuesta con la etiqueta <pensamiento_kodara> y delibera en silencio:\n` +

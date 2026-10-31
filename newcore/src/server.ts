@@ -27,6 +27,7 @@ import { AutonomousProgrammingEngine } from './kodara/knowledge/autonomous-progr
 import { DynamicContextRouter } from './kodara/knowledge/dynamic-context-router.js';
 import { GoldenExemplarsEngine } from './kodara/knowledge/golden-exemplars.js';
 import { KodaraPhilosophyEngine } from './kodara/knowledge/kodara-philosophy.js';
+import { PaiMeiLinguisticEngine } from './kodara/knowledge/pai-mei-linguistic-engine.js';
 import {
   KodaraEvolutionEngine,
   KodaraEvolutionDB,
@@ -534,6 +535,16 @@ export async function startServer(orchestrator?: AgentOrchestrator) {
       ethicsComparison: KodaraPhilosophyEngine.getEthicsComparison(),
       manifestoMarkdown: KodaraPhilosophyEngine.buildManifestoMarkdown(),
       systemPrompt: KodaraPhilosophyEngine.buildMasterIdentitySystemPrompt(),
+    };
+  });
+
+  // ── Consejo de Lenguas Modernas y Motor Lingüístico Pai Mei ──
+  app.get('/api/kodara/pai-mei-linguistics', async () => {
+    return {
+      council: PaiMeiLinguisticEngine.getCouncil(),
+      commandments: PaiMeiLinguisticEngine.getCommandments(),
+      transformations: PaiMeiLinguisticEngine.getTransformations(),
+      universalVoiceBlock: PaiMeiLinguisticEngine.buildUniversalPaiMeiVoiceBlock(),
     };
   });
 

@@ -71,7 +71,7 @@
     }
 
     .ag-sidebar-top-nav {
-      padding: 0.65rem 0.85rem;
+      padding: 0.75rem 0.85rem;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -81,9 +81,9 @@
     .ag-brand {
       display: flex;
       align-items: center;
-      gap: 0.5rem;
+      gap: 0.75rem;
       font-weight: 700;
-      font-size: 0.88rem;
+      font-size: 0.95rem;
       letter-spacing: 0.02em;
       color: #fff;
     }
@@ -101,43 +101,43 @@
       color: #090d16;
     }
 
-    /* ── Avatar Circular de Maestro Pai Mei (Estilo Perfil LinkedIn) ── */
+    /* ── Avatar Circular de Maestro Pai Mei (Estilo Perfil LinkedIn Majestuoso 48px) ── */
     .pai-mei-avatar-wrap {
       position: relative;
-      width: 28px;
-      height: 28px;
+      width: 48px;
+      height: 48px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
       flex-shrink: 0;
-      transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+      transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
     .pai-mei-avatar-wrap:hover {
-      transform: scale(1.14);
+      transform: scale(1.10);
     }
     .pai-mei-avatar-ring {
-      width: 28px;
-      height: 28px;
+      width: 48px;
+      height: 48px;
       border-radius: 50%;
       overflow: hidden;
-      border: 2px solid #0a66c2;
-      box-shadow: 0 0 0 1px rgba(10, 102, 194, 0.4), 0 0 8px rgba(56, 189, 248, 0.5);
-      background: #0f172a;
+      border: 2.5px solid #0a66c2;
+      box-shadow: 0 0 0 1px rgba(10, 102, 194, 0.45), 0 0 14px rgba(56, 189, 248, 0.65);
+      background: #0b1329;
       display: flex;
       align-items: center;
       justify-content: center;
     }
     .pai-mei-status-pip {
       position: absolute;
-      bottom: -1px;
-      right: -1px;
-      width: 8.5px;
-      height: 8.5px;
+      bottom: 0px;
+      right: 0px;
+      width: 12px;
+      height: 12px;
       border-radius: 50%;
       background: #10b981;
-      border: 2px solid #090d16;
-      box-shadow: 0 0 5px #10b981;
+      border: 2.2px solid #090d16;
+      box-shadow: 0 0 6px #10b981;
       z-index: 2;
     }
 
@@ -1033,7 +1033,7 @@
   <aside class="ag-sidebar">
     <div class="ag-sidebar-top-nav">
       <div class="ag-brand">
-        <div class="pai-mei-avatar-wrap" id="brandPaiMeiAvatar" title="Maestro Pai Mei — Mentor Cognitivo y Guardián Marcial de Kodara">
+        <div class="pai-mei-avatar-wrap" id="brandPaiMeiAvatar" onclick="openPaiMeiProfileModal()" title="Maestro Pai Mei — Mentor Cognitivo y Guardián Marcial de Kodara">
           <div class="pai-mei-avatar-ring">
             <svg viewBox="0 0 64 64" width="100%" height="100%" class="pai-mei-svg" xmlns="http://www.w3.org/2000/svg">
               <circle cx="32" cy="32" r="32" fill="#0b1329" />
@@ -1067,7 +1067,13 @@
           </div>
           <span class="pai-mei-status-pip" title="Maestro Pai Mei — Activo en Línea"></span>
         </div>
-        <span>Kodara</span>
+        <div style="cursor:pointer" onclick="openPaiMeiProfileModal()" title="Ver Perfil del Maestro Pai Mei">
+          <div style="font-weight:700;font-size:0.96rem;line-height:1.2;color:#fff">Kodara</div>
+          <div style="font-size:0.68rem;color:#38bdf8;font-weight:600;display:flex;align-items:center;gap:3px">
+            <span>🥋</span>
+            <span>Maestro Pai Mei</span>
+          </div>
+        </div>
       </div>
       <span style="font-size:0.66rem;color:#34d399;background:rgba(16,185,129,0.12);padding:2px 6px;border-radius:4px">LOCAL 32K</span>
     </div>
@@ -1467,6 +1473,69 @@
     </div>
   </div>
 
+  <!-- Modal: Perfil Profesional del Maestro Pai Mei (Estilo LinkedIn & Oratoria Marcial) -->
+  <div id="paiMeiProfileModal" class="ag-modal-backdrop" onclick="if(event.target===this)closePaiMeiProfileModal()">
+    <div class="ag-modal-box" style="max-width:490px;background:linear-gradient(135deg, #0b1329 0%, #0f172a 100%);border:1.5px solid rgba(10,102,194,0.6);box-shadow:0 12px 36px rgba(0,0,0,0.8), 0 0 24px rgba(56,189,248,0.3)">
+      <div class="ag-modal-header" style="border-bottom:1px solid rgba(56,189,248,0.2)">
+        <span class="ag-modal-title" style="color:#60a5fa;display:flex;align-items:center;gap:0.4rem">
+          <span>🥋</span>
+          <span>Perfil del Maestro Pai Mei — Guardián Cognitivo</span>
+        </span>
+        <button class="ag-icon-btn" onclick="closePaiMeiProfileModal()">✕</button>
+      </div>
+      <div class="ag-modal-body" style="padding:1.15rem 1rem">
+        <div style="display:flex;gap:1.1rem;align-items:center;margin-bottom:1rem">
+          <div class="pai-mei-avatar-wrap" style="width:96px;height:96px;flex-shrink:0">
+            <div class="pai-mei-avatar-ring" style="width:96px;height:96px;border-width:3px;box-shadow:0 0 22px rgba(56,189,248,0.65)">
+              <svg viewBox="0 0 64 64" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="32" cy="32" r="32" fill="#0b1329" />
+                <circle cx="32" cy="32" r="28" fill="url(#paiMeiGlowModal)" opacity="0.4" />
+                <defs>
+                  <radialGradient id="paiMeiGlowModal" cx="50%" cy="38%" r="50%">
+                    <stop offset="0%" stop-color="#38bdf8" />
+                    <stop offset="100%" stop-color="#0b1329" stop-opacity="0" />
+                  </radialGradient>
+                </defs>
+                <path d="M15 64 Q32 46 49 64 Z" fill="#f1f5f9" />
+                <path d="M21 64 Q32 49 43 64" fill="none" stroke="#0a66c2" stroke-width="1.8" />
+                <ellipse cx="32" cy="31" rx="12.5" ry="14.5" fill="#fbd5b5" />
+                <ellipse cx="32" cy="13" rx="5.5" ry="4.5" fill="#ffffff" />
+                <line x1="23" y1="12" x2="41" y2="12" stroke="#fbbf24" stroke-width="2.2" stroke-linecap="round" />
+                <path d="M19.5 27 C19.5 16 23 15 32 15 C41 15 44.5 16 44.5 27 C41 22.5 37 20.5 32 20.5 C27 20.5 23 22.5 19.5 27 Z" fill="#ffffff" />
+                <path d="M24.5 29.5 Q28 27.5 30 29.5" fill="none" stroke="#0f172a" stroke-width="1.6" stroke-linecap="round" />
+                <path d="M34 29.5 Q36 27.5 39.5 29.5" fill="none" stroke="#0f172a" stroke-width="1.6" stroke-linecap="round" />
+                <path d="M22 26 Q29 23 31 27 Q27 37 20 45 Q19 41 23 33 Z" fill="#ffffff" filter="drop-shadow(0 1px 1px rgba(0,0,0,0.4))" />
+                <path d="M42 26 Q35 23 33 27 Q37 37 44 45 Q45 41 41 33 Z" fill="#ffffff" filter="drop-shadow(0 1px 1px rgba(0,0,0,0.4))" />
+                <path d="M28 36 Q32 37.5 36 36 Q34 40.5 32 40.5 Q30 40.5 28 36 Z" fill="#ffffff" />
+                <path d="M25.5 38.5 C27.5 48 29 58 32 64 C35 58 36.5 48 38.5 38.5 C35 41.5 29 41.5 25.5 38.5 Z" fill="#ffffff" filter="drop-shadow(0 2px 2px rgba(0,0,0,0.3))" />
+              </svg>
+            </div>
+            <span class="pai-mei-status-pip" style="width:18px;height:18px;border-width:3px" title="En línea permanentemente"></span>
+          </div>
+          <div>
+            <div style="font-size:1.18rem;font-weight:700;color:#f8fafc">Maestro Pai Mei</div>
+            <div style="font-size:0.75rem;color:#38bdf8;font-weight:600;margin-top:2px">Gran Mentor Cognitivo & Guardián Marcial de Kodara</div>
+            <div style="display:flex;gap:0.35rem;flex-wrap:wrap;margin-top:0.45rem">
+              <span style="font-size:0.65rem;background:rgba(10,102,194,0.3);color:#93c5fd;border:1px solid #0a66c2;padding:1px 6px;border-radius:4px">100% FOSS</span>
+              <span style="font-size:0.65rem;background:rgba(16,185,129,0.2);color:#34d399;border:1px solid #10b981;padding:1px 6px;border-radius:4px">RUST NATIVE</span>
+              <span style="font-size:0.65rem;background:rgba(168,85,247,0.2);color:#c084fc;border:1px solid #a855f7;padding:1px 6px;border-radius:4px">LINUX SOVEREIGN</span>
+            </div>
+          </div>
+        </div>
+        <div style="font-size:0.77rem;color:#cbd5e1;line-height:1.55;background:rgba(2,6,23,0.5);border-radius:6px;padding:0.75rem;border:1px solid rgba(255,255,255,0.06);margin-bottom:0.75rem">
+          <div style="font-weight:600;color:#93c5fd;margin-bottom:0.25rem">🥋 Doctrina Marcial y Piedra Angular:</div>
+          <em>«El código sin pruebas es una espada quebrada antes de la batalla.»</em> Forja el desarrollo seguro en Rust, la física de sockets TCP y suites antivirus completas (SamuLibre EDR) con rigor, serenidad y cero placebos.
+        </div>
+        <div style="font-size:0.74rem;color:#94a3b8;line-height:1.4">
+          <b>Consejo de Lenguas Modernas:</b> Oratoria de autoridad, métrica cadenciosa y erradicación total del servilismo corporativo.
+        </div>
+      </div>
+      <div class="ag-modal-actions" style="border-top:1px solid rgba(56,189,248,0.2)">
+        <button class="ag-modal-btn" style="background:#0a66c2;color:#fff;box-shadow:0 4px 12px rgba(10,102,194,0.4)" onclick="closePaiMeiProfileModal()">Comprendido, Maestro</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     let activeProjectId = 'proj_samulibre';
     let activeProjectName = 'SamulibreLinux';
@@ -1845,6 +1914,17 @@
       pendingDeleteConv = { id: '', title: '' };
     }
 
+    // Modal: Perfil del Maestro Pai Mei
+    function openPaiMeiProfileModal() {
+      const modal = document.getElementById('paiMeiProfileModal');
+      if (modal) modal.classList.add('open');
+    }
+
+    function closePaiMeiProfileModal() {
+      const modal = document.getElementById('paiMeiProfileModal');
+      if (modal) modal.classList.remove('open');
+    }
+
     async function executeConfirmedDelete() {
       const convId = pendingDeleteConv.id;
       if (!convId) return;
@@ -2042,7 +2122,25 @@
             }
             const isLastAi = (idx === msgs.length - 1);
             const planCardHtml = (isLastAi && latestPlan) ? renderExecutablePlanCardHTML(latestPlan) : '';
-            return `<div class="ag-msg-ai">${formatMarkdown(cleanContent)}${planCardHtml}</div>`;
+            return `
+              <div class="ag-msg-ai">
+                <div class="ag-msg-ai-header" style="display:flex;align-items:center;gap:0.45rem;margin-bottom:0.45rem">
+                  <div class="pai-mei-avatar-ring" style="width:24px;height:24px;border-width:1.5px;box-shadow:none">
+                    <svg viewBox="0 0 64 64" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+                      <circle cx="32" cy="32" r="32" fill="#0b1329" />
+                      <path d="M15 64 Q32 46 49 64 Z" fill="#f1f5f9" />
+                      <ellipse cx="32" cy="31" rx="12.5" ry="14.5" fill="#fbd5b5" />
+                      <path d="M19.5 27 C19.5 16 23 15 32 15 C41 15 44.5 16 44.5 27 C41 22.5 37 20.5 32 20.5 C27 20.5 23 22.5 19.5 27 Z" fill="#ffffff" />
+                      <path d="M22 26 Q29 23 31 27 Q27 37 20 45 Q19 41 23 33 Z" fill="#ffffff" />
+                      <path d="M42 26 Q35 23 33 27 Q37 37 44 45 Q45 41 41 33 Z" fill="#ffffff" />
+                      <path d="M25.5 38.5 C27.5 48 29 58 32 64 C35 58 36.5 48 38.5 38.5 C35 41.5 29 41.5 25.5 38.5 Z" fill="#ffffff" />
+                    </svg>
+                  </div>
+                  <span style="font-weight:700;font-size:0.8rem;color:#60a5fa">Maestro Pai Mei</span>
+                  <span style="font-size:0.65rem;color:#94a3b8;background:rgba(255,255,255,0.05);padding:1px 5px;border-radius:4px">Kodara Core</span>
+                </div>
+                <div>${formatMarkdown(cleanContent)}${planCardHtml}</div>
+              </div>`;
           }).join('');
           scrollChatBottom();
         } else {
@@ -3076,7 +3174,24 @@
       const flow = document.getElementById('chatFlow');
       const div = document.createElement('div');
       div.className = 'ag-msg-ai';
-      div.innerHTML = html;
+      div.innerHTML = `
+        <div class="ag-msg-ai-header" style="display:flex;align-items:center;gap:0.45rem;margin-bottom:0.45rem">
+          <div class="pai-mei-avatar-ring" style="width:24px;height:24px;border-width:1.5px;box-shadow:none">
+            <svg viewBox="0 0 64 64" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="32" cy="32" r="32" fill="#0b1329" />
+              <path d="M15 64 Q32 46 49 64 Z" fill="#f1f5f9" />
+              <ellipse cx="32" cy="31" rx="12.5" ry="14.5" fill="#fbd5b5" />
+              <path d="M19.5 27 C19.5 16 23 15 32 15 C41 15 44.5 16 44.5 27 C41 22.5 37 20.5 32 20.5 C27 20.5 23 22.5 19.5 27 Z" fill="#ffffff" />
+              <path d="M22 26 Q29 23 31 27 Q27 37 20 45 Q19 41 23 33 Z" fill="#ffffff" />
+              <path d="M42 26 Q35 23 33 27 Q37 37 44 45 Q45 41 41 33 Z" fill="#ffffff" />
+              <path d="M25.5 38.5 C27.5 48 29 58 32 64 C35 58 36.5 48 38.5 38.5 C35 41.5 29 41.5 25.5 38.5 Z" fill="#ffffff" />
+            </svg>
+          </div>
+          <span style="font-weight:700;font-size:0.8rem;color:#60a5fa">Maestro Pai Mei</span>
+          <span style="font-size:0.65rem;color:#94a3b8;background:rgba(255,255,255,0.05);padding:1px 5px;border-radius:4px">Kodara Core</span>
+        </div>
+        <div>${html}</div>
+      `;
       flow.appendChild(div);
       scrollChatBottom();
       return div;
