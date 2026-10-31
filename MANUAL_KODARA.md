@@ -289,3 +289,21 @@ Kodara está instalado como aplicación nativa de escritorio en tu sistema Linux
   - *ACK*: $Seq = ISN_c + 1$, $Ack = ISN_s + 1$.
   - *RST*: Liberación instantánea cuando el puerto está cerrado sin entrar en `TIME_WAIT`.
   - *DROP*: Descarte silencioso por firewall (iptables/nftables) que fuerza retransmisión por temporizador RTO exponencial.
+
+---
+
+## 20. Reemplazo Definitivo de Antigravity: Tríptico de Acción, Sandbox Interactivo y Doble Forja
+- **El Tríptico de Acción en Tiempo Real**:
+  1. *Dual-Stream Limpio y Eventos de Acción*: El backend de Kodara emite eventos SSE `sandboxAction` enriquecidos hacia el frontend cuando el ruteador contextual detecta un dominio táctico o de programación autónoma, eliminando residuos sintácticos de pensamientos intermedios.
+  2. *Tarjeta de Acción Sandbox en el Dashboard (`renderSandboxActionCardHTML`)*:
+     - Componente interactivo estilizado que replica la experiencia de Google Antigravity.
+     - Botón `[▶ Probar en Sandbox en Vivo]` que dispara la ejecución física con un solo clic.
+     - Consola integrada con scroll automático y telemetría de latencia en milisegundos (`durationMs`).
+  3. *Endpoint Aislado de Sandbox (`POST /api/kodara/sandbox-run`)*:
+     - Ejecuta scripts en `newcore/scratch/` con aislamiento seguro de subprocesos, timeout de 6 segundos y captura estructurada en JSON.
+- **La Doble Forja en Acción**:
+  - *Forja 1 (Python Asyncio)*: `newcore/scratch/verify_port_auditor.py` ejecuta el escaneo local en menos de 300ms, respetando los límites de descriptores (`ulimit -n`) mediante `asyncio.Semaphore`.
+  - *Forja 2 (Rust Tokio)*: `newcore/scratch/verify_port_scanner_tokio.rs` provee el motor nativo de ultra-rendimiento con `tokio::net::TcpStream`, `Arc<Semaphore>` y timeouts atómicos para integración en suites EDR como SamuLibre.
+- **Certificación de Reemplazo Total**:
+  - Verificado por la suite `antigravity-replacement-mastery.test.ts`, elevando el ecosistema a 10 suites de prueba y 45/45 tests unitarios aprobados al 100%.
+

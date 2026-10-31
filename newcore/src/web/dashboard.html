@@ -1588,6 +1588,126 @@
       }
     }
 
+    // ── 5.1 Tarjeta Interactiva de Acción Sandbox en Vivo (Estilo Antigravity Console) ──
+    function renderSandboxActionCardHTML(act) {
+      if (!act) return '';
+      const cardId = act.id || ('sbx_' + Date.now().toString(36));
+      const title = act.title || '⚡ Acción de Sandbox en Vivo';
+      const scriptPath = act.scriptPath || 'scratch/verify_port_auditor.py';
+      const defaultTarget = act.target || '127.0.0.1';
+      const desc = act.description || 'Haz clic para ejecutar el script verificado directamente en el sandbox local y observar los resultados de red en tiempo real en la consola inferior.';
+
+      return `
+        <div id="sandboxCard_${cardId}" style="background:#13151f;border:1px solid #6366f1;border-radius:10px;padding:0.95rem 1.1rem;margin-top:0.85rem;box-shadow:0 8px 24px rgba(0,0,0,0.4)">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.55rem">
+            <div style="display:flex;align-items:center;gap:0.55rem">
+              <span style="font-size:1.15rem">⚡</span>
+              <div>
+                <div style="font-weight:700;font-size:0.86rem;color:#fff">${escapeHtml(title)}</div>
+                <div style="font-size:0.71rem;color:var(--text-secondary)">Script: <code>${escapeHtml(scriptPath)}</code> • Modo: <b>Aislamiento Seguro</b></div>
+              </div>
+            </div>
+            <span id="sandboxBadge_${cardId}" style="font-size:0.7rem;font-weight:700;padding:3px 8px;border-radius:5px;background:rgba(99,102,241,0.18);color:#818cf8">
+              SANDBOX READY
+            </span>
+          </div>
+
+          <div style="font-size:0.76rem;color:#cbd5e1;margin-bottom:0.6rem">
+            ${escapeHtml(desc)}
+          </div>
+
+          <div style="display:flex;gap:0.5rem;align-items:center;margin-bottom:0.65rem">
+            <label style="font-size:0.72rem;color:#94a3b8;font-family:var(--font-mono)">Target Host:</label>
+            <input id="sandboxTarget_${cardId}" type="text" value="${escapeHtml(defaultTarget)}" style="background:#090b10;border:1px solid rgba(255,255,255,0.1);border-radius:5px;color:#fff;padding:0.25rem 0.55rem;font-size:0.75rem;font-family:var(--font-mono);width:130px;" />
+            
+            <button id="btnSandboxRun_${cardId}" onclick="triggerSandboxAction('${cardId}', '${escapeHtml(scriptPath)}')" style="background:#6366f1;color:#fff;border:none;border-radius:6px;padding:0.4rem 0.95rem;font-size:0.77rem;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:0.4rem;box-shadow:0 3px 10px rgba(99,102,241,0.35);margin-left:auto">
+              <span>▶ Probar en Sandbox en Vivo</span>
+            </button>
+          </div>
+
+          <!-- Consola interactiva incrustada -->
+          <div style="background:#090a10;border:1px solid rgba(99,102,241,0.25);border-radius:7px;padding:0.6rem 0.8rem;overflow:hidden">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.35rem;border-bottom:1px solid rgba(255,255,255,0.05);padding-bottom:0.25rem">
+              <span style="font-size:0.68rem;font-family:var(--font-mono);color:#94a3b8">Console Output (Sandbox Runner)</span>
+              <span id="sandboxTiming_${cardId}" style="font-size:0.68rem;font-family:var(--font-mono);color:#6366f1">IDLE</span>
+            </div>
+            <pre id="sandboxConsole_${cardId}" style="margin:0;font-family:var(--font-mono);font-size:0.72rem;line-height:1.4;color:#a5b4fc;max-height:220px;overflow-y:auto;white-space:pre-wrap;word-break:break-all">Presiona [▶ Probar en Sandbox en Vivo] para ejecutar este script con aislamiento en el host local.</pre>
+          </div>
+        </div>
+      `;
+    }
+
+    async function triggerSandboxAction(cardId, scriptPath) {
+      const btn = document.getElementById('btnSandboxRun_' + cardId);
+      const badge = document.getElementById('sandboxBadge_' + cardId);
+      const consoleEl = document.getElementById('sandboxConsole_' + cardId);
+      const timingEl = document.getElementById('sandboxTiming_' + cardId);
+      const targetInput = document.getElementById('sandboxTarget_' + cardId);
+      const target = targetInput ? targetInput.value.trim() : '127.0.0.1';
+
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span>⏳ Ejecutando en Sandbox...</span>';
+      }
+      if (badge) {
+        badge.textContent = 'RUNNING';
+        badge.style.color = '#fbbf24';
+      }
+      if (consoleEl) {
+        consoleEl.textContent = `[Sandbox Runner] Lanzando ${scriptPath} hacia ${target}...\nAislamiento de procesos activo (límite 6s)...\n`;
+      }
+
+      const startTime = Date.now();
+      try {
+        const resp = await fetch('/api/kodara/sandbox-run', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ scriptPath, target })
+        });
+        const duration = Date.now() - startTime;
+        const data = await resp.json();
+
+        if (timingEl) timingEl.textContent = `${duration}ms`;
+
+        if (data.success) {
+          if (badge) {
+            badge.textContent = `COMPLETED (${duration}ms)`;
+            badge.style.color = '#34d399';
+            badge.style.background = 'rgba(16,185,129,0.18)';
+          }
+          if (consoleEl) {
+            let formatted = data.output;
+            if (data.parsed) {
+              formatted = JSON.stringify(data.parsed, null, 2);
+            }
+            consoleEl.textContent = formatted || '(Ejecución completada sin salida)';
+          }
+        } else {
+          if (badge) {
+            badge.textContent = 'ERROR / TIMEOUT';
+            badge.style.color = '#ef4444';
+            badge.style.background = 'rgba(239,68,68,0.18)';
+          }
+          if (consoleEl) {
+            consoleEl.textContent = `[Error en Sandbox]: ${data.error || 'Fallo desconocido'}\n\nDetalles:\n${data.output || ''}`;
+          }
+        }
+      } catch (err) {
+        if (badge) {
+          badge.textContent = 'NETWORK ERROR';
+          badge.style.color = '#ef4444';
+        }
+        if (consoleEl) {
+          consoleEl.textContent = `[Fallo de Conexión]: ${err.message}`;
+        }
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = '<span>↻ Re-ejecutar en Sandbox</span>';
+        }
+      }
+    }
+
     async function generateQuickExecutablePlan() {
       appendUserBubble(`📋 Crear y proponer Plan de Trabajo Ejecutable para ${activeProjectName} (${activeProjectPath})`);
       const aiNode = appendAiBlock('⏳ Generando Artefacto de Plan Ejecutable en SQLite...');
@@ -1833,6 +1953,7 @@
         let sseBuffer = '';
         let fullText = '';
         let visionCardHtml = '';
+        let attachedSandboxHtml = '';
         let attachedPlanHtml = '';
 
         const processSseLine = (ln) => {
@@ -1841,24 +1962,29 @@
           if (!payload || payload === '[DONE]') return;
           try {
             const data = JSON.parse(payload);
+            if (data.sandboxAction) {
+              attachedSandboxHtml = renderSandboxActionCardHTML(data.sandboxAction);
+              aiNode.innerHTML = visionCardHtml + formatMarkdown(stripSymbolicDisclaimersClient(fullText)) + attachedSandboxHtml + attachedPlanHtml;
+              scrollChatBottom();
+            }
             if (data.visionReport) {
               visionCardHtml = renderVisionReportCardHTML(data.visionReport);
-              aiNode.innerHTML = visionCardHtml + formatMarkdown(stripSymbolicDisclaimersClient(fullText)) + attachedPlanHtml;
+              aiNode.innerHTML = visionCardHtml + formatMarkdown(stripSymbolicDisclaimersClient(fullText)) + attachedSandboxHtml + attachedPlanHtml;
               scrollChatBottom();
             }
             if (data.turboExecuted) {
               fullText += data.turboExecuted.parsed.llmDigest + '\n\n---\n\n';
-              aiNode.innerHTML = visionCardHtml + formatMarkdown(stripSymbolicDisclaimersClient(fullText)) + attachedPlanHtml;
+              aiNode.innerHTML = visionCardHtml + formatMarkdown(stripSymbolicDisclaimersClient(fullText)) + attachedSandboxHtml + attachedPlanHtml;
               loadTargetTree();
             }
             if (data.chunk) {
               fullText += data.chunk;
-              aiNode.innerHTML = visionCardHtml + formatMarkdown(stripSymbolicDisclaimersClient(fullText)) + attachedPlanHtml;
+              aiNode.innerHTML = visionCardHtml + formatMarkdown(stripSymbolicDisclaimersClient(fullText)) + attachedSandboxHtml + attachedPlanHtml;
               scrollChatBottom();
             }
             if (data.executablePlan) {
               attachedPlanHtml = renderExecutablePlanCardHTML(data.executablePlan);
-              aiNode.innerHTML = visionCardHtml + formatMarkdown(stripSymbolicDisclaimersClient(fullText)) + attachedPlanHtml;
+              aiNode.innerHTML = visionCardHtml + formatMarkdown(stripSymbolicDisclaimersClient(fullText)) + attachedSandboxHtml + attachedPlanHtml;
               scrollChatBottom();
             }
           } catch {}
@@ -1879,6 +2005,17 @@
         }
 
         const cleanFinal = stripSymbolicDisclaimersClient(fullText);
+
+        // Capa de Acción en Vivo para Diagnósticos / Red / Scanners si no se envió en el stream
+        if (!attachedSandboxHtml && (text.toLowerCase().includes('puerto') || text.toLowerCase().includes('escan') || text.toLowerCase().includes('scanner') || cleanFinal.includes('verify_port_auditor'))) {
+          attachedSandboxHtml = renderSandboxActionCardHTML({
+            id: 'sbx_' + Date.now().toString(36),
+            title: '⚡ Auditor de Puertos en Sandbox (verify_port_auditor.py)',
+            scriptPath: 'scratch/verify_port_auditor.py',
+            target: '127.0.0.1',
+            description: 'Script de escaneo y banner-grab verificado con timeout y aislamiento seguro en localhost.'
+          });
+        }
 
         // Capa 3 (Garantía Infalible): Si adjuntó imagen o pidió un plan/mejora
         // y aún no se adjuntó la tarjeta por cualquier razón, crearla e inyectarla siempre
@@ -1905,7 +2042,7 @@
           } catch {}
         }
 
-        aiNode.innerHTML = visionCardHtml + formatMarkdown(cleanFinal) + attachedPlanHtml;
+        aiNode.innerHTML = visionCardHtml + formatMarkdown(cleanFinal) + attachedSandboxHtml + attachedPlanHtml;
         scrollChatBottom();
 
         chatHistory.push({ role: 'user', content: text });

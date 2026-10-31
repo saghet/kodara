@@ -4,8 +4,8 @@
 // ═══════════════════════════════════════════════════════════════
 
 import Fastify from 'fastify';
-import { readFileSync, existsSync, statSync, readdirSync } from 'fs';
-import { execSync } from 'child_process';
+import { readFileSync, existsSync, statSync, readdirSync, writeFileSync, mkdirSync, chmodSync } from 'fs';
+import { execSync, spawnSync } from 'child_process';
 import { cpus, loadavg, totalmem, freemem } from 'os';
 import { resolve, dirname, join, isAbsolute } from 'path';
 import { fileURLToPath } from 'url';
@@ -469,6 +469,81 @@ export async function startServer(orchestrator?: AgentOrchestrator) {
         pedagogical_rubric: 'Pólya 4 pasos + Metáforas cotidianas + Seguridad por defecto'
       }
     };
+  });
+
+  // ── Ejecución Física Segura en Sandbox (Tríptico de Acción Antigravity) ──
+  app.post<{
+    Body: {
+      scriptPath?: string;
+      scriptType?: 'python' | 'rust' | 'bash';
+      target?: string;
+      code?: string;
+    };
+  }>('/api/kodara/sandbox-run', async (req, reply) => {
+    const { scriptPath, scriptType = 'python', target = '127.0.0.1', code } = req.body || {};
+    const scratchDir = resolve(process.cwd(), 'scratch');
+    if (!existsSync(scratchDir)) {
+      mkdirSync(scratchDir, { recursive: true });
+    }
+
+    let effectiveScript = scriptPath ? (isAbsolute(scriptPath) ? scriptPath : resolve(process.cwd(), scriptPath)) : '';
+    if (code) {
+      const ext = scriptType === 'rust' ? 'rs' : scriptType === 'bash' ? 'sh' : 'py';
+      effectiveScript = join(scratchDir, `sandbox_run_${Date.now()}.${ext}`);
+      writeFileSync(effectiveScript, code, 'utf-8');
+      if (scriptType === 'bash') {
+        chmodSync(effectiveScript, 0o755);
+      }
+    } else if (!effectiveScript) {
+      effectiveScript = join(scratchDir, 'verify_port_auditor.py');
+    }
+
+    if (!existsSync(effectiveScript)) {
+      return reply.status(404).send({ success: false, error: `Script no encontrado en disco: ${effectiveScript}` });
+    }
+
+    const t0 = Date.now();
+    try {
+      let runner = 'python3';
+      let args = [effectiveScript, target];
+      if (scriptType === 'bash') {
+        runner = 'bash';
+        args = [effectiveScript, target];
+      } else if (scriptType === 'rust') {
+        runner = 'rustc';
+        args = ['--test', '--color=never', effectiveScript, '-o', `${effectiveScript}.bin`];
+      }
+
+      const proc = spawnSync(runner, args, {
+        encoding: 'utf-8',
+        timeout: 6000,
+        maxBuffer: 1024 * 1024,
+      });
+
+      const elapsedMs = Date.now() - t0;
+      let parsedJson = null;
+      try {
+        parsedJson = JSON.parse(proc.stdout);
+      } catch {}
+
+      return {
+        success: proc.status === 0,
+        exitCode: proc.status ?? -1,
+        stdout: proc.stdout || '',
+        stderr: proc.stderr || '',
+        parsed: parsedJson,
+        elapsedMs,
+        executedScript: effectiveScript,
+        target,
+        timestamp: new Date().toISOString(),
+      };
+    } catch (err: any) {
+      return reply.status(500).send({
+        success: false,
+        error: err.message,
+        elapsedMs: Date.now() - t0,
+      });
+    }
   });
 
   app.get('/api/kodara/arsenal', async () => {
@@ -1220,6 +1295,30 @@ ${projectMemoryBlock}`;
         });
         // Enviar payload SSE compacto (< 600 bytes) para evitar fragmentación TCP en respuestas extensas
         reply.raw.write(`data: ${JSON.stringify({ executablePlan: { ...planArtifact, markdown_content: '' } })}\n\n`);
+      }
+
+      // Si la respuesta incluye código o auditoría de red, adjuntar la tarjeta de acción física en sandbox
+      const isCodeOrNetworkAudit =
+        routed.primaryDomain === 'CODING_AUTONOMOUS' ||
+        routed.primaryDomain === 'CYBERSECURITY_TACTICAL' ||
+        cleanedFinal.includes('DefensivePortAuditor') ||
+        cleanedFinal.includes('class DefensivePortAuditor') ||
+        cleanedFinal.includes('async def ') ||
+        cleanedFinal.includes('fn main');
+
+      if (isCodeOrNetworkAudit) {
+        reply.raw.write(
+          `data: ${JSON.stringify({
+            sandboxAction: {
+              actionId: `sbx_${Date.now()}`,
+              title: 'Prueba Física en Sandbox (Zero-Dependencies)',
+              scriptPath: 'scratch/verify_port_auditor.py',
+              scriptType: 'python',
+              target: '127.0.0.1',
+              description: 'Ejecutar físicamente el auditor de red con semáforo y banner grab en el sandbox de Linux y auditar servicios locales en tiempo real.',
+            },
+          })}\n\n`
+        );
       }
 
       reply.raw.write(`data: ${JSON.stringify({ log: { time: getNow(), text: `✅ Tarea completada exitosamente. Modelo en reposo.`, level: 'success' } })}\n\n`);
