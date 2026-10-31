@@ -37,6 +37,34 @@ import {
 // ── Detector de Intención Táctica MCP (Genera tarjeta HITL automáticamente) ──
 function detectTacticalToolIntent(userMessage: string) {
   const lower = userMessage.toLowerCase();
+
+  // Puerta de Discernimiento Táctico (Pai Mei): Si la intención es didáctica, teórica o de programación, NO disparar binarios físicos
+  const isEducationalOrCodeRequest =
+    lower.includes('enséñame') ||
+    lower.includes('ensename') ||
+    lower.includes('cómo programar') ||
+    lower.includes('como programar') ||
+    lower.includes('cómo crear') ||
+    lower.includes('como crear') ||
+    lower.includes('cómo funciona') ||
+    lower.includes('como funciona') ||
+    lower.includes('cómo construir') ||
+    lower.includes('como construir') ||
+    lower.includes('explícame') ||
+    lower.includes('explicame') ||
+    lower.includes('clase magistral') ||
+    lower.includes('aprender') ||
+    lower.includes('código para') ||
+    lower.includes('codigo para') ||
+    lower.includes('teoría') ||
+    lower.includes('teoria') ||
+    lower.includes('por qué') ||
+    lower.includes('por que');
+
+  if (isEducationalOrCodeRequest) {
+    return null;
+  }
+
   const ipOrHostMatch = userMessage.match(/(?:https?:\/\/[^\s]+|\b(?:\d{1,3}\.){3}\d{1,3}\b|\/home\/[^\s,;:]+)/i);
   const target = ipOrHostMatch ? ipOrHostMatch[0] : '127.0.0.1';
 

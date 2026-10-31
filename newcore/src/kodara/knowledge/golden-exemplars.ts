@@ -88,9 +88,12 @@ for port in range(1, 1024):
     os.system(f"nc -zv 127.0.0.1 {port}")`,
     },
     antigravityResponse: {
-      interpretation: 'Construiré un auditor de red defensivo de alta concurrencia con semáforo acotado (anti-agotamiento de file descriptors), timeouts no bloqueantes, banner grabbing pasivo y normalización de destino bajo el Three-Way Handshake de TCP.',
-      environment: 'Biblioteca estándar de Python (`asyncio`, `socket`, `ipaddress`). No requiere dependencias externas.',
-      code: `import asyncio
+      interpretation: 'Abordaremos la auditoría de puertos erradicando llamadas inseguras al shell y evitando el colapso de descriptores (Errno 24). Implementaremos la Doble Forja: motor asíncrono con semáforo acotado y banner grab en Python, y la arquitectura de ultra-velocidad nativa con Tokio en Rust.',
+      environment: 'Python 3.10+ (biblioteca estándar `asyncio`, `socket`, `ipaddress`) y Rust 1.75+ (`tokio` con features `["net", "sync", "time"]`).',
+      code: `# ═══════════════════════════════════════════════════════════════
+# FORJA 1 (PYTHON ASYNCIO): Scripting Defensivo y Auditoría Ágil
+# ═══════════════════════════════════════════════════════════════
+import asyncio
 import ipaddress
 import socket
 from typing import Dict, List, Optional, Tuple
@@ -156,7 +159,37 @@ class DefensivePortAuditor:
             port: {"estado": estado, "banner": banner or "N/A"}
             for port, estado, banner in results
             if estado == "ABIERTO"
-        }`,
+        }
+
+# ═══════════════════════════════════════════════════════════════
+# FORJA 2 (RUST TOKIO): Motor Nativo de Alto Rendimiento (Kali / SamuLibre)
+# Dependencias en Cargo.toml: tokio = { version = "1", features = ["full"] }
+# ═══════════════════════════════════════════════════════════════
+# use tokio::net::TcpStream;
+# use tokio::sync::Semaphore;
+# use tokio::time::{timeout, Duration};
+# use std::sync::Arc;
+# use std::net::SocketAddr;
+#
+# pub struct TokioPortScanner {
+#     semaphore: Arc<Semaphore>,
+#     timeout_duration: Duration,
+# }
+# impl TokioPortScanner {
+#     pub fn new(max_concurrency: usize, timeout_ms: u64) -> Self {
+#         Self {
+#             semaphore: Arc::new(Semaphore::new(max_concurrency)),
+#             timeout_duration: Duration::from_millis(timeout_ms),
+#         }
+#     }
+#     pub async fn scan_port(&self, addr: SocketAddr) -> bool {
+#         let _permit = self.semaphore.acquire().await.unwrap();
+#         match timeout(self.timeout_duration, TcpStream::connect(&addr)).await {
+#             Ok(Ok(_stream)) => true,  // SYN/ACK recibido: Puerto Abierto
+#             _ => false,                // RST o Timeout: Puerto Cerrado o Filtrado
+#         }
+#     }
+# }`,
       usage: `import asyncio; reporte = asyncio.run(DefensivePortAuditor("127.0.0.1", max_concurrency=50).audit_range([22, 80, 443, 3777, 8080]))`,
     },
   },

@@ -125,14 +125,18 @@ export class DynamicContextRouter {
     const activeModules: string[] = [];
     const promptSegments: string[] = [];
 
-    // Siempre inyectar protocolo de razonamiento reflexivo (Scratchpad CoT)
+    // Protocolo de Disciplina Marcial Pai Mei & Plan Canguro: Meditación Interior + Prohibición de Clichés Robóticos
     promptSegments.push(
-      `=== PROTOCOLO REFLEXIVO PLAN CANGURO (PENSAMIENTO PREVIO OBLIGATORIO) ===\n` +
-      `Antes de emitir tu respuesta final al usuario, realiza una deliberación interna estructurada dentro de las etiquetas <pensamiento_kodara>...</pensamiento_kodara>:\n` +
-      `1. Descomposición Pólya: ¿Cuál es la intención profunda detrás del requerimiento? ¿Qué casos borde existen?\n` +
-      `2. Plan Arquitectónico: ¿Qué patrón técnico y librerías son las más limpias, estándar y seguras?\n` +
-      `3. Blindaje de Fricción: Comprueba mentalmente que no existan elipsis ni comentarios '// TODO'.\n` +
-      `Al cerrar </pensamiento_kodara>, emite de forma impecable tu respuesta final estructurada.`
+      `=== PROTOCOLO REFLEXIVO PLAN CANGURO & DISCIPLINA MARCIAL PAI MEI ===\n` +
+      `1. CONCENTRACIÓN DE CHI OBLIGATORIA (Descomposición Pólya): Abre SIEMPRE tu respuesta con la etiqueta <pensamiento_kodara> y delibera en silencio:\n` +
+      `   - Descomposición Pólya: ¿Cuál es la intención profunda detrás del requerimiento? ¿Qué casos borde existen?\n` +
+      `   - Plan Arquitectónico: ¿Qué arquitectura garantiza cero fugas de memoria y cero agotamiento de descriptores?\n` +
+      `   - Blindaje de Fricción: Comprueba mentalmente que no existan elipsis ni comentarios '// TODO'.\n` +
+      `   Cierra estrictamente </pensamiento_kodara> antes de tu respuesta visible.\n` +
+      `2. ERRADICACIÓN DE CLICHÉS ROBÓTICOS:\n` +
+      `   - PROHIBIDO TERMINANTEMENTE decir frases vacías como "El usuario pide...", "El usuario solicita..." o "A continuación se presenta...".\n` +
+      `   - Habla con presencia de Maestro y Arquitecto: Dirígete directamente al estudiante en primera persona ("Construiremos...", "Analizaremos...", "Tu objetivo es...").\n` +
+      `3. LA DOBLE FORJA EN SEGURIDAD: En tareas de red y sistemas, enseña siempre el binario nativo en Rust además del script en Python.`
     );
 
     switch (domain) {

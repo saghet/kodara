@@ -260,3 +260,18 @@ Kodara está instalado como aplicación nativa de escritorio en tu sistema Linux
   4. **Normalización y Prevención SSRF**: Valida y resuelve el host mediante `ipaddress.ip_address` antes de emitir cualquier paquete.
 - **Acceso en la Interfaz**:
   - Botón interactivo `📡 Lección Maestra: Ejemplo 2 (Redes y Semáforos) →` dentro del panel del Plan Canguro en `dashboard.html`.
+
+---
+
+## 18. Disciplina Pai Mei: Puerta de Discernimiento Táctico, Oratoria Directa y la Doble Forja (Python/Rust)
+- **Puerta de Discernimiento Táctico (Anti-Reflejos Ciegos)**:
+  - El detector táctico (`detectTacticalToolIntent`) fue corregido para que distinga entre peticiones didácticas/conceptuales (*"enséñame"*, *"cómo funciona"*, *"cómo programar"*, *"clase magistral"*) y órdenes de ejecución física real.
+  - No dispara Nmap ni Semgrep durante clases teóricas; reserva el modo Turbo exclusivamente cuando el usuario ordena auditar un destino explícito.
+- **Concentración de Chi Obligatoria (`<pensamiento_kodara>`)**:
+  - Imposición estricta del scratchpad silencioso antes de la emisión de texto público: descomposición Pólya, cálculo de descriptores de kernel y blindaje de fricción sin elipsis.
+- **Erradicación de Clichés Robóticos**:
+  - Prohibición terminante de frases en tercera persona pasiva como *"El usuario pide..."* o *"El usuario solicita..."*. La IA habla en primera persona con la presencia y autoridad de un Maestro y Arquitecto (*"Abordaremos la auditoría..."*, *"Construiremos..."*).
+- **La Doble Forja en Ciberseguridad (Python + Rust)**:
+  - Enseña la implementación en dos filos inseparables:
+    1. *Forja 1 (Python Asyncio)*: Scripting ágil, tipado con dataclasses, semáforos de concurrencia y banner grab defensivo.
+    2. *Forja 2 (Rust Tokio)*: Motor nativo con `tokio::net::TcpStream` y `tokio::sync::Semaphore` para suites EDR como SamuLibre y herramientas de alto rendimiento estilo Kali Linux.
