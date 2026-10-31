@@ -117,3 +117,20 @@ Kodara está instalado como aplicación nativa de escritorio en tu sistema Linux
 - **`Ctrl + R`**: Recargar la interfaz ignorando caché.
 - **`F11`**: Alternar modo de pantalla completa táctica.
 - **`Ctrl + Q`**: Cerrar la ventana de escritorio (el servicio local sigue activo en segundo plano).
+
+
+---
+
+## 11. Motor de Comprensión de Historial Completo, Detección Geométrica de Flechas y Ejecución Real de Órdenes (Nivel Antigravity)
+- **Hidratación Completa de Historial desde SQLite (`KodaraOrderCompiler.loadFullConversationHistory`)**:
+  - En cada turno de `/chat/stream` y al cambiar de conversación en la interfaz, Kodara carga automáticamente todos los mensajes previos desde `project_messages` en SQLite y construye un **Ledger de Órdenes Acumuladas**.
+- **Detección Geométrica de Flechas (`KodaraVisionEngine.detectArrowTarget`)**:
+  - Detecta flechas o trazos de anotación (azules, rojos, amarillos) dibujados por el usuario sobre las capturas adjuntas, calcula el cuadrante `(x%, y%)` de la punta de la flecha, ejecuta OCR focalizado sobre el área apuntada y la vincula con la línea exacta del archivo fuente del proyecto (`data/ui/index.html`).
+- **Compilación y Ejecución Real de Órdenes en `[▶ Proceed]` (`KodaraOrderCompiler` + `KodaraPlanExecutor`)**:
+  - Extrae y ejecuta físicamente las órdenes pedidas en el historial del chat:
+    - `VERSION_BUMP`: Actualiza `Cargo.toml`, `data/ui/index.html`, `PKGBUILD` y `samulibre.spec` a la nueva versión solicitada (ej. `v2.00.31`).
+    - `UI_TELEMETRY_INJECTION`: Inserta los widgets solicitados (ej. `Consumo CPU` y `Consumo GPU` donde apunta la flecha) y los conecta al backend en Rust.
+    - `COMPILE_PROJECT`: Compila el proyecto con `cargo build --release` y sincroniza binarios y recursos en `~/.local/bin` y `~/.local/share`.
+    - `RESTART_APPLICATION`: Cierra y vuelve a abrir la aplicación objetivo (`systemctl --user restart samulibre.service` + señal `SHOW` al puerto `49721`) para mostrar los cambios en vivo.
+- **Auditoría Verificadora Post-Ejecución (`PostExecutionAuditor`)**:
+  - Comprueba físicamente en disco y en los procesos activos que cada requisito del historial se haya cumplido al **100%** antes de marcar el plan como `✓ 100% PROCEEDED & VERIFIED`.

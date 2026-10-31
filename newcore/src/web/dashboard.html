@@ -1097,6 +1097,10 @@
         const latestPlan = plans && plans.length > 0 ? plans[0] : null;
 
         if (msgs && msgs.length > 0) {
+          chatHistory = msgs.map(m => ({
+            role: m.role === 'user' ? 'user' : 'assistant',
+            content: stripSymbolicDisclaimersClient(m.content || '')
+          }));
           const flow = document.getElementById('chatFlow');
           flow.innerHTML = msgs.map((m, idx) => {
             const cleanContent = stripSymbolicDisclaimersClient(m.content || '');
@@ -2049,7 +2053,21 @@
       }
     }
 
+    async function hydrateConversationHistory() {
+      try {
+        const resp = await fetch(`/api/kodara/conversations/${encodeURIComponent(activeConversationId)}/history`);
+        const data = await resp.json();
+        if (data && Array.isArray(data.messages) && data.messages.length > 0) {
+          chatHistory = data.messages.map(m => ({
+            role: m.role === 'user' ? 'user' : 'assistant',
+            content: stripSymbolicDisclaimersClient(m.content || '')
+          }));
+        }
+      } catch {}
+    }
+
     window.addEventListener('DOMContentLoaded', () => {
+      hydrateConversationHistory();
       loadProjectsSidebar();
       loadProjectMemory();
       loadInitialExecutablePlans();

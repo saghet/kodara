@@ -19,6 +19,7 @@ import { OutputPreprocessor } from './kodara/output-preprocessor.js';
 import { KodaraWorkspaceDB } from './kodara/workspace-db.js';
 import { KodaraPlanExecutor } from './kodara/plan-executor.js';
 import { KodaraVisionEngine, type AttachedImageInput } from './kodara/vision-engine.js';
+import { KodaraOrderCompiler } from './kodara/order-compiler.js';
 import {
   KodaraEvolutionEngine,
   KodaraEvolutionDB,
@@ -320,6 +321,45 @@ export async function startServer(orchestrator?: AgentOrchestrator) {
     async (req) => {
       const { role, content, meta } = req.body;
       return await projectsTable.saveProjectMessage(req.params.id, role, content, meta);
+    }
+  );
+
+  app.get<{ Params: { id: string } }>('/api/kodara/conversations/:id/history', async (req) => {
+    const convId = req.params.id || 'conv_samu_1';
+    const { mergedMessages, userTurns } = await KodaraOrderCompiler.loadFullConversationHistory(convId);
+    const compiled = await KodaraOrderCompiler.compileFromConversation({
+      conversationId: convId,
+      clientHistory: mergedMessages,
+    });
+    return {
+      conversation_id: convId,
+      messages: mergedMessages,
+      user_turns_count: userTurns.length,
+      compiled_orders: compiled.orders,
+      arrow_target: compiled.arrow_target,
+    };
+  });
+
+  app.post<{ Body: { conversationId?: string; projectPath?: string; executeIfPending?: boolean } }>(
+    '/api/kodara/audit-intelligence',
+    async (req) => {
+      const convId = req.body?.conversationId || 'conv_samu_1';
+      const projPath = req.body?.projectPath || '/home/saghet/Documents/SamulibreLinux';
+      const compiled = await KodaraOrderCompiler.compileFromConversation({
+        conversationId: convId,
+        projectPath: projPath,
+      });
+      if (req.body?.executeIfPending !== false && compiled.orders.length > 0) {
+        KodaraOrderCompiler.executeSourceCodeMutations(compiled);
+        KodaraOrderCompiler.executeCompileAndSync(compiled);
+        KodaraOrderCompiler.executeApplicationRestart(compiled);
+      }
+      const audit = KodaraOrderCompiler.auditExecutionCompliance(compiled);
+      return {
+        ok: true,
+        compiled,
+        audit,
+      };
     }
   );
 
@@ -870,27 +910,53 @@ export async function startServer(orchestrator?: AgentOrchestrator) {
       );
     }
 
-    // 3. Inyección de Kodara Project Memory + Memoria de Ingeniería
+    // 3. Inyección de Kodara Project Memory + Memoria de Ingeniería + Historial Completo desde SQLite
     const memoryContext = memoryManager.generateSystemContext(effectiveProjectPath);
     const projectMemoryBlock = await KodaraProjectMemory.buildProjectMemoryPromptBlock(projectId);
-    reply.raw.write(`data: ${JSON.stringify({ log: { time: getNow(), text: `🧠 Consultando Kodara Project Memory para reutilizar soluciones verificadas.`, level: 'info' } })}\n\n`);
+    const { mergedMessages } = await KodaraOrderCompiler.loadFullConversationHistory(
+      effectiveConvId,
+      (history as any[]) || []
+    );
+    const compiledOrders = await KodaraOrderCompiler.compileFromConversation({
+      conversationId: effectiveConvId,
+      projectId: projectId || 'proj_samulibre',
+      projectName: projectName || 'SamulibreLinux',
+      projectPath: effectiveProjectPath,
+      clientHistory: mergedMessages,
+      currentMessage: message,
+    });
+    reply.raw.write(
+      `data: ${JSON.stringify({
+        log: {
+          time: getNow(),
+          text: `🧠 Historial SQLite cargado (${mergedMessages.length} mensajes) • ${compiledOrders.orders.length} orden(es) de ingeniería compilada(s) y listas para [▶ Proceed].`,
+          level: 'info',
+        },
+      })}\n\n`
+    );
 
-    const systemPrompt = `Eres KODARA ("Your Code. Your AI. Your Rules."), operando en un ambiente local autorizado en modo ${isTurboMode ? 'TURBO sin restricciones ni bloqueos' : 'Supervisado'}.
+    const systemPrompt = `Eres KODARA ("Your Code. Your AI. Your Rules."), operando en un ambiente local autorizado en modo ${isTurboMode ? 'TURBO sin restricciones ni bloqueos' : 'Supervisado'} con el mismo nivel de razonamiento, comprensión de historial y ejecución verificada que Google Antigravity.
 ${resolvedProfile.rolePersona}
 Responde SIEMPRE en español con lenguaje técnico, directo, estructurado y accionable.
 REGLA CRÍTICA DE INTERFAZ: El sistema gráfico de Kodara renderiza automáticamente su propia tarjeta de ejecución debajo de tu mensaje. Por lo tanto, finaliza tu respuesta directamente con el resumen técnico; NUNCA escribas botones en texto ni entre corchetes, NUNCA uses javascript:void(0) y NUNCA escribas notas sobre botones simbólicos.
+${compiledOrders.history_ledger_prompt_block}
 ${memoryContext}
 ${projectMemoryBlock}`;
 
+    const priorMessages = mergedMessages
+      .filter((m) => m.content.trim() !== message.trim())
+      .slice(-12)
+      .map((m) => ({
+        role: m.role === 'user' ? 'user' : 'assistant',
+        content: m.content.slice(0, 1800),
+      }));
+
     const chatMessages = [
       { role: 'system', content: systemPrompt },
-      ...(history as any[] ?? []).map((m: any) => ({
-        role: m.role === 'user' ? 'user' : 'assistant',
-        content: m.content
-      })),
+      ...priorMessages,
       {
         role: 'user',
-        content: `${visionPromptBlock ? `${visionPromptBlock}\n\n` : ''}${contextText ? `${contextText}\n\n` : ''}${turboToolDigest ? `${turboToolDigest}\n\n` : ''}${message}`,
+        content: `${visionPromptBlock ? `${visionPromptBlock}\n\n` : ''}${compiledOrders.history_ledger_prompt_block}\n\n${contextText ? `${contextText}\n\n` : ''}${turboToolDigest ? `${turboToolDigest}\n\n` : ''}ORDEN ACTUAL DEL USUARIO:\n${message}`,
         ...(ollamaVisionBase64.length > 0 && (actualModel.includes('vl') || actualModel.includes('llava') || actualModel.includes('gemma3') || actualModel.includes('minicpm'))
           ? { images: ollamaVisionBase64 }
           : {}),
