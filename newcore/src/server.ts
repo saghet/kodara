@@ -1079,6 +1079,18 @@ export async function startServer(orchestrator?: AgentOrchestrator) {
 
     reply.raw.write(`data: ${JSON.stringify({ log: { time: getNow(), text: `⚡ Modo ${isTurboMode ? 'TURBO (Ejecución Directa Autorizada)' : 'Supervisado'} • Perfil: ${resolvedProfile.profileName}`, level: 'info' } })}\n\n`);
 
+    // Auto-Titulado Inteligente de Conversación (Estándar Antigravity: sin interrupción previa)
+    try {
+      const existingConv = await projectsTable.getConversationById(effectiveConvId);
+      if (existingConv && (existingConv.title === 'Nueva Conversación' || existingConv.title === 'Conversación sin título')) {
+        const autoTitle = projectsTable.generateSemanticTitleFromPrompt(message);
+        if (autoTitle && autoTitle !== 'Nueva Conversación' && autoTitle !== 'Consulta de Desarrollo') {
+          await projectsTable.renameConversation(effectiveConvId, autoTitle);
+          reply.raw.write(`data: ${JSON.stringify({ conversationRenamed: { id: effectiveConvId, title: autoTitle } })}\n\n`);
+        }
+      }
+    } catch {}
+
     // 1.5. Detector de Intención Táctica: En modo TURBO ejecuta directamente sin impedimentos
     let turboToolDigest = '';
     const hitlProposal = detectTacticalToolIntent(message);

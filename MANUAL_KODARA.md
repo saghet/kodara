@@ -328,4 +328,27 @@ Kodara está instalado como aplicación nativa de escritorio en tu sistema Linux
 - **Certificación de Calidad**:
   - Validado integralmente por `antigravity-sidebar-folders-conversations.test.ts`, totalizando 11 suites de prueba y 49/49 pruebas automatizadas aprobadas al 100%.
 
+---
+
+## 22. Ergonomía Avanzada de IDE: Edición Inline In-Situ, Auto-Titling y Erradicación de Diálogos Nativos
+- **Erradicación de Diálogos Bloqueantes de Navegador**:
+  - Eliminación total de `window.prompt()` y `window.confirm()`. Toda la interacción se produce de manera nativa dentro del DOM y del tema oscuro de Kodara.
+- **Edición Inline In-Situ (`startInlineRename`)**:
+  - El usuario puede renombrar cualquier conversación haciendo doble clic directo sobre su título o seleccionando *"Renombrar"* en el menú de opciones `::`.
+  - El título se convierte en un campo de texto estilizado (`.ag-conv-inline-input`) con autofoco y selección completa:
+    - Tecla `Enter`: Persiste el nuevo título en SQLite vía `PATCH /api/conversations/:id` y actualiza la vista.
+    - Tecla `Escape` o pérdida de foco sin cambios (`blur`): Cancela la edición y restaura el título original sin llamadas a red.
+- **Modal de Confirmación No Bloqueante (`#agConfirmDeleteModal`)**:
+  - Diálogo modal flotante estilizado con fondo oscurecido (`backdrop-filter: blur`), advertencia destructiva y botones interactivos no bloqueantes.
+- **Creación de Nueva Conversación Cero Fricción**:
+  - El botón `+ New Conversation` crea instantáneamente el nuevo hilo de chat bajo el proyecto activo con el título provisional *"Nueva Conversación"*, limpiando el flujo de trabajo y enfocando el cursor en el campo de entrada `#promptInput` para comenzar a escribir de inmediato.
+- **Motor de Auto-Titulado Semántico Inteligente (Auto-Titling)**:
+  - Al procesar el primer mensaje del usuario en un nuevo hilo, el motor (`generateSemanticTitleFromPrompt`) analiza el prompt, remueve palabras vacías y fórmulas de cortesía, y genera un título conciso y representativo (máximo 4 palabras capitalizadas).
+  - El servidor emite en tiempo real el evento Server-Sent Events `conversationRenamed`, actualizando el breadcrumb superior y el nodo del sidebar sin recargar la página.
+- **Ergonomía de Búsqueda y Filtrado**:
+  - Soporte de tecla `Escape` para cerrar o limpiar la barra de filtro `#agProjectsFilterBar`, y botón contextual de reset `✕`.
+- **Certificación del Ecosistema**:
+  - Verificado por la suite `antigravity-sidebar-advanced-ux.test.ts`, alcanzando **12 suites de prueba y 53/53 pruebas unitarias aprobadas al 100%**.
+
+
 

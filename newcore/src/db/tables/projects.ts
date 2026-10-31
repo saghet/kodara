@@ -357,6 +357,51 @@ export async function renameConversation(id: string, newTitle: string): Promise<
   };
 }
 
+export async function getConversationById(id: string): Promise<ConversationRecord | null> {
+  await initProjectsSchema();
+  const db = await getDb();
+  const res = await db.execute({
+    sql: 'SELECT * FROM project_conversations WHERE id = ?',
+    args: [id]
+  });
+  if (res.rows.length === 0) return null;
+  const r = res.rows[0];
+  return {
+    id: r.id as string,
+    projectId: r.project_id as string,
+    title: r.title as string,
+    createdAt: r.created_at as string,
+    updatedAt: r.updated_at as string,
+    timeAgo: 'ahora'
+  };
+}
+
+export function generateSemanticTitleFromPrompt(prompt: string): string {
+  const clean = prompt
+    .replace(/^(\/recordar|\/learn|\/plan|\/goal)\s+/i, '')
+    .replace(/[^\w\s\u00C0-\u017F]/g, ' ')
+    .trim();
+
+  const stopwords = new Set([
+    'hola', 'buenos', 'dias', 'tardes', 'noches', 'por', 'favor', 'ayudame', 'podrias',
+    'necesito', 'como', 'quiero', 'hacer', 'crear', 'analiza', 'analizar', 'revisa',
+    'revisar', 'dime', 'sobre', 'para', 'de', 'del', 'la', 'el', 'los', 'las', 'un',
+    'una', 'unos', 'unas', 'en', 'y', 'o', 'con', 'sin', 'que', 'es', 'son', 'se',
+    'a', 'al', 'the', 'is', 'at', 'which', 'on', 'can', 'you', 'please', 'help', 'me', 'with'
+  ]);
+
+  const words = clean
+    .split(/\s+/)
+    .filter(w => w.length > 2 && !stopwords.has(w.toLowerCase()));
+
+  if (words.length === 0) {
+    return 'Consulta de Desarrollo';
+  }
+
+  const selected = words.slice(0, 4).map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
+  return selected.join(' ');
+}
+
 export async function moveConversation(id: string, targetProjectId: string): Promise<ConversationRecord | null> {
   await initProjectsSchema();
   const db = await getDb();

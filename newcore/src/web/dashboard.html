@@ -320,6 +320,19 @@
       max-width: 135px;
     }
 
+    .ag-conv-inline-input {
+      background: #0d0f17;
+      border: 1px solid #38bdf8;
+      border-radius: 4px;
+      color: #ffffff;
+      font-size: 0.76rem;
+      padding: 1px 5px;
+      width: 135px;
+      outline: none;
+      font-family: inherit;
+      box-shadow: 0 0 6px rgba(56, 189, 248, 0.4);
+    }
+
     .ag-conv-meta-wrap {
       display: flex;
       align-items: center;
@@ -1024,9 +1037,12 @@
       </div>
     </div>
 
-    <!-- Barra de Búsqueda y Filtro en Vivo -->
+    <!-- Barra de Búsqueda y Filtro en Vivo Estilo Antigravity -->
     <div class="ag-filter-bar" id="agProjectsFilterBar">
-      <input type="text" class="ag-filter-input" id="agProjectsFilterInput" placeholder="Filtrar proyectos o chats..." oninput="filterProjectsTree(this.value)" />
+      <div style="position:relative;display:flex;align-items:center">
+        <input type="text" class="ag-filter-input" id="agProjectsFilterInput" placeholder="Filtrar proyectos (Esc)..." oninput="filterProjectsTree(this.value)" onkeydown="if(event.key==='Escape')toggleProjectsFilterBar()" />
+        <button id="btnClearProjectsFilter" onclick="clearProjectsFilter()" style="position:absolute;right:6px;background:none;border:none;color:#64748b;cursor:pointer;font-size:0.75rem;display:none" title="Limpiar filtro">✕</button>
+      </div>
     </div>
 
     <div class="ag-projects-scroll" id="agProjectsTree">
@@ -1339,6 +1355,25 @@
     </div>
   </div>
 
+  <!-- Modal: Confirmación No Bloqueante de Eliminación (Estilo Antigravity IDE) -->
+  <div id="agConfirmDeleteModal" class="ag-modal-backdrop" onclick="if(event.target===this)closeConfirmDeleteModal()">
+    <div class="ag-modal-box" style="max-width:390px">
+      <div class="ag-modal-header">
+        <span class="ag-modal-title" style="color:#f87171">🗑️ Eliminar Conversación</span>
+        <button class="ag-icon-btn" onclick="closeConfirmDeleteModal()">✕</button>
+      </div>
+      <div class="ag-modal-body">
+        <p style="font-size:0.78rem;color:#cbd5e1;line-height:1.5" id="confirmDeletePromptText">
+          ¿Estás seguro de que deseas eliminar permanentemente esta conversación? Esta acción no se puede deshacer.
+        </p>
+      </div>
+      <div class="ag-modal-actions">
+        <button class="ag-modal-btn secondary" onclick="closeConfirmDeleteModal()">Cancelar</button>
+        <button class="ag-modal-btn" style="background:#ef4444;color:#fff;box-shadow:0 4px 12px rgba(239,68,68,0.35)" onclick="executeConfirmedDelete()">Eliminar Definitivamente</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     let activeProjectId = 'proj_samulibre';
     let activeProjectName = 'SamulibreLinux';
@@ -1406,6 +1441,9 @@
 
     function filterProjectsTree(query) {
       const q = (query || '').toLowerCase().trim();
+      const btnClear = document.getElementById('btnClearProjectsFilter');
+      if (btnClear) btnClear.style.display = q ? 'block' : 'none';
+
       if (!q) {
         renderProjectsTree(cachedProjectsList);
         return;
@@ -1422,6 +1460,14 @@
         return null;
       }).filter(Boolean);
       renderProjectsTree(filtered);
+    }
+
+    function clearProjectsFilter() {
+      const input = document.getElementById('agProjectsFilterInput');
+      const btnClear = document.getElementById('btnClearProjectsFilter');
+      if (input) input.value = '';
+      if (btnClear) btnClear.style.display = 'none';
+      renderProjectsTree(cachedProjectsList);
     }
 
     function toggleProjectCollapse(projId, event) {
@@ -1457,9 +1503,11 @@
               const escapedTitleAttr = c.title.replace(/'/g, "\\'").replace(/"/g, '&quot;');
               return `
                 <div class="ag-conv-item ${isActive ? 'active' : ''}"
-                     title="${safeTitle}"
+                     id="convItem_${c.id}"
+                     title="${safeTitle} (Doble clic para renombrar)"
+                     ondblclick="startInlineRename('${c.id}', event)"
                      onclick="selectProjectConversation('${p.id}', '${escapeAttr(p.name)}', '${escapeAttr(p.path)}', '${c.id}', '${escapedTitleAttr}')">
-                  <span class="ag-conv-title">${safeTitle}</span>
+                  <span class="ag-conv-title" id="convTitle_${c.id}">${safeTitle}</span>
                   <div class="ag-conv-meta-wrap">
                     <span class="ag-conv-time">${escapeHtml(relTime)}</span>
                     <button class="ag-conv-options-btn"
@@ -1509,6 +1557,91 @@
       }
     }
 
+    // ── Edición Inline In-Situ de Conversaciones (Estándar Antigravity) ──
+    let activeInlineEditConvId = null;
+
+    function startInlineRename(convId, event) {
+      if (event) event.stopPropagation();
+      closeConversationContextMenu();
+
+      if (activeInlineEditConvId && activeInlineEditConvId !== convId) {
+        cancelInlineRename(activeInlineEditConvId);
+      }
+
+      const titleSpan = document.getElementById('convTitle_' + convId);
+      if (!titleSpan) return;
+
+      const currentTitle = titleSpan.textContent.trim();
+      activeInlineEditConvId = convId;
+
+      titleSpan.innerHTML = `
+        <input type="text"
+               class="ag-conv-inline-input"
+               id="inlineInput_${convId}"
+               value="${escapeHtml(currentTitle)}"
+               onclick="event.stopPropagation()"
+               onkeydown="handleInlineRenameKey(event, '${convId}', '${escapeAttr(currentTitle)}')"
+               onblur="saveInlineRename('${convId}', this.value, '${escapeAttr(currentTitle)}')" />
+      `;
+
+      const input = document.getElementById('inlineInput_' + convId);
+      if (input) {
+        input.focus();
+        input.select();
+      }
+    }
+
+    function cancelInlineRename(convId, originalTitle) {
+      activeInlineEditConvId = null;
+      const titleSpan = document.getElementById('convTitle_' + convId);
+      if (titleSpan) {
+        titleSpan.textContent = originalTitle || '';
+      }
+    }
+
+    function handleInlineRenameKey(event, convId, originalTitle) {
+      event.stopPropagation();
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        saveInlineRename(convId, event.target.value, originalTitle);
+      } else if (event.key === 'Escape') {
+        event.preventDefault();
+        cancelInlineRename(convId, originalTitle);
+      }
+    }
+
+    async function saveInlineRename(convId, newTitle, originalTitle) {
+      if (activeInlineEditConvId !== convId) return;
+      activeInlineEditConvId = null;
+
+      const trimmed = (newTitle || '').trim();
+      if (!trimmed || trimmed === originalTitle) {
+        cancelInlineRename(convId, originalTitle);
+        return;
+      }
+
+      const titleSpan = document.getElementById('convTitle_' + convId);
+      if (titleSpan) titleSpan.textContent = trimmed;
+
+      try {
+        const resp = await fetch(`/api/conversations/${convId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title: trimmed })
+        });
+        if (resp.ok) {
+          if (activeConversationId === convId) {
+            document.getElementById('centerBreadcrumb').innerHTML = `<span>${escapeHtml(activeProjectName)}</span> <span>/</span> <b>${escapeHtml(trimmed)}</b>`;
+          }
+          await loadProjectsSidebar();
+        } else {
+          cancelInlineRename(convId, originalTitle);
+        }
+      } catch (err) {
+        cancelInlineRename(convId, originalTitle);
+      }
+    }
+
     // Menú Contextual de Conversaciones (:: / Opciones)
     function openConversationContextMenu(event, convId, convTitle, projId) {
       if (event) {
@@ -1537,28 +1670,11 @@
       }
     });
 
-    async function onContextRenameClick() {
+    function onContextRenameClick() {
       closeConversationContextMenu();
       const current = currentContextConv;
       if (!current.id) return;
-      const newTitle = prompt('Renombrar conversación:', current.title);
-      if (!newTitle || !newTitle.trim() || newTitle.trim() === current.title) return;
-
-      try {
-        const resp = await fetch(`/api/conversations/${current.id}`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ title: newTitle.trim() })
-        });
-        if (resp.ok) {
-          if (activeConversationId === current.id) {
-            document.getElementById('centerBreadcrumb').innerHTML = `<span>${escapeHtml(activeProjectName)}</span> <span>/</span> <b>${escapeHtml(newTitle.trim())}</b>`;
-          }
-          await loadProjectsSidebar();
-        }
-      } catch (err) {
-        alert('Error renombrando conversación: ' + err.message);
-      }
+      startInlineRename(current.id, null);
     }
 
     function onContextMoveClick() {
@@ -1609,32 +1725,51 @@
           await loadProjectsSidebar();
         }
       } catch (err) {
-        alert('Error moviendo conversación: ' + err.message);
+        console.error('Error moviendo conversación:', err);
       }
     }
 
-    async function onContextDeleteClick() {
+    // Modal de Confirmación No Bloqueante (Eliminar)
+    let pendingDeleteConv = { id: '', title: '' };
+
+    function onContextDeleteClick() {
       closeConversationContextMenu();
       const current = currentContextConv;
       if (!current.id) return;
 
-      if (!confirm(`¿Deseas eliminar permanentemente la conversación "${current.title}"?`)) {
-        return;
+      pendingDeleteConv = { ...current };
+      const modal = document.getElementById('agConfirmDeleteModal');
+      const promptEl = document.getElementById('confirmDeletePromptText');
+      if (promptEl) {
+        promptEl.innerHTML = `¿Deseas eliminar permanentemente la conversación "<b>${escapeHtml(current.title)}</b>"? Esta acción no se puede deshacer.`;
       }
+      if (modal) modal.classList.add('open');
+    }
+
+    function closeConfirmDeleteModal() {
+      const modal = document.getElementById('agConfirmDeleteModal');
+      if (modal) modal.classList.remove('open');
+      pendingDeleteConv = { id: '', title: '' };
+    }
+
+    async function executeConfirmedDelete() {
+      const convId = pendingDeleteConv.id;
+      if (!convId) return;
 
       try {
-        const resp = await fetch(`/api/conversations/${current.id}`, {
+        const resp = await fetch(`/api/conversations/${convId}`, {
           method: 'DELETE'
         });
         if (resp.ok) {
-          if (activeConversationId === current.id) {
+          closeConfirmDeleteModal();
+          if (activeConversationId === convId) {
             activeConversationId = '';
             await renderProjectWorkspaceCleanState(activeProjectId, activeProjectName, activeProjectPath, 'Workspace Activo');
           }
           await loadProjectsSidebar();
         }
       } catch (err) {
-        alert('Error eliminando conversación: ' + err.message);
+        console.error('Error eliminando conversación:', err);
       }
     }
 
@@ -1672,7 +1807,6 @@
       const description = descInput ? descInput.value.trim() : '';
 
       if (!name) {
-        alert('Ingresa el nombre del proyecto / carpeta.');
         if (nameInput) nameInput.focus();
         return;
       }
@@ -1691,11 +1825,33 @@
           activeProjectPath = created.path;
           await loadProjectsSidebar();
           await selectProjectFolder(created.id, created.name, created.path);
-        } else {
-          alert('Error creando proyecto: ' + (created.error || 'Respuesta inválida'));
         }
       } catch (err) {
-        alert('Error de red creando proyecto: ' + err.message);
+        console.error('Error creando proyecto:', err);
+      }
+    }
+
+    // Creación Ágil de Nueva Conversación (Flujo Inmediato Antigravity sin prompt bloqueante)
+    async function createNewProjectConversation() {
+      try {
+        const resp = await fetch(`/api/projects/${activeProjectId}/conversations`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title: 'Nueva Conversación' })
+        });
+        const created = await resp.json();
+        activeConversationId = created.id;
+        document.getElementById('centerBreadcrumb').innerHTML = `<span>${escapeHtml(activeProjectName)}</span> <span>/</span> <b>Nueva Conversación</b>`;
+        await loadProjectsSidebar();
+        await renderProjectWorkspaceCleanState(activeProjectId, activeProjectName, activeProjectPath, 'Nueva Conversación');
+
+        const promptInput = document.getElementById('promptInput');
+        if (promptInput) {
+          promptInput.value = '';
+          promptInput.focus();
+        }
+      } catch (err) {
+        console.error('Error creando conversación rápida:', err);
       }
     }
 
@@ -1703,22 +1859,26 @@
       if (event) event.stopPropagation();
       activeProjectId = projId;
       activeProjectName = projName;
-      const title = prompt(`Nueva conversación en ${projName}:`, `Desarrollo en ${projName}`);
-      if (!title || !title.trim()) return;
 
       try {
         const resp = await fetch(`/api/projects/${projId}/conversations`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ title: title.trim() })
+          body: JSON.stringify({ title: 'Nueva Conversación' })
         });
         const created = await resp.json();
         activeConversationId = created.id;
-        document.getElementById('centerBreadcrumb').innerHTML = `<span>${escapeHtml(projName)}</span> <span>/</span> <b>${escapeHtml(title.trim())}</b>`;
+        document.getElementById('centerBreadcrumb').innerHTML = `<span>${escapeHtml(projName)}</span> <span>/</span> <b>Nueva Conversación</b>`;
         await loadProjectsSidebar();
-        await selectProjectConversation(projId, projName, activeProjectPath, created.id, title.trim());
+        await renderProjectWorkspaceCleanState(projId, projName, activeProjectPath, 'Nueva Conversación');
+
+        const promptInput = document.getElementById('promptInput');
+        if (promptInput) {
+          promptInput.value = '';
+          promptInput.focus();
+        }
       } catch (err) {
-        console.error('Error creando conversación:', err);
+        console.error('Error creando conversación en carpeta:', err);
       }
     }
 
@@ -1796,20 +1956,6 @@
           await renderProjectWorkspaceCleanState(projId, projName, projPath, convTitle);
         }
       } catch {}
-    }
-
-    async function createNewProjectConversation() {
-      const title = prompt(`Nueva conversación en ${activeProjectName}:`, `Desarrollo y Auditoría en ${activeProjectName}`);
-      if (!title) return;
-      const resp = await fetch(`/api/projects/${activeProjectId}/conversations`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title })
-      });
-      const created = await resp.json();
-      activeConversationId = created.id;
-      document.getElementById('centerBreadcrumb').innerHTML = `<span>${activeProjectName}</span> <span>/</span> <b>${title}</b>`;
-      loadProjectsSidebar();
     }
 
     // ── 2. KODARA PROJECT MEMORY (Memoria Independiente de Aplicaciones) ──
@@ -2630,6 +2776,12 @@
           if (!payload || payload === '[DONE]') return;
           try {
             const data = JSON.parse(payload);
+            if (data.conversationRenamed) {
+              if (activeConversationId === data.conversationRenamed.id) {
+                document.getElementById('centerBreadcrumb').innerHTML = `<span>${escapeHtml(activeProjectName)}</span> <span>/</span> <b>${escapeHtml(data.conversationRenamed.title)}</b>`;
+              }
+              loadProjectsSidebar();
+            }
             if (data.sandboxAction) {
               attachedSandboxHtml = renderSandboxActionCardHTML(data.sandboxAction);
               aiNode.innerHTML = visionCardHtml + formatMarkdown(stripSymbolicDisclaimersClient(fullText)) + attachedSandboxHtml + attachedPlanHtml;
