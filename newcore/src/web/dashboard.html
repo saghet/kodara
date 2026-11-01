@@ -2869,7 +2869,11 @@
       const resp = await fetch(`/api/kodara/plans/${planId}/auto-repair`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ reason })
+        body: JSON.stringify({
+          reason,
+          conversationId: activeConversationId,
+          projectId: activeProjectId
+        })
       });
       const data = await resp.json();
       if (data && data.plan) {
@@ -2928,7 +2932,12 @@
         const resp = await fetch(`/api/kodara/plans/${planId}/execute-stream`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ planId, clientWatchdog: true })
+          body: JSON.stringify({
+            planId,
+            conversationId: activeConversationId,
+            projectId: activeProjectId,
+            clientWatchdog: true
+          })
         });
 
         if (!resp.ok || !resp.body) {

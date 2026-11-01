@@ -918,14 +918,16 @@ export async function startServer(orchestrator?: AgentOrchestrator) {
     return { ok: true, plan };
   });
 
-  app.post<{ Params: { id: string } }>('/api/kodara/plans/:id/execute', async (req) => {
-    const executedPlan = await KodaraPlanExecutor.executePlanById(req.params.id);
+  app.post<{ Params: { id: string }; Body?: { conversationId?: string } }>('/api/kodara/plans/:id/execute', async (req) => {
+    const convId = req.body?.conversationId || '';
+    const executedPlan = await KodaraPlanExecutor.executePlanById(req.params.id, undefined, convId);
     return { ok: true, plan: executedPlan };
   });
 
   // Stream SSE en tiempo real para el botón [▶ Proceed] con porcentaje (0% -> 100%), actividad paso a paso y Auto-Repair
   const handlePlanStreamExecution = async (req: any, reply: any) => {
     const planId = req.params.id;
+    const conversationId = req.body?.conversationId || req.query?.conversationId || '';
     reply.raw.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
     reply.raw.setHeader('Cache-Control', 'no-cache');
     reply.raw.setHeader('Connection', 'keep-alive');
@@ -935,7 +937,7 @@ export async function startServer(orchestrator?: AgentOrchestrator) {
     try {
       const executedPlan = await KodaraPlanExecutor.executePlanById(planId, (ev) => {
         queuedEvents.push(ev);
-      });
+      }, conversationId);
 
       for (const ev of queuedEvents) {
         reply.raw.write(`data: ${JSON.stringify(ev)}\n\n`);
@@ -996,8 +998,9 @@ export async function startServer(orchestrator?: AgentOrchestrator) {
   app.get<{ Params: { id: string } }>('/api/kodara/plans/:id/execute-stream', handlePlanStreamExecution);
   app.post<{ Params: { id: string } }>('/api/kodara/plans/:id/execute-stream', handlePlanStreamExecution);
 
-  app.post<{ Params: { id: string }; Body: { reason?: string } }>('/api/kodara/plans/:id/auto-repair', async (req) => {
+  app.post<{ Params: { id: string }; Body: { reason?: string; conversationId?: string } }>('/api/kodara/plans/:id/auto-repair', async (req) => {
     const reason = req.body?.reason || 'Estancamiento detectado por Watchdog en cliente';
+    const convId = req.body?.conversationId || '';
     await KodaraCoreMemory.recordIdeIssueAndProposal({
       internalComponent: 'kodara-core:proceed-watchdog',
       issueSignature: 'CORE_PROCEED_WATCHDOG_RECOVERY',
@@ -1006,7 +1009,7 @@ export async function startServer(orchestrator?: AgentOrchestrator) {
       candidatePatchDiff: '+ body: JSON.stringify({ autoRepairedByWatchdog: true })',
       approvalStatus: 'APPROVED',
     });
-    const executedPlan = await KodaraPlanExecutor.executePlanById(req.params.id);
+    const executedPlan = await KodaraPlanExecutor.executePlanById(req.params.id, undefined, convId);
     return {
       ok: true,
       autoRepaired: true,
