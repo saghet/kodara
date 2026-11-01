@@ -1463,7 +1463,7 @@
       <div class="ag-modal-body">
         <div>
           <label class="ag-modal-label">Nombre de la Carpeta / Proyecto:</label>
-          <input type="text" id="newProjNameInput" class="ag-modal-input" placeholder="Ej: SamuLibreCore" oninput="autoSuggestProjectPath(this.value)" />
+          <input type="text" id="newProjNameInput" class="ag-modal-input" placeholder="Ej: SamuLibreCore" oninput="autoSuggestProjectPath(this.value)" onkeydown="if(event.key==='Enter')submitCreateProject()" />
         </div>
         <div>
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.25rem">
@@ -1472,7 +1472,7 @@
               📂 Explorar Carpetas
             </button>
           </div>
-          <input type="text" id="newProjPathInput" class="ag-modal-input" placeholder="/home/saghet/Documents/..." />
+          <input type="text" id="newProjPathInput" class="ag-modal-input" placeholder="/home/saghet/Documents/..." onkeydown="if(event.key==='Enter')submitCreateProject()" />
         </div>
 
         <!-- Explorador Visual de Carpetas Linux (Estándar Antigravity) -->
@@ -1497,12 +1497,14 @@
 
         <div>
           <label class="ag-modal-label">Descripción Opcional:</label>
-          <input type="text" id="newProjDescInput" class="ag-modal-input" placeholder="Módulo, framework o workspace..." />
+          <input type="text" id="newProjDescInput" class="ag-modal-input" placeholder="Módulo, framework o workspace..." onkeydown="if(event.key==='Enter')submitCreateProject()" />
         </div>
+
+        <div id="newProjErrorNotice" style="display:none;background:rgba(239,68,68,0.12);border:1px solid #ef4444;color:#fca5a5;padding:8px 12px;border-radius:6px;font-size:0.75rem;line-height:1.4;margin-top:0.4rem"></div>
       </div>
       <div class="ag-modal-actions">
-        <button class="ag-modal-btn secondary" onclick="closeNewProjectModal()">Cancelar</button>
-        <button class="ag-modal-btn primary" onclick="submitCreateProject()">Crear Proyecto y Abrir</button>
+        <button class="ag-modal-btn secondary" type="button" onclick="closeNewProjectModal()">Cancelar</button>
+        <button class="ag-modal-btn primary" id="newProjSubmitBtn" type="button" onclick="submitCreateProject()">Crear Proyecto y Abrir</button>
       </div>
     </div>
   </div>
@@ -1630,10 +1632,10 @@
   </div>
 
   <script>
-    let activeProjectId = 'proj_samulibre';
-    let activeProjectName = 'SamulibreLinux';
-    let activeProjectPath = '/home/saghet/Documents/SamulibreLinux';
-    let activeConversationId = 'conv_samu_1';
+    let activeProjectId = '';
+    let activeProjectName = '';
+    let activeProjectPath = '';
+    let activeConversationId = '';
     let chatHistory = [];
     let pendingAttachedImages = [];
 
@@ -1808,6 +1810,41 @@
       try {
         const resp = await fetch('/api/projects');
         cachedProjectsList = await resp.json();
+
+        // Reconciliación proactiva: si el proyecto activo no existe o es vacío, seleccionar el primer proyecto válido
+        const activeExists = Array.isArray(cachedProjectsList) && cachedProjectsList.some(p => p.id === activeProjectId);
+        if (!activeExists) {
+          if (Array.isArray(cachedProjectsList) && cachedProjectsList.length > 0) {
+            const firstP = cachedProjectsList[0];
+            activeProjectId = firstP.id;
+            activeProjectName = firstP.name;
+            activeProjectPath = firstP.path;
+            if (firstP.conversations && firstP.conversations.length > 0) {
+              activeConversationId = firstP.conversations[0].id;
+              const title = firstP.conversations[0].title || 'Conversación';
+              const breadcrumb = document.getElementById('centerBreadcrumb');
+              if (breadcrumb) {
+                breadcrumb.innerHTML = `<span>${escapeHtml(activeProjectName)}</span> <span>/</span> <b>${escapeHtml(title)}</b>`;
+              }
+            } else {
+              activeConversationId = '';
+              const breadcrumb = document.getElementById('centerBreadcrumb');
+              if (breadcrumb) {
+                breadcrumb.innerHTML = `<span>${escapeHtml(activeProjectName)}</span> <span>/</span> <b>Workspace Activo</b>`;
+              }
+            }
+          } else {
+            activeProjectId = '';
+            activeProjectName = '';
+            activeProjectPath = '';
+            activeConversationId = '';
+            const breadcrumb = document.getElementById('centerBreadcrumb');
+            if (breadcrumb) {
+              breadcrumb.innerHTML = `<span>Kodara</span> <span>/</span> <b>Workspace Limpio</b>`;
+            }
+          }
+        }
+
         const filterInput = document.getElementById('agProjectsFilterInput');
         if (filterInput && filterInput.value.trim()) {
           filterProjectsTree(filterInput.value);
@@ -2114,6 +2151,16 @@
       const nameInput = document.getElementById('newProjNameInput');
       const pathInput = document.getElementById('newProjPathInput');
       const descInput = document.getElementById('newProjDescInput');
+      const errBox = document.getElementById('newProjErrorNotice');
+      const btn = document.getElementById('newProjSubmitBtn');
+      if (errBox) {
+        errBox.style.display = 'none';
+        errBox.textContent = '';
+      }
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = 'Crear Proyecto y Abrir';
+      }
       if (nameInput) nameInput.value = '';
       if (pathInput) pathInput.value = '/home/saghet/Documents/';
       if (descInput) descInput.value = '';
@@ -2220,13 +2267,30 @@
       const nameInput = document.getElementById('newProjNameInput');
       const pathInput = document.getElementById('newProjPathInput');
       const descInput = document.getElementById('newProjDescInput');
+      const errBox = document.getElementById('newProjErrorNotice');
+      const btn = document.getElementById('newProjSubmitBtn');
+
+      if (errBox) {
+        errBox.style.display = 'none';
+        errBox.textContent = '';
+      }
+
       const name = nameInput ? nameInput.value.trim() : '';
       const path = pathInput ? pathInput.value.trim() : '';
       const description = descInput ? descInput.value.trim() : '';
 
       if (!name) {
+        if (errBox) {
+          errBox.textContent = 'Ingresa un nombre para la carpeta o proyecto.';
+          errBox.style.display = 'block';
+        }
         if (nameInput) nameInput.focus();
         return;
+      }
+
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Creando Proyecto...';
       }
 
       try {
@@ -2236,39 +2300,81 @@
           body: JSON.stringify({ name, path, description })
         });
         const created = await resp.json();
-        if (resp.ok && created) {
+        if (resp.ok && created && created.id) {
           closeNewProjectModal();
           activeProjectId = created.id;
           activeProjectName = created.name;
           activeProjectPath = created.path;
+          const initialConvId = created.initialConversationId || (created.conversations && created.conversations[0]?.id) || '';
+          activeConversationId = initialConvId;
           chatHistory = [];
+          
           await loadProjectsSidebar();
-          await selectProjectFolder(created.id, created.name, created.path);
+          document.getElementById('centerBreadcrumb').innerHTML = `<span>${escapeHtml(created.name)}</span> <span>/</span> <b>${initialConvId ? 'Nueva Conversación' : 'Workspace Activo'}</b>`;
+          await renderProjectWorkspaceCleanState(created.id, created.name, created.path, initialConvId ? 'Nueva Conversación' : 'Workspace Activo');
+          loadProjectMemory(created.id);
+          const promptInput = document.getElementById('promptInput');
+          if (promptInput) promptInput.focus();
+        } else {
+          const errMsg = created?.error || `Error (${resp.status}): No se pudo crear el proyecto.`;
+          if (errBox) {
+            errBox.textContent = errMsg;
+            errBox.style.display = 'block';
+          } else {
+            alert(errMsg);
+          }
+          if (nameInput) nameInput.focus();
         }
       } catch (err) {
         console.error('Error creando proyecto:', err);
+        if (errBox) {
+          errBox.textContent = 'Error de conexión con el servidor local de Kodara.';
+          errBox.style.display = 'block';
+        }
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = 'Crear Proyecto y Abrir';
+        }
       }
     }
 
     // Creación Ágil de Nueva Conversación (Flujo Inmediato Antigravity sin prompt bloqueante)
     async function createNewProjectConversation() {
+      if (!activeProjectId) {
+        if (cachedProjectsList && cachedProjectsList.length > 0) {
+          activeProjectId = cachedProjectsList[0].id;
+          activeProjectName = cachedProjectsList[0].name;
+          activeProjectPath = cachedProjectsList[0].path;
+        } else {
+          openNewProjectModal();
+          return;
+        }
+      }
       try {
         const resp = await fetch(`/api/projects/${activeProjectId}/conversations`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ title: 'Nueva Conversación' })
         });
+        if (!resp.ok) {
+          const errData = await resp.json().catch(() => ({}));
+          console.error('Error creando conversación rápida:', errData);
+          return;
+        }
         const created = await resp.json();
-        activeConversationId = created.id;
-        chatHistory = [];
-        document.getElementById('centerBreadcrumb').innerHTML = `<span>${escapeHtml(activeProjectName)}</span> <span>/</span> <b>Nueva Conversación</b>`;
-        await loadProjectsSidebar();
-        await renderProjectWorkspaceCleanState(activeProjectId, activeProjectName, activeProjectPath, 'Nueva Conversación');
+        if (created && created.id) {
+          activeConversationId = created.id;
+          chatHistory = [];
+          document.getElementById('centerBreadcrumb').innerHTML = `<span>${escapeHtml(activeProjectName)}</span> <span>/</span> <b>Nueva Conversación</b>`;
+          await loadProjectsSidebar();
+          await renderProjectWorkspaceCleanState(activeProjectId, activeProjectName, activeProjectPath, 'Nueva Conversación');
 
-        const promptInput = document.getElementById('promptInput');
-        if (promptInput) {
-          promptInput.value = '';
-          promptInput.focus();
+          const promptInput = document.getElementById('promptInput');
+          if (promptInput) {
+            promptInput.value = '';
+            promptInput.focus();
+          }
         }
       } catch (err) {
         console.error('Error creando conversación rápida:', err);
@@ -2286,17 +2392,24 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ title: 'Nueva Conversación' })
         });
+        if (!resp.ok) {
+          const errData = await resp.json().catch(() => ({}));
+          console.error('Error creando conversación en carpeta:', errData);
+          return;
+        }
         const created = await resp.json();
-        activeConversationId = created.id;
-        chatHistory = [];
-        document.getElementById('centerBreadcrumb').innerHTML = `<span>${escapeHtml(projName)}</span> <span>/</span> <b>Nueva Conversación</b>`;
-        await loadProjectsSidebar();
-        await renderProjectWorkspaceCleanState(projId, projName, activeProjectPath, 'Nueva Conversación');
+        if (created && created.id) {
+          activeConversationId = created.id;
+          chatHistory = [];
+          document.getElementById('centerBreadcrumb').innerHTML = `<span>${escapeHtml(projName)}</span> <span>/</span> <b>Nueva Conversación</b>`;
+          await loadProjectsSidebar();
+          await renderProjectWorkspaceCleanState(projId, projName, activeProjectPath, 'Nueva Conversación');
 
-        const promptInput = document.getElementById('promptInput');
-        if (promptInput) {
-          promptInput.value = '';
-          promptInput.focus();
+          const promptInput = document.getElementById('promptInput');
+          if (promptInput) {
+            promptInput.value = '';
+            promptInput.focus();
+          }
         }
       } catch (err) {
         console.error('Error creando conversación en carpeta:', err);
@@ -2337,9 +2450,6 @@
             </p>
             ${planHtml}
           </div>
-        `;
-      } catch {}
-    }
         `;
       } catch {}
     }

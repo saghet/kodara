@@ -250,6 +250,59 @@ export async function saveProjectMessage(
   return { id, conversationId, role, content, meta, createdAt: now };
 }
 
+export async function getProjectById(id: string): Promise<ProjectRecord | null> {
+  await initProjectsSchema();
+  const db = await getDb();
+  const res = await db.execute({
+    sql: 'SELECT * FROM projects WHERE id = ? LIMIT 1',
+    args: [id]
+  });
+  if (!res.rows || res.rows.length === 0) return null;
+  const r = res.rows[0] as any;
+  return {
+    id: r.id as string,
+    name: r.name as string,
+    path: r.path as string,
+    description: (r.description || '') as string,
+    createdAt: r.created_at as string,
+    updatedAt: r.updated_at as string
+  };
+}
+
+export async function getProjectByName(name: string): Promise<ProjectRecord | null> {
+  await initProjectsSchema();
+  const db = await getDb();
+  const res = await db.execute({
+    sql: 'SELECT * FROM projects WHERE LOWER(name) = LOWER(?) LIMIT 1',
+    args: [name.trim()]
+  });
+  if (!res.rows || res.rows.length === 0) return null;
+  const r = res.rows[0] as any;
+  return {
+    id: r.id as string,
+    name: r.name as string,
+    path: r.path as string,
+    description: (r.description || '') as string,
+    createdAt: r.created_at as string,
+    updatedAt: r.updated_at as string
+  };
+}
+
+export async function createProjectWithInitialConversation(
+  name: string,
+  path: string,
+  description: string = '',
+  initialConvTitle: string = 'Nueva Conversación'
+): Promise<ProjectRecord & { initialConversationId: string }> {
+  const project = await createProject(name, path, description);
+  const conv = await createConversation(project.id, initialConvTitle);
+  return {
+    ...project,
+    conversations: [conv],
+    initialConversationId: conv.id
+  };
+}
+
 export async function createProject(
   name: string,
   path: string,

@@ -416,14 +416,44 @@ export async function startServer(orchestrator?: AgentOrchestrator) {
   });
 
   app.post<{ Body: { name: string; path?: string; description?: string } }>('/api/projects', async (req, reply) => {
-    const { name, path, description } = req.body || {};
-    if (!name || !name.trim()) {
-      return reply.code(400).send({ error: 'El nombre del proyecto/carpeta es obligatorio' });
+    try {
+      const { name, path, description } = req.body || {};
+      if (!name || !name.trim()) {
+        return reply.code(400).send({ error: 'El nombre del proyecto/carpeta es obligatorio' });
+      }
+      const trimmedName = name.trim();
+
+      // Detección proactiva de duplicados para evitar error crudo de clave única SQLite
+      const existing = await projectsTable.getProjectByName(trimmedName);
+      if (existing) {
+        return reply.code(409).send({
+          error: `Ya existe un proyecto o carpeta con el nombre "${trimmedName}". Por favor elige otro nombre o selecciona la carpeta existente.`
+        });
+      }
+
+      const finalPath = path && path.trim() ? path.trim() : `/home/saghet/Documents/${trimmedName.replace(/\s+/g, '')}`;
+
+      // Aprovisionamiento físico del directorio en Linux y reglas de frontera .kodararules
+      try {
+        if (!fs.existsSync(finalPath)) {
+          fs.mkdirSync(finalPath, { recursive: true });
+        }
+      } catch (dirErr: any) {
+        console.warn(`[WARN] No se pudo crear directorio físico ${finalPath}:`, dirErr?.message);
+      }
+      ProjectBoundaryGuard.ensureProjectManifest(trimmedName, finalPath);
+
+      // Creación atómica del proyecto y su conversación inicial
+      const projectWithConv = await projectsTable.createProjectWithInitialConversation(
+        trimmedName,
+        finalPath,
+        description || ''
+      );
+      return reply.code(201).send(projectWithConv);
+    } catch (err: any) {
+      console.error('[ERROR] Error al crear proyecto:', err);
+      return reply.code(500).send({ error: `Error creando proyecto: ${err?.message || err}` });
     }
-    const finalPath = path && path.trim() ? path.trim() : `/home/saghet/Documents/${name.trim().replace(/\s+/g, '')}`;
-    ProjectBoundaryGuard.ensureProjectManifest(name.trim(), finalPath);
-    const project = await projectsTable.createProject(name, finalPath, description || '');
-    return reply.code(201).send(project);
   });
 
   app.patch<{ Params: { id: string }; Body: { name?: string; path?: string; description?: string } }>(
@@ -441,9 +471,18 @@ export async function startServer(orchestrator?: AgentOrchestrator) {
     return { success: true, deletedProjectId: req.params.id };
   });
 
-  app.post<{ Params: { id: string }; Body: { title: string } }>('/api/projects/:id/conversations', async (req) => {
-    const title = req.body?.title || 'Nueva Conversación';
-    return await projectsTable.createConversation(req.params.id, title);
+  app.post<{ Params: { id: string }; Body: { title: string } }>('/api/projects/:id/conversations', async (req, reply) => {
+    try {
+      const project = await projectsTable.getProjectById(req.params.id);
+      if (!project) {
+        return reply.code(404).send({ error: `El proyecto "${req.params.id}" no existe o fue eliminado.` });
+      }
+      const title = req.body?.title || 'Nueva Conversación';
+      const conv = await projectsTable.createConversation(req.params.id, title);
+      return reply.code(201).send(conv);
+    } catch (err: any) {
+      return reply.code(500).send({ error: `Error creando conversación: ${err?.message || err}` });
+    }
   });
 
   app.patch<{ Params: { id: string }; Body: { title: string } }>('/api/conversations/:id', async (req, reply) => {

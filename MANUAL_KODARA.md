@@ -514,6 +514,32 @@ Kodara está instalado como aplicación nativa de escritorio en tu sistema Linux
 - **Certificación de la Suite de Pruebas**:
   - Validado formalmente por la suite `antigravity-workspace-boundary-isolation.test.ts`, consolidando **19 suites de prueba y 95/95 pruebas unitarias aprobadas al 100% (724 aserciones)**.
 
+---
+
+## 31. Diagnóstico Forense y Reparación Integral: Creación Robusta de Proyectos y Workspaces (Cero Bloqueos Silenciosos)
+- **Diagnóstico y Causas Raíz Neutralizadas**:
+  - Se identificaron y repararon los 5 factores que impedían la creación o causaban bloqueos silenciosos en la cabina de Kodara:
+    1. *Silencio Operacional en UI*: En `dashboard.html`, la función `submitCreateProject()` capturaba errores exclusivamente en `console.error()`. Si ocurría cualquier excepción, el modal permanecía abierto y el botón inactivo sin feedback visual.
+    2. *Conflicto de Nombres Duplicados (HTTP 500 no capturado)*: La tabla `projects` de SQLite requiere `name UNIQUE`. Si el usuario ingresaba un nombre repetido, SQLite lanzaba excepción no capturada en Fastify `500 Internal Server Error`.
+    3. *Estado Residual Huérfano (`proj_samulibre` / `conv_samu_1`)*: El frontend inicializaba variables duras que apuntaban al proyecto eliminado previamente, generando fallos de clave foránea `FOREIGN KEY constraint failed` al intentar crear conversaciones o enviar mensajes.
+    4. *Proyectos Creados sin Conversación Inicial*: Anteriormente se insertaba el proyecto con 0 conversaciones, dejando `activeConversationId` huérfano y el workspace en un estado inconsistente.
+    5. *Ausencia de Creación Física y Reglas*: No se aseguraba la creación del directorio con `mkdir -p` en Linux ni el manifiesto `.kodararules`.
+- **Arquitectura de Reparación Implementada**:
+  - **Capa SQLite (`projects.ts`)**:
+    - Implementación de `getProjectByName(name)` (búsqueda insensible a mayúsculas/minúsculas).
+    - Implementación de `getProjectById(id)`.
+    - Implementación de `createProjectWithInitialConversation(name, path, description)`: crea atómicamente el proyecto y aprovisiona su primera conversación `Nueva Conversación` con `initialConversationId`.
+  - **Servidor Fastify (`server.ts`)**:
+    - En `POST /api/projects`: validación de nombre, detección previa de duplicados respondiendo con `HTTP 409 Conflict` y mensaje claro, creación física del directorio en Linux, generación del manifiesto `.kodararules` y retorno de `HTTP 201 Created` con la conversación inicial.
+    - En `POST /api/projects/:id/conversations`: validación de existencia del proyecto para evitar errores de clave foránea SQL, respondiendo con `HTTP 404` controlado si el proyecto fue eliminado.
+  - **Interfaz de Usuario Reactiva (`dashboard.html`)**:
+    - Erradicación de referencias duras a proyectos eliminados (`proj_samulibre`); inicialización limpia y reconciliación automática en `loadProjectsSidebar()` seleccionando el primer proyecto disponible o el estado limpio.
+    - Banner de error reactivo `#newProjErrorNotice` en el modal `#agNewProjectModal` con indicación visual inmediata ante cualquier fallo (nombres duplicados, rutas inválidas o errores de red).
+    - Estado de carga en el botón (`Creando Proyecto...`), soporte de tecla `Enter` en todos los campos, y transición fluida que activa el proyecto, su conversación inicial y sitúa el cursor en el prompt de chat.
+- **Certificación de la Suite de Pruebas**:
+  - Validado formalmente por la nueva suite `project-creation-and-initialization.test.ts`, alcanzando **20 suites de prueba y 100/100 pruebas unitarias aprobadas al 100% (763 aserciones)**.
+
+
 
 
 
