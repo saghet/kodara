@@ -493,6 +493,27 @@ Kodara está instalado como aplicación nativa de escritorio en tu sistema Linux
 - **Certificación de la Suite de Pruebas**:
   - Validado por la nueva suite `context-isolation-anti-tangling.test.ts`, consolidando **18 suites de prueba y 90/90 pruebas unitarias aprobadas al 100% (692 aserciones)**.
 
+---
+
+## 30. Ecosistema de Workspaces Soberanos: Selector Visual de Carpetas y Guardián de Fronteras (Estándar Google Antigravity)
+- **Explorador Visual de Carpetas Linux (`/api/fs/directories` & `/api/fs/mkdir`)**:
+  - Al pulsar el botón `[📁+]` en el sidebar, el modal `#agNewProjectModal` despliega un navegador interactivo del sistema de archivos de Linux:
+    - Barra de breadcrumbs en tiempo real (`🏠 / Documents / ...`).
+    - Lista de directorios existentes con conteo de subcarpetas y navegación ascendente (`..`).
+    - Botón de creación instantánea de subcarpetas físicas (`[+ Nueva Subcarpeta]`).
+    - Botón *«[✓ Seleccionar esta Ubicación]»* que vincula automáticamente la ruta seleccionada como la raíz del nuevo workspace.
+- **Creación Física Automática y Manifiesto `.kodararules`**:
+  - Al confirmar la creación del proyecto, el backend (`server.ts`) invoca `ProjectBoundaryGuard.ensureProjectManifest(name, path)` para crear físicamente la carpeta (`mkdir -p`) y sembrar el archivo `.kodararules` con la política `STRICT_ZERO_BLEED`.
+  - El manifiesto `.kodararules` es cargado dinámicamente por el servidor e inyectado en el prompt de sistema para que el LLM conozca las reglas soberanas del repositorio.
+- **Guardián de Fronteras (`ProjectBoundaryGuard`)**:
+  - Módulo de seguridad en `security/project-boundary-guard.ts` que valida matemáticamente mediante rutas normalizadas si cualquier archivo, mutación de código o compilación reside estrictamente dentro de la raíz del proyecto activo.
+  - Bloquea cualquier intento de alterar repositorios externos con la excepción:
+    `⛔ [VIOLACIÓN DE FRONTERA DE WORKSPACE]: El proyecto activo en [root] no tiene autorización para mutar ni compilar en [target].`
+- **Particionamiento Estricto de Memoria y Aprendizaje**:
+  - Cada proyecto mantiene sus conversaciones en SQLite y sus lecciones aprendidas en `KodaraProjectMemory` aisladas bajo su `project_id`, evitando que reglas de un proyecto contaminen el contexto de los demás.
+- **Certificación de la Suite de Pruebas**:
+  - Validado formalmente por la suite `antigravity-workspace-boundary-isolation.test.ts`, consolidando **19 suites de prueba y 95/95 pruebas unitarias aprobadas al 100% (724 aserciones)**.
+
 
 
 

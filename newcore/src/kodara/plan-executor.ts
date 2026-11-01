@@ -19,6 +19,7 @@ import {
   KodaraOpenTelemetry,
 } from './evolution/index.js';
 import { KodaraOrderCompiler, OrderAuditReport } from './order-compiler.js';
+import { ProjectBoundaryGuard } from './security/project-boundary-guard.js';
 
 export interface ExecutablePlanPhase {
   phase_number: number;
@@ -378,6 +379,15 @@ export class KodaraPlanExecutor {
       currentAction: `Ejecutando cambios reales en el código fuente (actualización de versión, barras CPU/GPU donde apunta la flecha y auditoría SAST)...`,
       detailLog: `[Fase 2/4] KodaraOrderCompiler.executeSourceCodeMutations() sobre ${targetPath}`,
     });
+
+    // Guardián de Fronteras (Estándar Google Antigravity): Bloquear mutaciones fuera de la raíz del workspace
+    for (const order of compiledOrders.orders) {
+      if (order.intent_type === 'VERSION_BUMP' || order.intent_type === 'UI_TELEMETRY_INJECTION') {
+        for (const file of order.target_files || []) {
+          ProjectBoundaryGuard.assertPathInsideProject(plan.project_name, targetPath, file);
+        }
+      }
+    }
 
     const mutationSteps = KodaraOrderCompiler.executeSourceCodeMutations(compiledOrders, (logMsg) => {
       emit({

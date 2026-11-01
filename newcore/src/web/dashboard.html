@@ -591,6 +591,29 @@
       background: #2563eb;
     }
 
+    .ag-fs-dir-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.73rem;
+      color: #cbd5e1;
+      cursor: pointer;
+      background: rgba(255, 255, 255, 0.02);
+      transition: background 0.12s ease;
+    }
+
+    .ag-fs-dir-item:hover {
+      background: rgba(56, 189, 248, 0.15);
+      color: #38bdf8;
+    }
+
+    .ag-fs-dir-item.parent-dir {
+      color: #94a3b8;
+      font-style: italic;
+    }
+
     .ag-sidebar-footer {
       padding: 0.65rem 0.85rem;
       border-top: 1px solid var(--border-subtle);
@@ -1430,11 +1453,11 @@
     </div>
   </div>
 
-  <!-- Modal: Nueva Carpeta / Proyecto -->
+  <!-- Modal: Nueva Carpeta / Proyecto (Workspace con Selector Visual de Ubicación) -->
   <div id="agNewProjectModal" class="ag-modal-backdrop" onclick="if(event.target===this)closeNewProjectModal()">
-    <div class="ag-modal-box">
+    <div class="ag-modal-box" style="max-width:540px">
       <div class="ag-modal-header">
-        <span class="ag-modal-title">📁 Nueva Carpeta / Proyecto (Workspace)</span>
+        <span class="ag-modal-title">📁 Nueva Carpeta / Proyecto (Workspace Antigravity)</span>
         <button class="ag-icon-btn" onclick="closeNewProjectModal()">✕</button>
       </div>
       <div class="ag-modal-body">
@@ -1443,9 +1466,35 @@
           <input type="text" id="newProjNameInput" class="ag-modal-input" placeholder="Ej: SamuLibreCore" oninput="autoSuggestProjectPath(this.value)" />
         </div>
         <div>
-          <label class="ag-modal-label">Ruta en Linux (Workspace):</label>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.25rem">
+            <label class="ag-modal-label" style="margin-bottom:0">Ubicación en Linux (Workspace Root):</label>
+            <button class="ag-modal-btn" type="button" style="padding:2px 8px;font-size:0.68rem;background:#1e293b;border:1px solid #38bdf8;color:#38bdf8;cursor:pointer" onclick="toggleFsExplorer()">
+              📂 Explorar Carpetas
+            </button>
+          </div>
           <input type="text" id="newProjPathInput" class="ag-modal-input" placeholder="/home/saghet/Documents/..." />
         </div>
+
+        <!-- Explorador Visual de Carpetas Linux (Estándar Antigravity) -->
+        <div id="agFsExplorerContainer" style="display:none;background:#0b1120;border:1px solid rgba(56,189,248,0.3);border-radius:6px;padding:0.65rem">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:0.4rem;margin-bottom:0.45rem">
+            <span style="font-size:0.7rem;color:#94a3b8;font-weight:600">Navegador del Sistema de Archivos:</span>
+            <button class="ag-icon-btn" type="button" style="font-size:0.65rem;padding:1px 6px;background:rgba(56,189,248,0.1);color:#38bdf8" onclick="promptCreateNewSubdir()" title="Crear subcarpeta física">
+              + Nueva Subcarpeta
+            </button>
+          </div>
+          <div id="agFsBreadcrumb" style="font-size:0.72rem;color:#38bdf8;font-family:monospace;background:rgba(0,0,0,0.3);padding:3px 6px;border-radius:4px;overflow-x:auto;white-space:nowrap;margin-bottom:0.45rem">
+            /home/saghet/Documents
+          </div>
+          <div id="agFsDirList" style="max-height:160px;overflow-y:auto;display:flex;flex-direction:column;gap:3px;margin-bottom:0.5rem">
+            <!-- Cargado dinámicamente vía /api/fs/directories -->
+          </div>
+          <div style="display:flex;justify-content:flex-end;gap:0.4rem">
+            <button class="ag-modal-btn secondary" type="button" style="padding:3px 8px;font-size:0.7rem" onclick="toggleFsExplorer(false)">Cerrar Explorador</button>
+            <button class="ag-modal-btn primary" type="button" style="padding:3px 10px;font-size:0.7rem" onclick="selectCurrentFsDirectory()">✓ Seleccionar esta Ubicación</button>
+          </div>
+        </div>
+
         <div>
           <label class="ag-modal-label">Descripción Opcional:</label>
           <input type="text" id="newProjDescInput" class="ag-modal-input" placeholder="Módulo, framework o workspace..." />
@@ -1453,7 +1502,7 @@
       </div>
       <div class="ag-modal-actions">
         <button class="ag-modal-btn secondary" onclick="closeNewProjectModal()">Cancelar</button>
-        <button class="ag-modal-btn primary" onclick="submitCreateProject()">Crear Proyecto</button>
+        <button class="ag-modal-btn primary" onclick="submitCreateProject()">Crear Proyecto y Abrir</button>
       </div>
     </div>
   </div>
@@ -2057,7 +2106,9 @@
       }
     }
 
-    // Modal: Nueva Carpeta / Proyecto
+    // Modal: Nueva Carpeta / Proyecto (Workspace Antigravity)
+    let currentFsBrowsePath = '/home/saghet/Documents';
+
     function openNewProjectModal() {
       const modal = document.getElementById('agNewProjectModal');
       const nameInput = document.getElementById('newProjNameInput');
@@ -2066,6 +2117,7 @@
       if (nameInput) nameInput.value = '';
       if (pathInput) pathInput.value = '/home/saghet/Documents/';
       if (descInput) descInput.value = '';
+      toggleFsExplorer(false);
       if (modal) modal.classList.add('open');
       if (nameInput) nameInput.focus();
     }
@@ -2073,6 +2125,88 @@
     function closeNewProjectModal() {
       const modal = document.getElementById('agNewProjectModal');
       if (modal) modal.classList.remove('open');
+      toggleFsExplorer(false);
+    }
+
+    function toggleFsExplorer(forceOpen) {
+      const el = document.getElementById('agFsExplorerContainer');
+      if (!el) return;
+      const shouldOpen = (forceOpen !== undefined) ? forceOpen : (el.style.display === 'none');
+      el.style.display = shouldOpen ? 'block' : 'none';
+      if (shouldOpen) {
+        const inputPath = document.getElementById('newProjPathInput')?.value.trim();
+        loadFsDirectories(inputPath || currentFsBrowsePath);
+      }
+    }
+
+    async function loadFsDirectories(targetPath) {
+      try {
+        const query = targetPath ? `?path=${encodeURIComponent(targetPath)}` : '';
+        const resp = await fetch(`/api/fs/directories${query}`);
+        if (!resp.ok) return;
+        const data = await resp.json();
+        currentFsBrowsePath = data.currentPath;
+
+        const breadcrumbEl = document.getElementById('agFsBreadcrumb');
+        if (breadcrumbEl) {
+          breadcrumbEl.innerHTML = escapeHtml(data.currentPath);
+        }
+
+        const listEl = document.getElementById('agFsDirList');
+        if (listEl) {
+          let html = '';
+          if (data.parentPath) {
+            html += `
+              <div class="ag-fs-dir-item parent-dir" onclick="loadFsDirectories('${escapeAttr(data.parentPath)}')">
+                <span>📁 ⬆ .. (Subir nivel)</span>
+                <span style="font-size:0.65rem;opacity:0.7">Padre</span>
+              </div>
+            `;
+          }
+          if (data.directories && data.directories.length > 0) {
+            html += data.directories.map(d => `
+              <div class="ag-fs-dir-item" onclick="loadFsDirectories('${escapeAttr(d.path)}')">
+                <span>📁 ${escapeHtml(d.name)}</span>
+                <span style="font-size:0.65rem;color:#64748b">${d.subdirsCount > 0 ? `${d.subdirsCount} subcarpeta(s)` : 'vacía'}</span>
+              </div>
+            `).join('');
+          } else {
+            html += `<div style="font-size:0.7rem;color:#64748b;padding:4px 8px">No hay subcarpetas en este directorio</div>`;
+          }
+          listEl.innerHTML = html;
+        }
+      } catch (err) {
+        console.error('Error cargando directorios de Linux:', err);
+      }
+    }
+
+    function selectCurrentFsDirectory() {
+      const pathInput = document.getElementById('newProjPathInput');
+      const nameInput = document.getElementById('newProjNameInput');
+      if (pathInput) pathInput.value = currentFsBrowsePath;
+      if (nameInput && !nameInput.value.trim()) {
+        const parts = currentFsBrowsePath.split('/');
+        nameInput.value = parts[parts.length - 1] || 'NuevoProyecto';
+      }
+      toggleFsExplorer(false);
+    }
+
+    async function promptCreateNewSubdir() {
+      const name = prompt('Nombre de la nueva subcarpeta:');
+      if (!name || !name.trim()) return;
+      try {
+        const resp = await fetch('/api/fs/mkdir', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ parentPath: currentFsBrowsePath, folderName: name.trim() })
+        });
+        if (resp.ok) {
+          const res = await resp.json();
+          await loadFsDirectories(res.path || currentFsBrowsePath);
+        }
+      } catch (err) {
+        console.error('Error creando subcarpeta física:', err);
+      }
     }
 
     function autoSuggestProjectPath(name) {
@@ -2107,6 +2241,7 @@
           activeProjectId = created.id;
           activeProjectName = created.name;
           activeProjectPath = created.path;
+          chatHistory = [];
           await loadProjectsSidebar();
           await selectProjectFolder(created.id, created.name, created.path);
         }

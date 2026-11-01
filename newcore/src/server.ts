@@ -28,6 +28,7 @@ import { DynamicContextRouter } from './kodara/knowledge/dynamic-context-router.
 import { GoldenExemplarsEngine } from './kodara/knowledge/golden-exemplars.js';
 import { KodaraPhilosophyEngine } from './kodara/knowledge/kodara-philosophy.js';
 import { PaiMeiLinguisticEngine } from './kodara/knowledge/pai-mei-linguistic-engine.js';
+import { ProjectBoundaryGuard } from './kodara/security/project-boundary-guard.js';
 import {
   KodaraEvolutionEngine,
   KodaraEvolutionDB,
@@ -340,6 +341,75 @@ export async function startServer(orchestrator?: AgentOrchestrator) {
     }));
   });
 
+  // ── Explorador de Directorios del Sistema de Archivos (Estándar Google Antigravity) ──
+  app.get<{ Querystring: { path?: string } }>('/api/fs/directories', async (req, reply) => {
+    const rootUser = '/home/saghet';
+    let target = req.query.path ? resolve(req.query.path) : '/home/saghet/Documents';
+
+    // Seguridad: Confinar la navegación al espacio de usuario
+    if (!target.startsWith(rootUser)) {
+      target = '/home/saghet/Documents';
+    }
+
+    if (!existsSync(target)) {
+      try {
+        mkdirSync(target, { recursive: true });
+      } catch {
+        target = rootUser;
+      }
+    }
+
+    try {
+      const entries = readdirSync(target, { withFileTypes: true });
+      const directories = entries
+        .filter((d) => d.isDirectory() && !d.name.startsWith('.'))
+        .map((d) => {
+          const full = join(target, d.name);
+          let subdirsCount = 0;
+          try {
+            subdirsCount = readdirSync(full, { withFileTypes: true }).filter((s) => s.isDirectory() && !s.name.startsWith('.')).length;
+          } catch {}
+          return {
+            name: d.name,
+            path: full,
+            subdirsCount,
+          };
+        })
+        .sort((a, b) => a.name.localeCompare(b.name));
+
+      const parentPath = target !== rootUser ? dirname(target) : null;
+
+      return {
+        currentPath: target,
+        parentPath,
+        directories,
+      };
+    } catch (err: any) {
+      return reply.code(500).send({ error: `Error leyendo directorios: ${err.message}` });
+    }
+  });
+
+  app.post<{ Body: { parentPath: string; folderName: string } }>('/api/fs/mkdir', async (req, reply) => {
+    const { parentPath, folderName } = req.body || {};
+    if (!folderName || !folderName.trim()) {
+      return reply.code(400).send({ error: 'El nombre de la carpeta es obligatorio' });
+    }
+    const cleanFolder = folderName.trim().replace(/[^a-zA-Z0-9_\-\.]/g, '');
+    const base = parentPath ? resolve(parentPath) : '/home/saghet/Documents';
+
+    if (!base.startsWith('/home/saghet')) {
+      return reply.code(403).send({ error: 'Ruta no autorizada fuera del directorio de usuario' });
+    }
+
+    const fullPath = join(base, cleanFolder);
+    try {
+      mkdirSync(fullPath, { recursive: true });
+      return reply.code(201).send({ success: true, path: fullPath, name: cleanFolder });
+    } catch (err: any) {
+      return reply.code(500).send({ error: `Error creando directorio: ${err.message}` });
+    }
+  });
+
   // ── Gestión de Proyectos e Historial (Estilo Antigravity IDE) ──
   app.get('/api/projects', async () => {
     return await projectsTable.listProjectsWithConversations();
@@ -351,6 +421,7 @@ export async function startServer(orchestrator?: AgentOrchestrator) {
       return reply.code(400).send({ error: 'El nombre del proyecto/carpeta es obligatorio' });
     }
     const finalPath = path && path.trim() ? path.trim() : `/home/saghet/Documents/${name.trim().replace(/\s+/g, '')}`;
+    ProjectBoundaryGuard.ensureProjectManifest(name.trim(), finalPath);
     const project = await projectsTable.createProject(name, finalPath, description || '');
     return reply.code(201).send(project);
   });
@@ -1233,6 +1304,9 @@ export async function startServer(orchestrator?: AgentOrchestrator) {
       })}\n\n`
     );
 
+    const projectRules = effectiveProjectPath ? ProjectBoundaryGuard.loadProjectRules(effectiveProjectPath) : null;
+    const projectRulesBlock = projectRules ? `\n[REGLAS LOCALES DEL WORKSPACE (.kodararules)]:\n${projectRules}\n` : '';
+
     const systemPrompt = `Eres KODARA ("Your Code. Your AI. Your Rules."), el asistente de inteligencia artificial local de desarrollo, arquitectura y ciberseguridad defensiva, actuando bajo la tutela del Plan Canguro (Estándar Google Antigravity).
 ${resolvedProfile.rolePersona}
 
@@ -1248,7 +1322,7 @@ PAUTAS PEDAGÓGICAS Y DE COMUNICACIÓN EN LENGUAJE NATURAL (ESTILO GOOGLE ANTIGR
 • Fomenta el pensamiento crítico para que el alumno supere al maestro.
 • NOTA DE INTERFAZ: Kodara genera automáticamente la tarjeta visual interactiva para ejecutar acciones físicas; finaliza tus explicaciones de forma limpia y directa sin redactar botones falsos ni enlaces javascript.
 
-${compiledOrders.orders.length > 0 ? `${compiledOrders.history_ledger_prompt_block}\n` : ''}${memoryContext ? `${memoryContext}\n` : ''}${projectMemoryBlock}`;
+${compiledOrders.orders.length > 0 ? `${compiledOrders.history_ledger_prompt_block}\n` : ''}${projectRulesBlock}${memoryContext ? `${memoryContext}\n` : ''}${projectMemoryBlock}`;
 
     const priorMessages = mergedMessages
       .filter((m) => m.content.trim() !== message.trim())
