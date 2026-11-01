@@ -83,31 +83,6 @@ export class KodaraPlanExecutor {
     `);
 
     this.initialized = true;
-
-    const countRes = await db.execute(`SELECT COUNT(*) as c FROM kodara_executable_plans`);
-    if (Number(countRes.rows[0]?.c || 0) === 0) {
-      await this.seedDefaultExecutablePlan();
-    }
-  }
-
-  private static async seedDefaultExecutablePlan(): Promise<void> {
-    await this.createExecutablePlan({
-      projectId: 'proj_samulibre',
-      projectName: 'SamulibreLinux',
-      projectPath: '/home/saghet/Documents/SamulibreLinux',
-      title: 'Plan de Trabajo: Actualización SamuLibre v2.00.31, Telemetría CPU/GPU y Compilación',
-      summary:
-        'Plan ejecutable en 4 fases reales: lectura del historial completo + objetivo visual de la flecha, modificación de código y versión a v2.00.31, compilación cargo build y reinicio verificado de SamuLibre.',
-      markdownContent: [
-        `# Plan de Trabajo Ejecutable: SamuLibre EDR (Linux & Android)`,
-        `Este artefacto está vinculado al motor nativo **Kodara Plan Executor v2**. Al pulsar **Proceed**, Kodara ejecutará físicamente las 4 fases sobre \`/home/saghet/Documents/SamulibreLinux\`:`,
-        ``,
-        `1. **Fase 1 — Comprensión del Historial Completo, Objetivo de la Flecha e Indexación**: Lectura de \`project_messages\` en SQLite, detección de coordenadas de la flecha e indexación de crates.`,
-        `2. **Fase 2 — Modificación Real del Software (Versión v2.00.31 + Consumo CPU/GPU + SAST)**: Actualización de \`Cargo.toml\` y \`data/ui/index.html\` con barras de CPU y GPU encima de Memoria RAM.`,
-        `3. **Fase 3 — Compilación Real de la Nueva Versión y Pruebas en Sandbox**: Ejecución de \`cargo build --release\`, sincronización de binarios y verificación \`rustc --test\`.`,
-        `4. **Fase 4 — Reinicio de SamuLibre y Auditoría Post-Ejecución**: Cierre y reapertura en vivo de SamuLibre y auditoría estricta de cumplimiento en \`Kodara Project Memory\`.`,
-      ].join('\n'),
-    });
   }
 
   /**
@@ -269,30 +244,22 @@ export class KodaraPlanExecutor {
   public static async executePlanById(
     planId: string,
     onProgress?: (ev: PlanProgressEvent) => void,
-    conversationId: string = 'conv_samu_1'
+    conversationId: string = ''
   ): Promise<ExecutablePlanArtifact> {
     await this.init();
     const db = await getDb();
 
-    let res = await db.execute({
+    const res = await db.execute({
       sql: `SELECT * FROM kodara_executable_plans WHERE plan_id = ? LIMIT 1`,
       args: [planId],
     });
 
     if (res.rows.length === 0) {
-      res = await db.execute(
-        `SELECT * FROM kodara_executable_plans ORDER BY created_at DESC LIMIT 1`
-      );
-      if (res.rows.length === 0) {
-        await this.seedDefaultExecutablePlan();
-        res = await db.execute(
-          `SELECT * FROM kodara_executable_plans ORDER BY created_at DESC LIMIT 1`
-        );
-      }
+      throw new Error(`Plan ejecutable con ID "${planId}" no encontrado en el sistema.`);
     }
 
     const plan = this.mapRow(res.rows[0]);
-    const targetPath = plan.project_path || '/home/saghet/Documents/SamulibreLinux';
+    const targetPath = plan.project_path || process.cwd();
     const reportLines: string[] = [];
 
     for (const ph of plan.phases) {

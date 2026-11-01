@@ -558,6 +558,26 @@ Kodara está instalado como aplicación nativa de escritorio en tu sistema Linux
 - **Certificación de la Suite de Pruebas**:
   - Validado formalmente por la nueva suite `kodara-memory-scoping-and-decoupling.test.ts`, consolidando **21 suites de prueba y 105/105 pruebas unitarias aprobadas al 100% (792 aserciones)**.
 
+---
+
+## 33. Extirpación Forense Definitiva de Órdenes Basura y Planes Fantasma (Eradicación de SamuLibre)
+- **Diagnóstico y Origen de la Resurrección Fantasma de SamuLibre**:
+  - *Vector 1 (Base de Datos & PlanExecutor)*: `plan-executor.ts` ejecutaba `seedDefaultExecutablePlan()` en `init()`, reinsertando automáticamente el plan `PLAN-1793478804934-9X08` (compilar y reiniciar SamuLibre v2.00.31) en la tabla SQLite `kodara_executable_plans` cada vez que quedaba vacía.
+  - *Vector 2 (Cabina Frontend `dashboard.html`)*: En cada arranque, `loadInitialExecutablePlans()` llamaba a `GET /api/kodara/plans` e inyectaba dicho plan en `#defaultExecutablePlanSlot` dentro del bloque de bienvenida con un botón activo `[▶ Proceed]`.
+  - *Vector 3 (Fallback Ciego en Ejecución)*: `executePlanById(planId, onProgress, conversationId = 'conv_samu_1')` asumía `conv_samu_1` por defecto, recuperando del historial en SQLite el turno original que ordenaba compilar y reiniciar la aplicación.
+  - *Vector 4 (Compilador de Órdenes)*: En `order-compiler.ts`, la condición genérica `orders.length > 0` forzaba compilación y reinicio de SamuLibre incluso en proyectos no vinculados.
+  - *Vector 5 (Bucle de Auto-Reparación)*: En `auditExecutionCompliance()`, la verificación incondicional de `pgrep -f samulibre-gui` marcaba auditoría fallida (`all_verified: false`) cuando SamuLibre estaba cerrado, disparando el watchdog de auto-reparación en `plan-executor.ts:496` que procedía a reabrir la aplicación continuamente.
+- **Intervención Quirúrgica Forense Ejecutada**:
+  - **Depuración de Base de Datos SQLite**: Purga completa de registros heredados en `kodara_executable_plans` y erradicación del método `seedDefaultExecutablePlan()`.
+  - **Saneamiento en `plan-executor.ts`**: Eliminación del fallback `conv_samu_1` y de la consulta `SELECT ... LIMIT 1`. La ejecución de planes exige identificación explícita y valida que el plan pertenezca al proyecto activo.
+  - **Saneamiento en `order-compiler.ts`**: 
+    - Las órdenes de compilación y reinicio (`ORD-COMPILE-SOFTWARE` y `ORD-RESTART-APP`) quedan estrictamente confinadas a proyectos que coincidan con `SamulibreLinux` en nombre o ruta, y solo si el usuario solicitó explícitamente un reinicio.
+    - La auditoría `auditExecutionCompliance()` elimina comprobaciones incondicionales de procesos ajenos y verificaciones fantasma de flechas cuando no hay captura multimodal involucrada.
+  - **Saneamiento en `server.ts`**: Rutas `/api/kodara/conversations/:id/history`, `/api/kodara/audit-intelligence` y el motor de visión ya no contienen referencias duras a `conv_samu_1` ni `/home/saghet/Documents/SamulibreLinux`, exigiendo parámetros válidos o utilizando `process.cwd()`.
+  - **Saneamiento en la Cabina (`dashboard.html`)**: Eliminación definitiva de `#defaultExecutablePlanSlot`, de la función `loadInitialExecutablePlans()`, y de la inyección automática de tarjetas de planes viejos en workspaces limpios (`renderProjectWorkspaceCleanState`).
+- **Certificación de la Suite de Pruebas**:
+  - Validado y blindado por la nueva suite `kodara-anti-ghost-orders.test.ts`, alcanzando **22 suites de prueba y 110/110 pruebas unitarias aprobadas al 100% (813 aserciones)**.
+
 
 
 

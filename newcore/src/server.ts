@@ -75,11 +75,11 @@ function detectTacticalToolIntent(userMessage: string) {
     return CybersecurityMCPBridge.createHITLProposal('nmap', target);
   }
   if (lower.includes('semgrep') || lower.includes('sast') || lower.includes('audita el código') || lower.includes('auditar codigo')) {
-    const codeTarget = target.startsWith('/') ? target : '/home/saghet/Documents/SamulibreLinux';
+    const codeTarget = target.startsWith('/') ? target : process.cwd();
     return CybersecurityMCPBridge.createHITLProposal('semgrep', codeTarget);
   }
   if (lower.includes('trivy') || lower.includes('dependencias') || lower.includes('cve')) {
-    const codeTarget = target.startsWith('/') ? target : '/home/saghet/Documents/SamulibreLinux';
+    const codeTarget = target.startsWith('/') ? target : process.cwd();
     return CybersecurityMCPBridge.createHITLProposal('trivy', codeTarget);
   }
   if (lower.includes('whatweb') || lower.includes('cabeceras') || lower.includes('tecnologías web')) {
@@ -530,8 +530,11 @@ export async function startServer(orchestrator?: AgentOrchestrator) {
     }
   );
 
-  app.get<{ Params: { id: string } }>('/api/kodara/conversations/:id/history', async (req) => {
-    const convId = req.params.id || 'conv_samu_1';
+  app.get<{ Params: { id: string } }>('/api/kodara/conversations/:id/history', async (req, reply) => {
+    const convId = req.params.id;
+    if (!convId) {
+      return reply.code(400).send({ error: 'conversationId es requerido' });
+    }
     const { mergedMessages, userTurns } = await KodaraOrderCompiler.loadFullConversationHistory(convId);
     const compiled = await KodaraOrderCompiler.compileFromConversation({
       conversationId: convId,
@@ -548,9 +551,12 @@ export async function startServer(orchestrator?: AgentOrchestrator) {
 
   app.post<{ Body: { conversationId?: string; projectPath?: string; executeIfPending?: boolean } }>(
     '/api/kodara/audit-intelligence',
-    async (req) => {
-      const convId = req.body?.conversationId || 'conv_samu_1';
-      const projPath = req.body?.projectPath || '/home/saghet/Documents/SamulibreLinux';
+    async (req, reply) => {
+      const convId = req.body?.conversationId;
+      const projPath = req.body?.projectPath || process.cwd();
+      if (!convId) {
+        return reply.code(400).send({ error: 'conversationId es requerido para auditar inteligencia de órdenes' });
+      }
       const compiled = await KodaraOrderCompiler.compileFromConversation({
         conversationId: convId,
         projectPath: projPath,
@@ -1131,7 +1137,7 @@ export async function startServer(orchestrator?: AgentOrchestrator) {
   }>('/api/kodara/vision/analyze', async (req) => {
     const report = KodaraVisionEngine.analyzeAttachedImages(
       req.body?.images || [],
-      req.body?.projectPath || '/home/saghet/Documents/SamulibreLinux',
+      req.body?.projectPath || process.cwd(),
       req.body?.message || ''
     );
     return {
@@ -1273,7 +1279,7 @@ export async function startServer(orchestrator?: AgentOrchestrator) {
       reply.raw.write(`data: ${JSON.stringify({ log: { time: getNow(), text: `🖼️ Kodara Vision Engine analizando ${attachedImages.length} imagen(es) adjunta(s) (OCR + Codebase Grounding)...`, level: 'info' } })}\n\n`);
       const visionReport = KodaraVisionEngine.analyzeAttachedImages(
         attachedImages,
-        effectiveProjectPath || '/home/saghet/Documents/SamulibreLinux',
+        effectiveProjectPath || process.cwd(),
         message
       );
       visionPromptBlock = visionReport.llm_vision_context;

@@ -1239,15 +1239,25 @@
     </header>
 
     <div class="ag-chat-scroll" id="chatFlow">
-      <!-- Mensaje inicial del proyecto activo + Tarjeta de Plan Ejecutable Real -->
+      <!-- Mensaje inicial del proyecto activo -->
       <div class="ag-msg-ai" id="initialWelcomeBlock">
-        <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.45rem;color:#34d399;font-size:0.78rem;font-weight:600">
-          <span>✓ Proceeded with Executable Plan Engine & Dual Memory Architecture</span>
+        <div class="ag-msg-ai-header" style="display:flex;align-items:center;gap:0.45rem;margin-bottom:0.45rem">
+          <div class="pai-mei-avatar-ring" style="width:24px;height:24px;border-width:1.5px;box-shadow:none">
+            <svg viewBox="0 0 64 64" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="32" cy="32" r="32" fill="#0b1329" />
+              <path d="M15 64 Q32 46 49 64 Z" fill="#f1f5f9" />
+              <path d="M21 64 Q32 49 43 64" fill="none" stroke="#0a66c2" stroke-width="1.8" />
+              <ellipse cx="32" cy="31" rx="12.5" ry="14.5" fill="#fbd5b5" />
+              <ellipse cx="32" cy="13" rx="5.5" ry="4.5" fill="#ffffff" />
+              <path d="M19.5 27 C19.5 16 23 15 32 15 C41 15 44.5 16 44.5 27 C41 22.5 37 20.5 32 20.5 C27 20.5 23 22.5 19.5 27 Z" fill="#ffffff" />
+            </svg>
+          </div>
+          <span style="font-weight:700;font-size:0.8rem;color:#60a5fa">Maestro Pai Mei</span>
+          <span style="font-size:0.65rem;color:#94a3b8;background:rgba(255,255,255,0.05);padding:1px 5px;border-radius:4px">Workspace</span>
         </div>
-        <p style="margin-bottom:0.6rem">
-          Bienvenido a <b>Kodara</b> (<i>"Your Code. Your AI. Your Rules."</i>). Cada plan propuesto incluye ahora el <b>Motor de Planes Ejecutables Nativo</b> con el botón real <b><code>▶ Proceed</code></b> que ejecuta físicamente compilaciones, auditorías SAST, pruebas en Sandbox y actualización de memorias en Linux.
+        <p style="margin-bottom:0.4rem;color:#cbd5e1">
+          Bienvenido a <b>Kodara</b> (<i>"Your Code. Your AI. Your Rules."</i>). Escribe una orden técnica o consulta en lenguaje natural para comenzar a desarrollar en tu entorno Linux.
         </p>
-        <div id="defaultExecutablePlanSlot"></div>
       </div>
     </div>
 
@@ -2399,25 +2409,30 @@
 
     async function renderProjectWorkspaceCleanState(projId, projName, projPath, subtitle) {
       chatHistory = [];
-      try {
-        const plansResp = await fetch(`/api/kodara/plans?projectId=${encodeURIComponent(projId)}`);
-        const plans = await plansResp.json();
-        const latestPlan = plans && plans.length > 0 ? plans[0] : null;
-        const planHtml = latestPlan ? renderExecutablePlanCardHTML(latestPlan) : '';
-        const flow = document.getElementById('chatFlow');
-        flow.innerHTML = `
-          <div class="ag-msg-ai">
-            <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.45rem;color:#34d399;font-size:0.78rem;font-weight:600">
-              <span>✓ Proyecto Activo en Kodara: ${escapeHtml(projName)} (${escapeHtml(projPath)})</span>
+      const flow = document.getElementById('chatFlow');
+      if (!flow) return;
+      flow.innerHTML = `
+        <div class="ag-msg-ai">
+          <div class="ag-msg-ai-header" style="display:flex;align-items:center;gap:0.45rem;margin-bottom:0.45rem">
+            <div class="pai-mei-avatar-ring" style="width:24px;height:24px;border-width:1.5px;box-shadow:none">
+              <svg viewBox="0 0 64 64" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="32" cy="32" r="32" fill="#0b1329" />
+                <path d="M15 64 Q32 46 49 64 Z" fill="#f1f5f9" />
+                <path d="M21 64 Q32 49 43 64" fill="none" stroke="#0a66c2" stroke-width="1.8" />
+                <ellipse cx="32" cy="31" rx="12.5" ry="14.5" fill="#fbd5b5" />
+                <ellipse cx="32" cy="13" rx="5.5" ry="4.5" fill="#ffffff" />
+                <path d="M19.5 27 C19.5 16 23 15 32 15 C41 15 44.5 16 44.5 27 C41 22.5 37 20.5 32 20.5 C27 20.5 23 22.5 19.5 27 Z" fill="#ffffff" />
+              </svg>
             </div>
-            <p style="margin-bottom:0.6rem">
-              Contexto sincronizado con <b>Kodara Project Memory</b> y motor de ejecución directa <b>🛡️ Turbo</b> para <code>${escapeHtml(projName)}</code> (${escapeHtml(subtitle)}).
-              ${latestPlan ? 'Debajo tienes el Artefacto de Plan Ejecutable vinculado a este proyecto:' : 'Haz clic en <b>📋 Generar Plan Ejecutable</b> en la barra superior para crear un plan de 4 fases con botón real <b>▶ Proceed</b>.'}
-            </p>
-            ${planHtml}
+            <span style="font-weight:700;font-size:0.8rem;color:#60a5fa">Maestro Pai Mei</span>
+            <span style="font-size:0.65rem;color:#94a3b8;background:rgba(255,255,255,0.05);padding:1px 5px;border-radius:4px">Workspace Activo</span>
           </div>
-        `;
-      } catch {}
+          <p style="margin-bottom:0.4rem;color:#cbd5e1">
+            Espacio de trabajo listo para <b>${escapeHtml(projName || 'Kodara')}</b> (<code>${escapeHtml(projPath || '/home/saghet/Documents')}</code>).
+            Escribe una orden técnica o consulta de arquitectura para comenzar.
+          </p>
+        </div>
+      `;
     }
 
     async function selectProjectConversation(projId, projName, projPath, convId, convTitle) {
@@ -2425,18 +2440,13 @@
       activeProjectName = projName;
       activeProjectPath = projPath;
       activeConversationId = convId;
-      document.getElementById('centerBreadcrumb').innerHTML = `<span>${projName}</span> <span>/</span> <b>${convTitle}</b>`;
+      document.getElementById('centerBreadcrumb').innerHTML = `<span>${escapeHtml(projName)}</span> <span>/</span> <b>${escapeHtml(convTitle)}</b>`;
       loadProjectsSidebar();
       loadProjectMemory(projId);
 
       try {
-        const [msgsResp, plansResp] = await Promise.all([
-          fetch(`/api/conversations/${convId}/messages`),
-          fetch(`/api/kodara/plans?projectId=${encodeURIComponent(projId)}`)
-        ]);
+        const msgsResp = await fetch(`/api/conversations/${convId}/messages`);
         const msgs = await msgsResp.json();
-        const plans = await plansResp.json();
-        const latestPlan = plans && plans.length > 0 ? plans[0] : null;
 
         if (msgs && msgs.length > 0) {
           chatHistory = msgs.map(m => ({
@@ -2444,13 +2454,11 @@
             content: stripSymbolicDisclaimersClient(m.content || '')
           }));
           const flow = document.getElementById('chatFlow');
-          flow.innerHTML = msgs.map((m, idx) => {
+          flow.innerHTML = msgs.map(m => {
             const cleanContent = stripSymbolicDisclaimersClient(m.content || '');
             if (m.role === 'user') {
               return `<div class="ag-msg-user">${escapeHtml(cleanContent)}</div>`;
             }
-            const isLastAi = (idx === msgs.length - 1);
-            const planCardHtml = (isLastAi && latestPlan) ? renderExecutablePlanCardHTML(latestPlan) : '';
             return `
               <div class="ag-msg-ai">
                 <div class="ag-msg-ai-header" style="display:flex;align-items:center;gap:0.45rem;margin-bottom:0.45rem">
@@ -2468,7 +2476,7 @@
                   <span style="font-weight:700;font-size:0.8rem;color:#60a5fa">Maestro Pai Mei</span>
                   <span style="font-size:0.65rem;color:#94a3b8;background:rgba(255,255,255,0.05);padding:1px 5px;border-radius:4px">Kodara Core</span>
                 </div>
-                <div>${formatMarkdown(cleanContent)}${planCardHtml}</div>
+                <div>${formatMarkdown(cleanContent)}</div>
               </div>`;
           }).join('');
           scrollChatBottom();
@@ -2476,7 +2484,9 @@
           chatHistory = [];
           await renderProjectWorkspaceCleanState(projId, projName, projPath, convTitle);
         }
-      } catch {}
+      } catch {
+        chatHistory = [];
+      }
     }
 
     // ── 2. KODARA PROJECT MEMORY (Memoria Independiente de Aplicaciones) ──
@@ -3132,17 +3142,6 @@
       } catch (e) {
         aiNode.innerHTML = `<span style="color:#ef4444">Error creando plan: ${e.message}</span>`;
       }
-    }
-
-    async function loadInitialExecutablePlans() {
-      try {
-        const resp = await fetch(`/api/kodara/plans?projectId=${encodeURIComponent(activeProjectId)}`);
-        const plans = await resp.json();
-        const slot = document.getElementById('defaultExecutablePlanSlot');
-        if (slot && plans && plans.length > 0) {
-          slot.innerHTML = renderExecutablePlanCardHTML(plans[0]);
-        }
-      } catch {}
     }
 
     // ── 6. Chat Streaming con Modo Turbo Directo + Tarjeta Real [▶ Proceed] ──
@@ -3931,7 +3930,6 @@
       hydrateConversationHistory();
       loadProjectsSidebar();
       loadProjectMemory();
-      loadInitialExecutablePlans();
       pollHardwareTelemetry();
       setInterval(pollHardwareTelemetry, 2500);
     });
