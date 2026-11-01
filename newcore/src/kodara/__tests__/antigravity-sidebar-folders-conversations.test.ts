@@ -129,4 +129,25 @@ describe('Kodara Antigravity Sidebar: Carpetas y Conversaciones', () => {
     expect(serverCode).toContain('projectsTable.moveConversation');
     expect(serverCode).toContain('projectsTable.deleteConversation');
   });
+
+  it('5. El Dashboard HTML implementa la eliminación ergonómica de carpetas con botón [.ag-folder-delete-btn] y modal [#agConfirmDeleteProjectModal]', () => {
+    expect(existsSync(dashboardHtmlPath)).toBe(true);
+    const html = readFileSync(dashboardHtmlPath, 'utf-8');
+
+    // Botones de acción contextual en la carpeta
+    expect(html).toContain('ag-folder-actions');
+    expect(html).toContain('ag-folder-delete-btn');
+    expect(html).toContain('openConfirmDeleteProjectModal');
+
+    // Modal no bloqueante de confirmación destructiva
+    expect(html).toContain('agConfirmDeleteProjectModal');
+    expect(html).toContain('confirmDeleteProjectPromptText');
+    expect(html).toContain('closeConfirmDeleteProjectModal()');
+    expect(html).toContain('executeConfirmedDeleteProject()');
+    expect(html).toContain('Eliminar Carpeta Definitivamente');
+
+    // Manejador en cliente con refresco reactivo
+    expect(html).toContain('pendingDeleteProject');
+    expect(html).toContain('loadProjectsSidebar()');
+  });
 });

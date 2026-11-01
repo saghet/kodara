@@ -311,13 +311,24 @@
       opacity: 0.85;
     }
 
-    .ag-folder-quick-add {
+    .ag-folder-actions {
+      display: flex;
+      align-items: center;
+      gap: 3px;
       opacity: 0;
+      transition: opacity 0.12s ease;
+    }
+
+    .ag-project-folder:hover .ag-folder-actions {
+      opacity: 1;
+    }
+
+    .ag-folder-quick-add {
       padding: 1px 4px;
       font-size: 0.75rem;
       color: #94a3b8;
       border-radius: 3px;
-      transition: opacity 0.12s ease;
+      transition: all 0.12s ease;
     }
 
     .ag-project-folder:hover .ag-folder-quick-add {
@@ -327,6 +338,20 @@
     .ag-folder-quick-add:hover {
       background: rgba(255, 255, 255, 0.1);
       color: #38bdf8;
+    }
+
+    .ag-folder-delete-btn {
+      padding: 1px 4px;
+      font-size: 0.72rem;
+      color: #94a3b8;
+      border-radius: 3px;
+      transition: all 0.12s ease;
+      cursor: pointer;
+    }
+
+    .ag-folder-delete-btn:hover {
+      background: rgba(239, 68, 68, 0.18) !important;
+      color: #ef4444 !important;
     }
 
     .ag-conv-item {
@@ -1473,6 +1498,25 @@
     </div>
   </div>
 
+  <!-- Modal: Confirmación No Bloqueante de Eliminación de Carpeta / Proyecto -->
+  <div id="agConfirmDeleteProjectModal" class="ag-modal-backdrop" onclick="if(event.target===this)closeConfirmDeleteProjectModal()">
+    <div class="ag-modal-box" style="max-width:410px">
+      <div class="ag-modal-header">
+        <span class="ag-modal-title" style="color:#f87171">🗑️ Eliminar Carpeta / Proyecto</span>
+        <button class="ag-icon-btn" onclick="closeConfirmDeleteProjectModal()">✕</button>
+      </div>
+      <div class="ag-modal-body">
+        <p style="font-size:0.78rem;color:#cbd5e1;line-height:1.5" id="confirmDeleteProjectPromptText">
+          ¿Estás seguro de que deseas eliminar permanentemente esta carpeta? Esta acción eliminará el proyecto y todas sus conversaciones asociadas.
+        </p>
+      </div>
+      <div class="ag-modal-actions">
+        <button class="ag-modal-btn secondary" onclick="closeConfirmDeleteProjectModal()">Cancelar</button>
+        <button class="ag-modal-btn" style="background:#ef4444;color:#fff;box-shadow:0 4px 12px rgba(239,68,68,0.35)" onclick="executeConfirmedDeleteProject()">Eliminar Carpeta Definitivamente</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Modal: Perfil Profesional del Maestro Pai Mei (Estilo LinkedIn & Oratoria Marcial) -->
   <div id="paiMeiProfileModal" class="ag-modal-backdrop" onclick="if(event.target===this)closePaiMeiProfileModal()">
     <div class="ag-modal-box" style="max-width:490px;background:linear-gradient(135deg, #0b1329 0%, #0f172a 100%);border:1.5px solid rgba(10,102,194,0.6);box-shadow:0 12px 36px rgba(0,0,0,0.8), 0 0 24px rgba(56,189,248,0.3)">
@@ -1692,11 +1736,18 @@
                 <span class="ag-folder-icon">📁</span>
                 <span>${escapeHtml(p.name)}</span>
               </div>
-              <button class="ag-icon-btn ag-folder-quick-add"
-                      title="Nueva conversación en ${escapeAttr(p.name)}"
-                      onclick="createConversationInProject('${p.id}', '${escapeAttr(p.name)}', event)">
-                +
-              </button>
+              <div class="ag-folder-actions">
+                <button class="ag-icon-btn ag-folder-quick-add"
+                        title="Nueva conversación en ${escapeAttr(p.name)}"
+                        onclick="createConversationInProject('${p.id}', '${escapeAttr(p.name)}', event)">
+                  +
+                </button>
+                <button class="ag-icon-btn ag-folder-delete-btn"
+                        title="Eliminar carpeta ${escapeAttr(p.name)}"
+                        onclick="openConfirmDeleteProjectModal('${p.id}', '${escapeAttr(p.name)}', event)">
+                  🗑️
+                </button>
+              </div>
             </div>
             ${convsHtml}
           </div>
@@ -1943,6 +1994,66 @@
         }
       } catch (err) {
         console.error('Error eliminando conversación:', err);
+      }
+    }
+
+    // Modal de Confirmación No Bloqueante (Eliminar Proyecto / Carpeta)
+    let pendingDeleteProject = { id: '', name: '' };
+
+    function openConfirmDeleteProjectModal(projId, projName, event) {
+      if (event) event.stopPropagation();
+      pendingDeleteProject = { id: projId, name: projName };
+      const modal = document.getElementById('agConfirmDeleteProjectModal');
+      const promptEl = document.getElementById('confirmDeleteProjectPromptText');
+      if (promptEl) {
+        promptEl.innerHTML = `¿Deseas eliminar permanentemente la carpeta "<b>${escapeHtml(projName)}</b>"? Esta acción purgará el proyecto y todas sus conversaciones asociadas de SQLite.`;
+      }
+      if (modal) modal.classList.add('open');
+    }
+
+    function closeConfirmDeleteProjectModal() {
+      const modal = document.getElementById('agConfirmDeleteProjectModal');
+      if (modal) modal.classList.remove('open');
+      pendingDeleteProject = { id: '', name: '' };
+    }
+
+    async function executeConfirmedDeleteProject() {
+      const projId = pendingDeleteProject.id;
+      if (!projId) return;
+
+      try {
+        const resp = await fetch(`/api/projects/${encodeURIComponent(projId)}`, {
+          method: 'DELETE'
+        });
+        if (resp.ok) {
+          const wasActive = (activeProjectId === projId);
+          closeConfirmDeleteProjectModal();
+          await loadProjectsSidebar();
+
+          if (wasActive) {
+            if (cachedProjectsList && cachedProjectsList.length > 0) {
+              const nextProj = cachedProjectsList[0];
+              const firstConv = (nextProj.conversations && nextProj.conversations.length > 0) ? nextProj.conversations[0] : null;
+              if (firstConv) {
+                selectProjectConversation(nextProj.id, nextProj.name, nextProj.path, firstConv.id, firstConv.title);
+              } else {
+                selectProjectFolder(nextProj.id, nextProj.name, nextProj.path);
+              }
+            } else {
+              activeProjectId = '';
+              activeProjectName = '';
+              activeProjectPath = '';
+              activeConversationId = '';
+              await renderProjectWorkspaceCleanState('', 'Sin Proyecto', '', 'Workspace');
+            }
+          }
+        } else {
+          const errData = await resp.json().catch(() => ({}));
+          console.error('Error eliminando proyecto:', errData);
+          alert('No se pudo eliminar el proyecto: ' + (errData.error || resp.statusText));
+        }
+      } catch (err) {
+        console.error('Error eliminando proyecto:', err);
       }
     }
 

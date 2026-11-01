@@ -455,6 +455,28 @@ Kodara está instalado como aplicación nativa de escritorio en tu sistema Linux
 - **Certificación del Ecosistema**:
   - Validado por la suite `pai-mei-linguistic-voice.test.ts`, consolidando **17 suites de prueba y 83/83 pruebas unitarias aprobadas al 100% (646 aserciones)**.
 
+---
+
+## 28. Gestión del Ciclo de Vida: Eliminación Ergonómica de Carpetas y Proyectos en el Sidebar
+- **Ergonomía Visual en el Árbol de Proyectos (`dashboard.html`)**:
+  - Cada fila de carpeta en el sidebar izquierdo (`.ag-project-folder`) cuenta ahora con un contenedor de acciones `.ag-folder-actions` visible suavemente al posar el cursor (`hover`):
+    - Botón `+` (`.ag-folder-quick-add`): Creación rápida de nueva conversación dentro del proyecto.
+    - Botón `🗑️` (`.ag-folder-delete-btn`): Eliminación de la carpeta y proyecto con tooltip interactivo (*"Eliminar carpeta [Nombre]"*) y resaltado carmesí `#ef4444`.
+- **Modal de Confirmación No Bloqueante (`#agConfirmDeleteProjectModal`)**:
+  - Diseñado bajo la estética de Antigravity IDE (`backdrop-filter: blur(4px)`).
+  - Presenta advertencia explícita del impacto destructivo: *"¿Deseas eliminar permanentemente la carpeta [Nombre]? Esta acción purgará el proyecto y todas sus conversaciones asociadas de SQLite."*
+  - Opciones de escape ergonómicas: botón `[Cancelar]`, tecla física `Esc` y clic fuera del modal.
+- **Purga en Cascada y Persistencia en SQLite (`server.ts` & `projects.ts`)**:
+  - Al pulsar `[Eliminar Carpeta Definitivamente]`, se invoca la ruta REST nativa `DELETE /api/projects/:id`.
+  - La transacción en SQLite elimina en cascada todas las filas asociadas en `project_messages`, las conversaciones en `project_conversations`, y finalmente el registro en `projects`.
+- **Gestión Reactiva del Estado en el Cliente**:
+  - La función `executeConfirmedDeleteProject()` verifica si la carpeta eliminada corresponde a la activa (`activeProjectId === projId`).
+  - Si estaba activa, conmuta de forma segura al primer proyecto restante en el árbol o limpia el espacio de trabajo central; luego refresca reactivamente el sidebar con `loadProjectsSidebar()`.
+- **Icono del Sistema Kodara en Linux (Paridad en Menú KDE)**:
+  - Actualizado el archivo de icono del escritorio `/home/saghet/.local/share/kodara/icon.svg` a 512x512 con el avatar vectorial del Maestro Pai Mei (anillo circular LinkedIn `#0a66c2`, túnica marcial, barba y cejas blancas taoístas y status pip verde `#10b981`), garantizando que el menú de aplicaciones de KDE y los accesos directos del escritorio exhiban la misma dignidad visual que la cabina web.
+- **Certificación de la Suite de Pruebas**:
+  - Verificado por la prueba 5 de `antigravity-sidebar-folders-conversations.test.ts`, consolidando **17 suites de prueba y 84/84 pruebas unitarias aprobadas al 100% (657 aserciones)**.
+
 
 
 
