@@ -129,33 +129,41 @@ export class KodaraPlanExecutor {
 
   /**
    * Detecta si el mensaje del usuario o la respuesta del modelo constituye un plan de trabajo o mejora
+   * Requiere una intención deliberada de planificación (/plan, arma plan, plan de trabajo)
+   * o una respuesta multi-fase estructurada ante una solicitud de ingeniería.
    */
   public static shouldAttachExecutablePlan(userMessage: string, aiResponse: string): boolean {
     const u = (userMessage || '').toLowerCase();
     const a = (aiResponse || '').toLowerCase();
-    return (
-      u.includes('plan') ||
-      u.includes('mejora') ||
+
+    // 1. Petición explícita del usuario de forjar o ejecutar un plan
+    const userExplicitlyWantsPlan =
+      u.includes('plan de trabajo') ||
+      u.includes('arma plan') ||
+      u.includes('arma un plan') ||
+      u.includes('generar plan') ||
+      u.includes('crea un plan') ||
+      u.includes('plan ejecutable') ||
+      u.startsWith('/plan') ||
       u.includes('procede') ||
+      u.includes('proceder');
+
+    if (userExplicitlyWantsPlan) return true;
+
+    // 2. Respuesta estructurada formal como plan de acción técnico
+    const isMultiPhasePlanResponse =
+      (a.includes('fase 1') && a.includes('fase 2') && a.includes('fase 3')) ||
+      (a.includes('plan de acción') && a.includes('paso 1') && a.includes('paso 2'));
+
+    // Solo si el usuario pidió implementar, corregir o auditar código
+    const isEngineeringRequest =
       u.includes('implement') ||
-      u.includes('audit') ||
+      u.includes('corrig') ||
       u.includes('compil') ||
       u.includes('solucion') ||
-      u.includes('corrig') ||
-      u.includes('crea') ||
-      u.includes('analiza') ||
-      u.includes('revisa') ||
-      u.includes('version') ||
-      u.includes('versión') ||
-      u.includes('flecha') ||
-      u.includes('cierra') ||
-      a.includes('plan') ||
-      a.includes('paso 1') ||
-      a.includes('fase 1') ||
-      a.includes('resumen') ||
-      a.includes('1.') ||
-      a.includes('###')
-    );
+      u.includes('audit');
+
+    return isMultiPhasePlanResponse && isEngineeringRequest;
   }
 
   public static async createExecutablePlan(params: {

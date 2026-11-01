@@ -477,6 +477,22 @@ Kodara está instalado como aplicación nativa de escritorio en tu sistema Linux
 - **Certificación de la Suite de Pruebas**:
   - Verificado por la prueba 5 de `antigravity-sidebar-folders-conversations.test.ts`, consolidando **17 suites de prueba y 84/84 pruebas unitarias aprobadas al 100% (657 aserciones)**.
 
+---
+
+## 29. Reestructuración Arquitectónica: Aislamiento Estricto de Contexto y Desenredo Lógico (Zero-Bleed)
+- **Diagnóstico y Erradicación de Vectores de Contaminación Cruzada**:
+  - Se identificaron y neutralizaron los 5 factores que provocaban que Kodara mezclara temas y hablara de proyectos ajenos:
+    1. *Fallback Ciego a `conv_samu_1`*: Erradicado en `server.ts`. Las conversaciones huérfanas o nuevas generan IDs únicos independientes y no heredan el historial de turnos pasados.
+    2. *Inyección Duplicada de Ledgers*: Retirada la concatenación de `history_ledger_prompt_block` dentro del contenido del mensaje del usuario (`role: 'user'`), garantizando que la petición del usuario permanezca limpia y sin distorsiones.
+    3. *Supresión de Búsqueda de Imágenes Fantasma*: `order-compiler.ts` restringe la búsqueda de capturas en disco exclusivamente a cuando el usuario adjunta una imagen en el turno actual; si no hay imagen, no inventa flechas ni targets de telemetría hacia RAM.
+    4. *Condicionamiento de Órdenes de Ingeniería*: `KodaraOrderCompiler` solo genera directivas de modificación y compilación física cuando la intención y el repositorio activo lo exigen; para preguntas conceptuales, explicativas o de otros proyectos, genera un contexto limpio sin mandatos forzados de `[▶ Proceed]`.
+    5. *Hiperactividad de Planes Ejecutables*: `KodaraPlanExecutor.shouldAttachExecutablePlan()` discrimina consultas didácticas, explicaciones de algoritmos y consultas de desarrollo general, activándose únicamente ante peticiones deliberadas (`/plan`, *"arma plan"*, *"plan de trabajo"*) o planes técnicos multi-fase solicitados.
+- **Saneamiento del Estado Reactivo en el Cliente (`dashboard.html`)**:
+  - El historial local `chatHistory` se resetea a vacío (`[]`) de forma atómica cada vez que el usuario conmuta de conversación, crea un nuevo chat o accede a una carpeta sin mensajes previos.
+  - Sincronización transparente de `activeProjectId`, `activeConversationId` y `activeProjectPath`.
+- **Certificación de la Suite de Pruebas**:
+  - Validado por la nueva suite `context-isolation-anti-tangling.test.ts`, consolidando **18 suites de prueba y 90/90 pruebas unitarias aprobadas al 100% (692 aserciones)**.
+
 
 
 

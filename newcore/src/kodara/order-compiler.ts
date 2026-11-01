@@ -84,7 +84,7 @@ export class KodaraOrderCompiler {
    * garantizando que Kodara nunca olvide órdenes dadas en turnos previos.
    */
   public static async loadFullConversationHistory(
-    conversationId: string = 'conv_samu_1',
+    conversationId: string = '',
     clientHistory: Array<{ role: string; content: string }> = [],
     currentMessage?: string
   ): Promise<{
@@ -92,13 +92,15 @@ export class KodaraOrderCompiler {
     userTurns: string[];
   }> {
     let dbMessages: Array<{ role: 'user' | 'assistant'; content: string }> = [];
-    try {
-      const rows = await projectsTable.getConversationMessages(conversationId);
-      dbMessages = rows.map((r) => ({
-        role: r.role === 'user' ? 'user' : 'assistant',
-        content: String(r.content || ''),
-      }));
-    } catch {}
+    if (conversationId && conversationId.trim()) {
+      try {
+        const rows = await projectsTable.getConversationMessages(conversationId);
+        dbMessages = rows.map((r) => ({
+          role: r.role === 'user' ? 'user' : 'assistant',
+          content: String(r.content || ''),
+        }));
+      } catch {}
+    }
 
     const merged: Array<{ role: 'user' | 'assistant'; content: string }> = [];
     const seen = new Set<string>();
@@ -162,10 +164,10 @@ export class KodaraOrderCompiler {
     planMarkdown?: string;
     explicitImagePath?: string;
   }): Promise<CompiledOrderSet> {
-    const convId = params.conversationId || 'conv_samu_1';
-    const projId = params.projectId || 'proj_samulibre';
-    const projName = params.projectName || 'SamulibreLinux';
-    const projPath = params.projectPath || '/home/saghet/Documents/SamulibreLinux';
+    const convId = params.conversationId || '';
+    const projId = params.projectId || (convId === 'conv_samu_1' ? 'proj_samulibre' : '');
+    const projName = params.projectName || (projId === 'proj_samulibre' ? 'SamulibreLinux' : '');
+    const projPath = params.projectPath || (projId === 'proj_samulibre' ? '/home/saghet/Documents/SamulibreLinux' : '');
 
     const { userTurns } = await this.loadFullConversationHistory(
       convId,
@@ -180,8 +182,8 @@ export class KodaraOrderCompiler {
     ].join('\n');
     const lower = combinedText.toLowerCase();
 
-    const latestImage = params.explicitImagePath || this.findLatestUploadedImage();
-    const arrowTarget = latestImage
+    const latestImage = params.explicitImagePath || (convId === 'conv_samu_1' ? this.findLatestUploadedImage() : undefined);
+    const arrowTarget = (latestImage && projPath)
       ? KodaraVisionEngine.detectArrowTarget(latestImage, projPath)
       : {
           detected: false,
@@ -190,8 +192,8 @@ export class KodaraOrderCompiler {
           tip_y: 0,
           tip_x_percent: 0,
           tip_y_percent: 0,
-          quadrant_label: 'zona inferior-izquierda del sidebar',
-          target_ocr_text: 'Memoria RAM 38.4 MB',
+          quadrant_label: '',
+          target_ocr_text: '',
         };
 
     const orders: VerifiableOrder[] = [];
@@ -312,10 +314,12 @@ export class KodaraOrderCompiler {
     }
 
     const ledgerLines: string[] = [
-      `=== LEDGER DE MEMORIA CONVERSACIONAL COMPLETA Y ÓRDENES COMPILADAS (ESTILO ANTIGRAVITY) ===`,
-      `• Conversación activa: ${convId} (${userTurns.length} turno(s) del usuario analizados desde SQLite)`,
-      `• Proyecto objetivo: ${projName} (${projPath})`,
+      `=== LEDGER DE MEMORIA CONVERSACIONAL (CONTEXT BOUNDARY) ===`,
+      `• Conversación activa: ${convId || 'Sesión Directa'} (${userTurns.length} turno(s) analizados)`,
     ];
+    if (projName) {
+      ledgerLines.push(`• Proyecto objetivo: ${projName} (${projPath})`);
+    }
 
     if (userTurns.length > 0) {
       ledgerLines.push(`• Historial cronológico de solicitudes del usuario en esta conversación:`);
@@ -335,14 +339,13 @@ export class KodaraOrderCompiler {
       for (const o of orders) {
         ledgerLines.push(`  - [${o.intent_type}] ${o.description}`);
       }
+      ledgerLines.push(
+        `\nDIRECTRIZ COGNITIVA OBLIGATORIA (NIVEL GOOGLE ANTIGRAVITY):`,
+        `1. Demuestra que comprendiste el historial y las órdenes específicas del usuario para este proyecto.`,
+        `2. Confirma cada cambio exacto que se aplicará sobre el código fuente (${orders.map((o) => o.description).join(' | ')}).`,
+        `3. Explica cómo la tarjeta interactiva [▶ Proceed] ejecutará la modificación de archivos, compilación real, reinicio de la aplicación y auditoría post-ejecución.`
+      );
     }
-
-    ledgerLines.push(
-      `\nDIRECTRIZ COGNITIVA OBLIGATORIA (NIVEL GOOGLE ANTIGRAVITY):`,
-      `1. Demuestra que comprendiste TODO el historial del chat y las órdenes específicas del usuario.`,
-      `2. Confirma cada cambio exacto que se aplicará sobre el código fuente (${orders.map((o) => o.description).join(' | ') || 'análisis y compilación del proyecto'}).`,
-      `3. Explica cómo la tarjeta interactiva [▶ Proceed] ejecutará la modificación de archivos, compilación real, reinicio de la aplicación y auditoría post-ejecución.`
-    );
 
     return {
       conversation_id: convId,

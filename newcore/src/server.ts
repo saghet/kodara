@@ -1060,7 +1060,15 @@ export async function startServer(orchestrator?: AgentOrchestrator) {
   }>('/chat/stream', async (req, reply) => {
     const { model, message, images, history, conversationId, projectId, projectName, projectPath, executionMode } = req.body;
     const attachedImages = Array.isArray(images) ? images : [];
-    const effectiveConvId = conversationId || 'conv_samu_1';
+    let effectiveConvId = conversationId;
+    if (!effectiveConvId) {
+      if (projectId) {
+        const newConv = await projectsTable.createConversation(projectId, 'Nueva Conversación');
+        effectiveConvId = newConv.id;
+      } else {
+        effectiveConvId = `conv_${Date.now()}`;
+      }
+    }
     const isTurboMode = (executionMode || 'turbo') === 'turbo';
     const resolvedProfile = resolveKodaraModelProfile(model);
     const actualModel = resolvedProfile.ollamaModel;
@@ -1141,7 +1149,9 @@ export async function startServer(orchestrator?: AgentOrchestrator) {
 
     // 2. Inspección automática de proyectos locales si se menciona una ruta
     const { contextText, detectedPath } = extractProjectContext(message, isMicro);
-    const effectiveProjectPath = detectedPath || projectPath || '/home/saghet/Documents/SamulibreLinux';
+    const effectiveProjectPath = detectedPath || projectPath || (projectId === 'proj_samulibre' ? '/home/saghet/Documents/SamulibreLinux' : undefined);
+    const effectiveProjectId = projectId || (effectiveProjectPath?.includes('Samulibre') ? 'proj_samulibre' : undefined);
+    const effectiveProjectName = projectName || (effectiveProjectId === 'proj_samulibre' ? 'SamulibreLinux' : effectiveProjectId === 'proj_wishark' ? 'WiSharkOpen' : effectiveProjectId === 'proj_ollama' ? 'Ollama' : undefined);
     if (detectedPath) {
       reply.raw.write(`data: ${JSON.stringify({ log: { time: getNow(), text: `🔍 Indexando estructura completa del proyecto en ${detectedPath}...`, level: 'info' } })}\n\n`);
     }
@@ -1153,7 +1163,7 @@ export async function startServer(orchestrator?: AgentOrchestrator) {
       reply.raw.write(`data: ${JSON.stringify({ log: { time: getNow(), text: `🖼️ Kodara Vision Engine analizando ${attachedImages.length} imagen(es) adjunta(s) (OCR + Codebase Grounding)...`, level: 'info' } })}\n\n`);
       const visionReport = KodaraVisionEngine.analyzeAttachedImages(
         attachedImages,
-        effectiveProjectPath,
+        effectiveProjectPath || '/home/saghet/Documents/SamulibreLinux',
         message
       );
       visionPromptBlock = visionReport.llm_vision_context;
@@ -1183,15 +1193,15 @@ export async function startServer(orchestrator?: AgentOrchestrator) {
 
     // 3. Inyección de Kodara Project Memory + Memoria de Ingeniería + Historial Completo desde SQLite
     const memoryContext = memoryManager.generateSystemContext(effectiveProjectPath);
-    const projectMemoryBlock = await KodaraProjectMemory.buildProjectMemoryPromptBlock(projectId);
+    const projectMemoryBlock = await KodaraProjectMemory.buildProjectMemoryPromptBlock(effectiveProjectId);
     const { mergedMessages } = await KodaraOrderCompiler.loadFullConversationHistory(
       effectiveConvId,
       (history as any[]) || []
     );
     const compiledOrders = await KodaraOrderCompiler.compileFromConversation({
       conversationId: effectiveConvId,
-      projectId: projectId || 'proj_samulibre',
-      projectName: projectName || 'SamulibreLinux',
+      projectId: effectiveProjectId,
+      projectName: effectiveProjectName,
       projectPath: effectiveProjectPath,
       clientHistory: mergedMessages,
       currentMessage: message,
@@ -1200,7 +1210,7 @@ export async function startServer(orchestrator?: AgentOrchestrator) {
       `data: ${JSON.stringify({
         log: {
           time: getNow(),
-          text: `🧠 Historial SQLite cargado (${mergedMessages.length} mensajes) • ${compiledOrders.orders.length} orden(es) de ingeniería compilada(s) y listas para [▶ Proceed].`,
+          text: `🧠 Historial SQLite cargado (${mergedMessages.length} mensajes)${compiledOrders.orders.length > 0 ? ` • ${compiledOrders.orders.length} orden(es) de ingeniería compilada(s)` : ''}.`,
           level: 'info',
         },
       })}\n\n`
@@ -1238,9 +1248,7 @@ PAUTAS PEDAGÓGICAS Y DE COMUNICACIÓN EN LENGUAJE NATURAL (ESTILO GOOGLE ANTIGR
 • Fomenta el pensamiento crítico para que el alumno supere al maestro.
 • NOTA DE INTERFAZ: Kodara genera automáticamente la tarjeta visual interactiva para ejecutar acciones físicas; finaliza tus explicaciones de forma limpia y directa sin redactar botones falsos ni enlaces javascript.
 
-${compiledOrders.history_ledger_prompt_block}
-${memoryContext}
-${projectMemoryBlock}`;
+${compiledOrders.orders.length > 0 ? `${compiledOrders.history_ledger_prompt_block}\n` : ''}${memoryContext ? `${memoryContext}\n` : ''}${projectMemoryBlock}`;
 
     const priorMessages = mergedMessages
       .filter((m) => m.content.trim() !== message.trim())
@@ -1255,7 +1263,7 @@ ${projectMemoryBlock}`;
       ...priorMessages,
       {
         role: 'user',
-        content: `${visionPromptBlock ? `${visionPromptBlock}\n\n` : ''}${compiledOrders.history_ledger_prompt_block}\n\n${contextText ? `${contextText}\n\n` : ''}${turboToolDigest ? `${turboToolDigest}\n\n` : ''}SOLICITUD DEL USUARIO:\n${message}`,
+        content: `${visionPromptBlock ? `${visionPromptBlock}\n\n` : ''}${contextText ? `${contextText}\n\n` : ''}${turboToolDigest ? `${turboToolDigest}\n\n` : ''}${message}`,
         ...(ollamaVisionBase64.length > 0 && (actualModel.includes('vl') || actualModel.includes('llava') || actualModel.includes('gemma3') || actualModel.includes('minicpm'))
           ? { images: ollamaVisionBase64 }
           : {}),
@@ -1369,14 +1377,14 @@ ${projectMemoryBlock}`;
       try {
         await projectsTable.saveProjectMessage(effectiveConvId, 'assistant', cleanedFinal);
       } catch {}
-      if (attachedImages.length > 0 || KodaraPlanExecutor.shouldAttachExecutablePlan(message, cleanedFinal)) {
+      if (KodaraPlanExecutor.shouldAttachExecutablePlan(message, cleanedFinal)) {
         const planArtifact = await KodaraPlanExecutor.createExecutablePlan({
-          projectId: projectId || 'proj_samulibre',
-          projectName: projectName || 'SamulibreLinux',
-          projectPath: effectiveProjectPath,
+          projectId: effectiveProjectId || 'proj_samulibre',
+          projectName: effectiveProjectName || 'SamulibreLinux',
+          projectPath: effectiveProjectPath || '/home/saghet/Documents/SamulibreLinux',
           title: attachedImages.length > 0
-            ? `Plan de Reparación de Falla Visual — ${projectName || 'SamulibreLinux'}`
-            : `Plan de Acción Ejecutable — ${projectName || 'SamulibreLinux'}`,
+            ? `Plan de Reparación de Falla Visual — ${effectiveProjectName || 'SamulibreLinux'}`
+            : `Plan de Acción Ejecutable — ${effectiveProjectName || 'SamulibreLinux'}`,
           summary: attachedImages.length > 0
             ? `Plan generado a partir de ${attachedImages.length} captura(s) analizada(s) con Kodara Vision Engine (OCR + Codebase Grounding) listo para ejecutarse con [▶ Proceed].`
             : 'Plan de 4 fases listo para ejecutarse físicamente en Linux (Indexación, SAST, Compilación/Tests en Sandbox y consolidación en Kodara Project Memory).',

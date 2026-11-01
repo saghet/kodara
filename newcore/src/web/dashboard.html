@@ -2125,6 +2125,7 @@
         });
         const created = await resp.json();
         activeConversationId = created.id;
+        chatHistory = [];
         document.getElementById('centerBreadcrumb').innerHTML = `<span>${escapeHtml(activeProjectName)}</span> <span>/</span> <b>Nueva Conversación</b>`;
         await loadProjectsSidebar();
         await renderProjectWorkspaceCleanState(activeProjectId, activeProjectName, activeProjectPath, 'Nueva Conversación');
@@ -2152,6 +2153,7 @@
         });
         const created = await resp.json();
         activeConversationId = created.id;
+        chatHistory = [];
         document.getElementById('centerBreadcrumb').innerHTML = `<span>${escapeHtml(projName)}</span> <span>/</span> <b>Nueva Conversación</b>`;
         await loadProjectsSidebar();
         await renderProjectWorkspaceCleanState(projId, projName, activeProjectPath, 'Nueva Conversación');
@@ -2174,6 +2176,7 @@
       activeProjectId = projId;
       activeProjectName = projName;
       activeProjectPath = projPath;
+      chatHistory = [];
       document.getElementById('centerBreadcrumb').innerHTML = `<span>${projName}</span> <span>/</span> <b>Workspace Activo (${projPath})</b>`;
       loadProjectsSidebar();
       loadProjectMemory(projId);
@@ -2181,6 +2184,7 @@
     }
 
     async function renderProjectWorkspaceCleanState(projId, projName, projPath, subtitle) {
+      chatHistory = [];
       try {
         const plansResp = await fetch(`/api/kodara/plans?projectId=${encodeURIComponent(projId)}`);
         const plans = await plansResp.json();
@@ -2198,6 +2202,9 @@
             </p>
             ${planHtml}
           </div>
+        `;
+      } catch {}
+    }
         `;
       } catch {}
     }
@@ -2255,6 +2262,7 @@
           }).join('');
           scrollChatBottom();
         } else {
+          chatHistory = [];
           await renderProjectWorkspaceCleanState(projId, projName, projPath, convTitle);
         }
       } catch {}
@@ -3673,6 +3681,10 @@
     }
 
     async function hydrateConversationHistory() {
+      if (!activeConversationId) {
+        chatHistory = [];
+        return;
+      }
       try {
         const resp = await fetch(`/api/kodara/conversations/${encodeURIComponent(activeConversationId)}/history`);
         const data = await resp.json();
@@ -3681,8 +3693,12 @@
             role: m.role === 'user' ? 'user' : 'assistant',
             content: stripSymbolicDisclaimersClient(m.content || '')
           }));
+        } else {
+          chatHistory = [];
         }
-      } catch {}
+      } catch {
+        chatHistory = [];
+      }
     }
 
     window.addEventListener('DOMContentLoaded', () => {
