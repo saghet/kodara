@@ -481,12 +481,14 @@ export class KodaraPlanExecutor {
     // ── FASE 4: Reinicio de la Aplicación Objetivo y Auditoría Verificadora Post-Ejecución (85% -> 100%) ──
     const t4 = Date.now();
     plan.phases[3].status = 'RUNNING';
+    const hasRestartOrder = compiledOrders.orders.some((o) => o.intent_type === 'RESTART_APPLICATION');
+    const phase4Title = hasRestartOrder ? `Reinicio de ${plan.project_name} y Auditoría Verificadora` : `Auditoría Verificadora Post-Ejecución`;
     emit({
       percent: 92,
       phaseNumber: 4,
       phaseStatus: 'RUNNING',
-      currentAction: `Reiniciando SamuLibre para visualizar los cambios en vivo y ejecutando Auditoría Post-Ejecución...`,
-      detailLog: `[Fase 4/4] KodaraOrderCompiler.executeApplicationRestart() + auditExecutionCompliance()`,
+      currentAction: `${phase4Title} en curso...`,
+      detailLog: `[Fase 4/4] KodaraOrderCompiler.auditExecutionCompliance()`,
     });
 
     const restartStep = KodaraOrderCompiler.executeApplicationRestart(compiledOrders);
@@ -498,12 +500,14 @@ export class KodaraPlanExecutor {
         percent: 96,
         phaseNumber: 4,
         phaseStatus: 'AUTO_REPAIRED',
-        currentAction: `🔧 Auto-Repair Post-Ejecución: reaplicando sincronización de archivos y reinicio para asegurar 100% de cumplimiento...`,
+        currentAction: `🔧 Auto-Repair Post-Ejecución: reaplicando sincronización de archivos para asegurar 100% de cumplimiento...`,
         autoRepaired: true,
       });
       KodaraOrderCompiler.executeSourceCodeMutations(compiledOrders);
       KodaraOrderCompiler.executeCompileAndSync(compiledOrders);
-      KodaraOrderCompiler.executeApplicationRestart(compiledOrders);
+      if (hasRestartOrder) {
+        KodaraOrderCompiler.executeApplicationRestart(compiledOrders);
+      }
       auditReport = KodaraOrderCompiler.auditExecutionCompliance(compiledOrders);
     }
 

@@ -325,14 +325,17 @@ export class KodaraProjectMemory {
   }
 
   /**
-   * Construye un bloque compacto de lecciones aprendidas para inyectar en el prompt del proyecto activo
+   * Construye un bloque compacto de lecciones aprendidas para inyectar en el prompt del proyecto activo.
+   * Regla de Persistencia Estricta: Si no hay projectId válido, no filtra lecciones globales para
+   * evitar contaminar el contexto entre proyectos distintos (Strict Zero-Bleed).
    */
   public static async buildProjectMemoryPromptBlock(projectId?: string): Promise<string> {
-    const entries = await this.listMemories(projectId);
+    if (!projectId || !projectId.trim()) return '';
+    const entries = await this.listMemories(projectId.trim());
     const verified = entries.filter((e) => e.verification_status === 'VERIFIED').slice(0, 6);
     if (verified.length === 0) return '';
 
-    let block = `\n[KODARA PROJECT MEMORY — SOLUCIONES VERIFICADAS APRENDIDAS EN PROYECTOS]:\n`;
+    let block = `\n[KODARA PROJECT MEMORY — SOLUCIONES VERIFICADAS APRENDIDAS EN ESTE PROYECTO]:\n`;
     for (const item of verified) {
       block += `- [${item.project_name} | ${item.error_signature}]: Causa: ${item.root_cause} -> Solución verificada: ${item.verified_fix}\n`;
     }

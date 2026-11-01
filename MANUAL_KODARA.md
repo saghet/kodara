@@ -539,6 +539,26 @@ Kodara está instalado como aplicación nativa de escritorio en tu sistema Linux
 - **Certificación de la Suite de Pruebas**:
   - Validado formalmente por la nueva suite `project-creation-and-initialization.test.ts`, alcanzando **20 suites de prueba y 100/100 pruebas unitarias aprobadas al 100% (763 aserciones)**.
 
+---
+
+## 32. Depuración de Cabina Visual, Desacoplamiento Total de SamuLibre y Persistencia Estricta de Memoria (Strict Zero-Bleed)
+- **Depuración Integral de la Barra Superior de la Cabina**:
+  - Se eliminó la hilera de 8 botones de entrenamiento estático en `dashboard.html` (`Nmap Directo`, `SAST Semgrep`, `Auto-Repair Sandbox`, `Academia Ciberseguridad`, `Cimientos Escolares`, `Programación Antigravity`, `Plan Canguro` y `Manual`).
+  - Todo el conocimiento de estas áreas reside directamente en el motor cognitivo de Kodara (`cybersecurity-curriculum.ts`, `foundational-schooling.ts`, `autonomous-programming.ts` y `dynamic-context-router.ts`), activándose mediante lenguaje natural conversacional sin saturar la cabina gráfica.
+  - La barra superior ahora refleja una interfaz minimalista, sobria y profesional, con breadcrumb dinámico (`Kodara / Workspace Activo`).
+- **Desacoplamiento Absoluto de SamuLibre y Supresión de Auto-Reinicio**:
+  - *Diagnóstico en Linux*: Se desactivó `samulibre.service` en el systemd del usuario y se renombró `~/.config/autostart/samulibre.desktop` a `.disabled` para impedir aperturas involuntarias al iniciar sesión.
+  - *Saneamiento en Kodara*:
+    - En `server.ts`: Se purgaron los fallbacks ciegos que asignaban `proj_samulibre` o `SamulibreLinux` ante proyectos vacíos o no declarados.
+    - En `order-compiler.ts`: `executeApplicationRestart()` no reinicia servicios si no existe una orden explícita `RESTART_APPLICATION` y restringe el uso de `samulibre.service` únicamente al proyecto `SamulibreLinux`.
+    - En `plan-executor.ts`: La Fase 4 (`Reinicio y Auditoría`) solo ejecuta reinicios de aplicación si el conjunto de órdenes compiladas contiene explícitamente `RESTART_APPLICATION`.
+- **Persistencia y Scoping Estricto de Proyectos (Ingeniería de Datos)**:
+  - En `project-memory.ts`: `buildProjectMemoryPromptBlock(projectId)` valida que `projectId` no sea vacío; si no hay proyecto activo, devuelve cadena vacía (`""`) sin filtrar lecciones globales de otros proyectos, garantizando aislamiento total (`Strict Zero-Bleed`).
+  - En `dashboard.html`: Los botones de filtro de `Kodara Project Memory` ya no están fijos en HTML; la función `renderProjectMemoryFilterChips()` los genera dinámicamente a partir de `cachedProjectsList` en SQLite, seleccionando automáticamente el proyecto activo.
+- **Certificación de la Suite de Pruebas**:
+  - Validado formalmente por la nueva suite `kodara-memory-scoping-and-decoupling.test.ts`, consolidando **21 suites de prueba y 105/105 pruebas unitarias aprobadas al 100% (792 aserciones)**.
+
+
 
 
 

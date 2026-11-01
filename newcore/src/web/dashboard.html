@@ -1232,42 +1232,9 @@
   <main class="ag-center">
     <header class="ag-center-header">
       <div class="ag-breadcrumb" id="centerBreadcrumb">
-        <span>SamulibreLinux</span>
+        <span>Kodara</span>
         <span>/</span>
-        <b>Auditoría SAST y Evolución en Modo Turbo</b>
-      </div>
-
-      <div class="ag-quick-actions">
-        <button class="ag-chip-btn" style="color:#60a5fa;border-color:rgba(59,130,246,0.45)" onclick="generateQuickExecutablePlan()">
-          <span>📋 Generar Plan Ejecutable</span>
-        </button>
-        <button class="ag-chip-btn" style="color:#38bdf8;border-color:rgba(56,189,248,0.45)" onclick="triggerImagePicker()">
-          <span>🖼️ Adjuntar Imagen</span>
-        </button>
-        <button class="ag-chip-btn" onclick="executeDirectTurboTool('nmap', '127.0.0.1')">
-          <span>🔍 Nmap Directo</span>
-        </button>
-        <button class="ag-chip-btn" onclick="executeDirectTurboTool('semgrep', activeProjectPath)">
-          <span>🛡️ SAST Semgrep</span>
-        </button>
-        <button class="ag-chip-btn" style="color:#34d399;border-color:rgba(16,185,129,0.35)" onclick="runTurboAutoRepairDemo()">
-          <span>🔧 Auto-Repair Sandbox</span>
-        </button>
-        <button class="ag-chip-btn" style="color:#a78bfa;border-color:rgba(167,139,250,0.35)" onclick="openKodaraAcademy()">
-          <span>🎓 Academia Ciberseguridad</span>
-        </button>
-        <button class="ag-chip-btn" style="color:#fbbf24;border-color:rgba(251,191,36,0.35)" onclick="openKodaraSchooling()">
-          <span>🎒 Cimientos Escolares</span>
-        </button>
-        <button class="ag-chip-btn" style="color:#38bdf8;border-color:rgba(56,189,248,0.35)" onclick="openAntigravityProgramming()">
-          <span>⚡ Programación Antigravity</span>
-        </button>
-        <button class="ag-chip-btn" style="color:#f59e0b;border-color:rgba(245,158,11,0.35)" onclick="openPlanCanguro()">
-          <span>🦘 Plan Canguro</span>
-        </button>
-        <button class="ag-chip-btn" style="color:#f472b6;border-color:rgba(244,114,182,0.35)" onclick="openKodaraManual()">
-          <span>📖 Manual</span>
-        </button>
+        <b>Workspace Activo</b>
       </div>
     </header>
 
@@ -1387,11 +1354,8 @@
         </div>
       </div>
 
-      <div style="display:flex;gap:0.35rem;flex-wrap:wrap">
-        <button class="ag-chip-btn" onclick="loadProjectMemory('')">Todos</button>
-        <button class="ag-chip-btn" onclick="loadProjectMemory('proj_samulibre')">🦀 SamulibreLinux</button>
-        <button class="ag-chip-btn" onclick="loadProjectMemory('proj_wishark')">🦈 WiSharkOpen</button>
-        <button class="ag-chip-btn" onclick="loadProjectMemory('proj_ollama')">🦙 Ollama</button>
+      <div id="projectMemoryFilterChips" style="display:flex;gap:0.35rem;flex-wrap:wrap">
+        <!-- Renderizado dinámicamente según proyectos existentes en SQLite -->
       </div>
 
       <div id="projectMemoryList" style="display:flex;flex-direction:column;gap:0.65rem">
@@ -1844,6 +1808,8 @@
             }
           }
         }
+
+        renderProjectMemoryFilterChips(activeProjectId);
 
         const filterInput = document.getElementById('agProjectsFilterInput');
         if (filterInput && filterInput.value.trim()) {
@@ -2514,8 +2480,23 @@
     }
 
     // ── 2. KODARA PROJECT MEMORY (Memoria Independiente de Aplicaciones) ──
-    async function loadProjectMemory(filterProjectId = '') {
+    function renderProjectMemoryFilterChips(selectedProjId = activeProjectId) {
+      const container = document.getElementById('projectMemoryFilterChips');
+      if (!container) return;
+      const isAll = !selectedProjId;
+      let html = `<button class="ag-chip-btn ${isAll ? 'active' : ''}" style="${isAll ? 'border-color:#38bdf8;color:#38bdf8;background:rgba(56,189,248,0.1)' : ''}" onclick="loadProjectMemory('')">Todos</button>`;
+      if (Array.isArray(cachedProjectsList)) {
+        html += cachedProjectsList.map(p => {
+          const isAct = (p.id === selectedProjId);
+          return `<button class="ag-chip-btn ${isAct ? 'active' : ''}" style="${isAct ? 'border-color:#38bdf8;color:#38bdf8;background:rgba(56,189,248,0.12)' : ''}" onclick="loadProjectMemory('${p.id}')">📁 ${escapeHtml(p.name)}</button>`;
+        }).join('');
+      }
+      container.innerHTML = html;
+    }
+
+    async function loadProjectMemory(filterProjectId = activeProjectId) {
       try {
+        renderProjectMemoryFilterChips(filterProjectId);
         const url = filterProjectId
           ? `/api/kodara/memory/project?projectId=${encodeURIComponent(filterProjectId)}`
           : '/api/kodara/memory/project';

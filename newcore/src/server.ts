@@ -1259,9 +1259,9 @@ export async function startServer(orchestrator?: AgentOrchestrator) {
 
     // 2. Inspección automática de proyectos locales si se menciona una ruta
     const { contextText, detectedPath } = extractProjectContext(message, isMicro);
-    const effectiveProjectPath = detectedPath || projectPath || (projectId === 'proj_samulibre' ? '/home/saghet/Documents/SamulibreLinux' : undefined);
-    const effectiveProjectId = projectId || (effectiveProjectPath?.includes('Samulibre') ? 'proj_samulibre' : undefined);
-    const effectiveProjectName = projectName || (effectiveProjectId === 'proj_samulibre' ? 'SamulibreLinux' : effectiveProjectId === 'proj_wishark' ? 'WiSharkOpen' : effectiveProjectId === 'proj_ollama' ? 'Ollama' : undefined);
+    const effectiveProjectPath = detectedPath || projectPath || undefined;
+    const effectiveProjectId = projectId || undefined;
+    const effectiveProjectName = projectName || undefined;
     if (detectedPath) {
       reply.raw.write(`data: ${JSON.stringify({ log: { time: getNow(), text: `🔍 Indexando estructura completa del proyecto en ${detectedPath}...`, level: 'info' } })}\n\n`);
     }
@@ -1491,13 +1491,16 @@ ${compiledOrders.orders.length > 0 ? `${compiledOrders.history_ledger_prompt_blo
         await projectsTable.saveProjectMessage(effectiveConvId, 'assistant', cleanedFinal);
       } catch {}
       if (KodaraPlanExecutor.shouldAttachExecutablePlan(message, cleanedFinal)) {
+        const targetProjId = effectiveProjectId || 'proj_workspace';
+        const targetProjName = effectiveProjectName || 'Workspace Activo';
+        const targetProjPath = effectiveProjectPath || process.cwd();
         const planArtifact = await KodaraPlanExecutor.createExecutablePlan({
-          projectId: effectiveProjectId || 'proj_samulibre',
-          projectName: effectiveProjectName || 'SamulibreLinux',
-          projectPath: effectiveProjectPath || '/home/saghet/Documents/SamulibreLinux',
+          projectId: targetProjId,
+          projectName: targetProjName,
+          projectPath: targetProjPath,
           title: attachedImages.length > 0
-            ? `Plan de Reparación de Falla Visual — ${effectiveProjectName || 'SamulibreLinux'}`
-            : `Plan de Acción Ejecutable — ${effectiveProjectName || 'SamulibreLinux'}`,
+            ? `Plan de Reparación de Falla Visual — ${targetProjName}`
+            : `Plan de Acción Ejecutable — ${targetProjName}`,
           summary: attachedImages.length > 0
             ? `Plan generado a partir de ${attachedImages.length} captura(s) analizada(s) con Kodara Vision Engine (OCR + Codebase Grounding) listo para ejecutarse con [▶ Proceed].`
             : 'Plan de 4 fases listo para ejecutarse físicamente en Linux (Indexación, SAST, Compilación/Tests en Sandbox y consolidación en Kodara Project Memory).',

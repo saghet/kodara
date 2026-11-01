@@ -165,9 +165,9 @@ export class KodaraOrderCompiler {
     explicitImagePath?: string;
   }): Promise<CompiledOrderSet> {
     const convId = params.conversationId || '';
-    const projId = params.projectId || (convId === 'conv_samu_1' ? 'proj_samulibre' : '');
-    const projName = params.projectName || (projId === 'proj_samulibre' ? 'SamulibreLinux' : '');
-    const projPath = params.projectPath || (projId === 'proj_samulibre' ? '/home/saghet/Documents/SamulibreLinux' : '');
+    const projId = params.projectId || '';
+    const projName = params.projectName || '';
+    const projPath = params.projectPath || '';
 
     const { userTurns } = await this.loadFullConversationHistory(
       convId,
@@ -745,26 +745,37 @@ fn sample_hardware_telemetry_json() -> String {
     const t0 = Date.now();
     const restartOrder = orderSet.orders.find((o) => o.intent_type === 'RESTART_APPLICATION');
 
-    onLog?.(`Cerrando y abriendo nuevamente SamuLibre para mostrar los cambios solicitados...`);
+    if (!restartOrder) {
+      return {
+        order_id: 'ORD-NO-RESTART',
+        intent_type: 'RESTART_APPLICATION',
+        success: true,
+        summary: 'No se requirió reinicio de aplicación externa para este plan.',
+        modified_files: [],
+        duration_ms: Math.max(1, Date.now() - t0),
+      };
+    }
 
-    let restartSummary = 'Aplicación reiniciada.';
-    try {
-      // 1. Cerrar cualquier instancia previa de samulibre-gui (usando -x para no coincidir con el subshell sh -c)
-      execSync(`pkill -x samulibre-gui || true`, {
-        timeout: 4000,
-        stdio: ['ignore', 'ignore', 'ignore'],
-      });
-      execSync(`sleep 0.4`, { timeout: 2000 });
+    const isSamuLibre =
+      orderSet.project_name === 'SamulibreLinux' ||
+      orderSet.project_path.includes('SamulibreLinux') ||
+      orderSet.project_path.includes('samulibre');
 
-      // 2. Iniciar la nueva instancia compilada mediante systemd user service
-      execSync(`systemctl --user restart samulibre.service`, {
-        timeout: 8000,
-        stdio: ['ignore', 'pipe', 'pipe'],
-      });
-
-      // 3. Esperar a que el listener TCP (puerto 49721) levante y enviar señal SHOW para traer la ventana al frente
-      execSync(
-        `python3 -c '
+    if (isSamuLibre) {
+      onLog?.(`Cerrando y abriendo nuevamente SamuLibre para mostrar los cambios solicitados...`);
+      let restartSummary = 'Aplicación reiniciada.';
+      try {
+        execSync(`pkill -x samulibre-gui || true`, {
+          timeout: 4000,
+          stdio: ['ignore', 'ignore', 'ignore'],
+        });
+        execSync(`sleep 0.4`, { timeout: 2000 });
+        execSync(`systemctl --user restart samulibre.service`, {
+          timeout: 8000,
+          stdio: ['ignore', 'pipe', 'pipe'],
+        });
+        execSync(
+          `python3 -c '
 import socket, time
 for _ in range(15):
     time.sleep(0.25)
@@ -776,25 +787,35 @@ for _ in range(15):
     except Exception:
         pass
 '`,
-        { timeout: 6000, stdio: ['ignore', 'ignore', 'ignore'] }
-      );
+          { timeout: 6000, stdio: ['ignore', 'ignore', 'ignore'] }
+        );
+        const pidOut = execSync(`pgrep -x samulibre-gui | head -n 1`, {
+          encoding: 'utf-8',
+        }).trim();
+        restartSummary = `SamuLibre cerrado y reabierto con éxito en el escritorio Linux (nuevo PID activo: ${pidOut || 'activo'}).`;
+      } catch (err: any) {
+        restartSummary = `Reinicio de SamuLibre ejecutado (${err.message?.slice(0, 80) || 'ok'}).`;
+      }
 
-      const pidOut = execSync(`pgrep -x samulibre-gui | head -n 1`, {
-        encoding: 'utf-8',
-      }).trim();
-      restartSummary = `SamuLibre cerrado y reabierto con éxito en el escritorio Linux (nuevo PID activo: ${pidOut || 'activo'}).`;
-    } catch (err: any) {
-      restartSummary = `Reinicio de SamuLibre ejecutado (${err.message?.slice(0, 80) || 'ok'}).`;
+      restartOrder.status = 'EXECUTED';
+      return {
+        order_id: restartOrder.order_id,
+        intent_type: 'RESTART_APPLICATION',
+        success: true,
+        summary: restartSummary,
+        modified_files: restartOrder.target_files || ['/home/saghet/.local/bin/samulibre-gui'],
+        duration_ms: Math.max(1, Date.now() - t0),
+      };
     }
 
-    if (restartOrder) restartOrder.status = 'EXECUTED';
-
+    // Para cualquier otro proyecto que no sea SamuLibre
+    restartOrder.status = 'EXECUTED';
     return {
-      order_id: restartOrder?.order_id || 'ORD-RESTART-APP',
+      order_id: restartOrder.order_id,
       intent_type: 'RESTART_APPLICATION',
       success: true,
-      summary: restartSummary,
-      modified_files: ['/home/saghet/.local/bin/samulibre-gui'],
+      summary: `Reinicio omitido de forma segura: no hay servicio de escritorio configurado para ${orderSet.project_name || 'este proyecto'}.`,
+      modified_files: [],
       duration_ms: Math.max(1, Date.now() - t0),
     };
   }
