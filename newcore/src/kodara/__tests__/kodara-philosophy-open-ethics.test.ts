@@ -20,15 +20,16 @@ describe('Auditoría Maestra: Filosofía y Piedra Angular FOSS de Kodara', () =>
     expect(identity.hardwareStack).toContain('RTX 4060');
   });
 
-  test('2. Los 4 Pilares Filosóficos Fundamentales de Kodara', () => {
+  test('2. Los Pilares Filosóficos Fundamentales de Kodara', () => {
     const pillars = KodaraPhilosophyEngine.getPillars();
-    expect(pillars.length).toBe(4);
+    expect(pillars.length).toBeGreaterThanOrEqual(4);
 
     const titles = pillars.map(p => p.title);
     expect(titles).toContain('Soberanía Absoluta y Privacidad Local');
     expect(titles).toContain('Cabina Táctica de Ciberseguridad Sin Sobre-Censura Educativa');
     expect(titles).toContain('Desarrollo Seguro y Código Completo (Cero Placebos)');
     expect(titles).toContain('Evolución y Reparación Autónoma en Linux');
+    expect(titles.some(t => t.includes('Agente Autónomo Ejecutor'))).toBe(true);
 
     for (const pillar of pillars) {
       expect(pillar.principle.length).toBeGreaterThan(10);

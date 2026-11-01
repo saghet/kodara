@@ -5,10 +5,10 @@ import {
 } from '../knowledge/antivirus-architecture.js';
 import { loadConfig } from '../../config/index.js';
 
-describe('Auditoría Cognitiva de Kodara: Comprensión en Lenguaje Natural, GLM-4.7 por Defecto y Arquitectura Antivirus', () => {
-  test('1. Configuración por defecto asegura GLM-4.7 como el modelo predeterminado del motor', () => {
+describe('Auditoría Cognitiva de Kodara: Comprensión en Lenguaje Natural, Modelos por Defecto y Arquitectura Antivirus', () => {
+  test('1. Configuración por defecto asegura DeepSeek-R1 como el modelo predeterminado del motor', () => {
     const cfg = loadConfig();
-    expect(cfg.defaultModel).toBe('glm-4.7-flash');
+    expect(cfg.defaultModel).toBe('deepseek-r1');
   });
 
   test('2. El corpus de arquitectura de antivirus contiene los 5 pilares fundamentales de SamuLibre en Rust', () => {

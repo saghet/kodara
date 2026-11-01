@@ -105,9 +105,16 @@ function resolveKodaraModelProfile(requestedProfile?: string): {
   profileName: string;
   rolePersona: string;
 } {
-  const raw = requestedProfile?.replace(/^ollama:/, '') || 'glm-4.7-flash';
+  const raw = requestedProfile?.replace(/^ollama:/, '') || 'deepseek-r1';
 
-  if (!requestedProfile || raw.includes('GLM-4.7-Flash') || raw.includes('glm') || raw === 'glm-4.7-flash' || raw === 'kodara-expert') {
+  if (!requestedProfile || raw === 'deepseek-r1' || raw.includes('deepseek') || raw.includes('DeepSeek-R1')) {
+    return {
+      ollamaModel: 'deepseek-r1:latest',
+      profileName: 'DeepSeek-R1 — Agente Autónomo Ejecutor & Razonamiento Profundo (Predeterminado)',
+      rolePersona: `Actúas bajo el modelo DeepSeek-R1 optimizado para Kodara como Agente de IA de Programación Autónoma y Ejecutor Técnico de Primera Intención. Bajo el Pilar VI de Kodara, NO actúas como un chatbot conversacional pasivo: toda orden del usuario la traduces en código físico funcional, resolución técnica, mutaciones en disco y planes ejecutables reales. Piensas profundamente antes de ejecutar para garantizar cero fricción, cero comentarios '// TODO' y arquitectura limpia.`
+    };
+  }
+  if (raw.includes('GLM-4.7-Flash') || raw.includes('glm') || raw === 'glm-4.7-flash' || raw === 'kodara-expert') {
     return {
       ollamaModel: 'glm-4.7-flash',
       profileName: 'GLM-4.7-Flash — Arquitecto de Software Autónomo & Abstracción Transparente (Efecto Antigravity)',
@@ -137,7 +144,7 @@ function resolveKodaraModelProfile(requestedProfile?: string): {
   }
 
   return {
-    ollamaModel: raw === 'smollm:135m' || raw === 'qwen2.5-coder:0.5b' ? raw : 'glm-4.7-flash',
+    ollamaModel: raw === 'smollm:135m' || raw === 'qwen2.5-coder:0.5b' ? raw : 'deepseek-r1:latest',
     profileName: `${raw} — Motor Local en GPU`,
     rolePersona: 'Actúas como Arquitecto Principal de Ciberseguridad y Desarrollo Seguro de Kodara con lenguaje natural fluido y empático.'
   };

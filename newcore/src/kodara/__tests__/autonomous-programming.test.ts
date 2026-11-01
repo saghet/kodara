@@ -6,15 +6,16 @@ import {
 } from '../knowledge/autonomous-programming.js';
 
 describe('Auditoría del Motor de Programación Autónoma ("Efecto Antigravity") en Kodara', () => {
-  test('1. Los 4 principios fundamentales del Efecto Antigravity están definidos', () => {
+  test('1. Los principios fundamentales del Efecto Antigravity están definidos', () => {
     const principles = AutonomousProgrammingEngine.getPrinciples();
-    expect(principles.length).toBe(4);
+    expect(principles.length).toBeGreaterThanOrEqual(4);
 
     const ids = principles.map((p) => p.id);
     expect(ids).toContain('deep-semantic-understanding');
     expect(ids).toContain('transparency-simplicity');
     expect(ids).toContain('self-documenting-spanish');
     expect(ids).toContain('zero-friction-no-todos');
+    expect(ids).toContain('autonomous-executor-no-chatbot');
   });
 
   test('2. Las 4 fases del flujo de respuesta estructurado están definidas en orden', () => {

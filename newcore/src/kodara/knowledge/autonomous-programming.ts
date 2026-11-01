@@ -64,6 +64,18 @@ export const ANTIGRAVITY_PRINCIPLES: ProgrammingPrinciple[] = [
       'Código probado mentalmente y listo para ejecutarse en producción.',
     ],
   },
+  {
+    id: 'autonomous-executor-no-chatbot',
+    name: 'Ejecutor Autónomo de Primera Intención (Doctrina No-Chatbot)',
+    description:
+      'Prohibición tajante de actuar como un chatbot pasivo. Toda orden del usuario debe traducirse en acciones físicas, código compilable, orquestadores y planes ejecutables reales.',
+    rules: [
+      'No delegar al usuario tareas manuales mediante tutoriales de texto ("abre tu terminal y corre...").',
+      'Construir y persistir físicamente los archivos, modelos de datos y entornos de ejecución en el workspace.',
+      'Generar planes ejecutables con botón real [▶ Proceed] o scripts directos de lanzamiento.',
+      'Solo asumir rol explicativo o didáctico si el usuario lo pide expresamente ("explícame conceptualmente").',
+    ],
+  },
 ];
 
 export const STRUCTURED_RESPONSE_FLOW: ResponseStructureStep[] = [

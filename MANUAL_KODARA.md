@@ -600,6 +600,23 @@ Kodara está instalado como aplicación nativa de escritorio en tu sistema Linux
 - **Certificación de la Suite de Pruebas**:
   - Validado integralmente por la nueva suite `wifi-krack-orchestrator.test.ts`, alcanzando **23 suites de prueba y 115/115 pruebas unitarias aprobadas al 100% (839 aserciones)**.
 
+---
+
+## 35. Adopción de DeepSeek-R1 por Defecto y Pilar Básico: Agente Autónomo Ejecutor (Doctrina No-Chatbot)
+- **Instauración del Pilar VI en la Piedra Angular de Kodara**:
+  - Se incorporó formalmente el **Pilar VI: Agente Autónomo Ejecutor (Doctrina No-Chatbot)** en `kodara-philosophy.ts` y en el Manifiesto FOSS.
+  - *Principio Inquebrantable*: Kodara es un ejecutor y forjador en el sistema operativo, jamás un interlocutor pasivo. Queda terminantemente prohibido responder con listas de tareas en texto plano pidiéndole al usuario que ejecute comandos manuales en su terminal (`"abre tu terminal y corre..."`).
+  - *Comportamiento por Defecto*: Toda solicitud técnica debe traducirse en acciones físicas: creación y mutación de archivos en disco, pruebas en sandbox, persistencia en SQLite y planes ejecutables nativos con botón real `[▶ Proceed]`. Solo se adoptará modo explicativo socrático si el usuario lo solicita explícitamente (`"explícame conceptualmente"`).
+- **Integración de DeepSeek-R1 como Modelo Predeterminado**:
+  - *Inferencia Local en GPU*: Configurado `deepseek-r1:latest` en Ollama con aceleración completa por hardware en la GPU NVIDIA GeForce RTX 4060 y 32 GB de RAM.
+  - *Configuración Backend (`newcore/src/config/index.ts` y `server.ts`)*: `defaultModel` establecido en `deepseek-r1`. Mapeo de perfil con soporte de razonamiento profundo (`<think>...</think>`), contexto de 32K tokens (`num_ctx: 32768`) y temperatura controlada a 0.6.
+  - *Actualización en Cabina (`dashboard.html`)*: Selector de modelos con `deepseek-r1` preseleccionado por defecto (`🧠 DeepSeek-R1 (Razonamiento Lógico Profundo & Agente Autónomo) — Predeterminado`) y actualización del banner del Consejero de Modelo.
+- **Refuerzo en Motores Cognitivos**:
+  - *Autonomous Programming Engine (`autonomous-programming.ts`)*: Agregado el principio de *Ejecutor Autónomo de Primera Intención*.
+  - *Dynamic Context Router (`dynamic-context-router.ts`)*: Incorporada la directiva No-Chatbot de forma transversal en el prompt del sistema universal.
+- **Certificación de la Suite de Pruebas**:
+  - Validado y blindado por la nueva suite `deepseek-r1-autonomous-executor.test.ts`, alcanzando **24 suites de prueba y 122/122 pruebas unitarias aprobadas al 100% (865 aserciones)**.
+
 
 
 

@@ -108,7 +108,7 @@ describe('🥋 Auditoría Suprema de Pai Mei: Cero Alucinación y Autenticidad F
     expect(identity.genericName).toBe('Cabina Táctica de Ciberseguridad, Desarrollo Seguro y Evolución Autónoma');
 
     const pillars = KodaraPhilosophyEngine.getPillars();
-    expect(pillars.length).toBe(4);
+    expect(pillars.length).toBeGreaterThanOrEqual(4);
 
     const ethics = KodaraPhilosophyEngine.getEthicsComparison();
     expect(ethics.length).toBeGreaterThanOrEqual(3);
