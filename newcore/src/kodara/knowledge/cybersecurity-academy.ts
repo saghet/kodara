@@ -211,17 +211,20 @@ export const CYBERSECURITY_ACADEMY_CURRICULUM: AcademicModule[] = [
     theoreticalFoundations: [
       'Arquitectura del estándar IEEE 802.11: Modos Managed, Monitor, Ad-hoc y Master',
       'Intercambio de claves en 4 pasos (4-Way Handshake) en WPA2-PSK vs Simultaneous Authentication of Equals (SAE) en WPA3',
+      'Vulnerabilidad KRACK (Key Reinstallation Attacks - CVE-2017-13077/13088): Reinserción forzada del Mensaje 3 del 4-way handshake que reinicia contadores de repetición y Nonces de cifrado en clientes WPA2 vulnerables',
       'Protocolos ligeros de IoT: MQTT, CoAP, BLE (Bluetooth Low Energy) y sus vectores de ataque habituales',
     ],
     softwareArchitecture: [
-      'Configuración de interfaces de red inalámbricas en modo monitor mediante llamadas `nl80211` en Linux',
+      'Configuración de interfaces de red inalámbricas en modo monitor mediante llamadas `nl80211` en Linux (detectando interfaz activa ej. wlp2s0)',
       'Parser de cabeceras Radiotap para medir la intensidad de señal (RSSI), canal y modulación',
-      'Filtro de captura para aislamiento de tramas de gestión y autenticación sin saturar buffers de memoria',
+      'Motor de simulación de laboratorio inalámbrico seguro para auditar respuestas KRACK sin interrumpir la conexión activa del host',
+      'Persistencia estructurada en SQLite de sesiones de prueba, direcciones MAC, transiciones de estados del handshake y diagnóstico de vulnerabilidad',
     ],
-    rustTsLibraries: ['pnet', 'radiotap', 'tokio'],
+    rustTsLibraries: ['pnet', 'radiotap', 'tokio', 'scapy-python3', 'sqlite3'],
     laboratoryExercises: [
       'Laboratorio 8.1: Crear un detector de puntos de acceso Wi-Fi no autorizados (Rogue APs) leyendo tramas Beacon con Rust.',
       'Laboratorio 8.2: Implementar un analizador de tráfico MQTT que verifique si los dispositivos IoT envían telemetría sin cifrado TLS.',
+      'Laboratorio 8.3: Orquestar un banco de pruebas KRACK WPA2 con motor en Python 3, persistencia en SQLite y dashboard visual interactivo.',
     ],
     masterTeacherPrompt:
       'Explica al alumno que las ondas de radio no tienen paredes físicas. Ayúdale a visualizar cómo las tramas viajan por el aire y por qué el cifrado de extremo a extremo es la única defensa real en entornos inalámbricos.',

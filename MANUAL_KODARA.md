@@ -578,6 +578,28 @@ Kodara está instalado como aplicación nativa de escritorio en tu sistema Linux
 - **Certificación de la Suite de Pruebas**:
   - Validado y blindado por la nueva suite `kodara-anti-ghost-orders.test.ts`, alcanzando **22 suites de prueba y 110/110 pruebas unitarias aprobadas al 100% (813 aserciones)**.
 
+---
+
+## 34. Proyecto WiFi: Auditoría WPA2 / KRACK, Capacitación Cognitiva y Orquestador Táctico en Linux
+- **Diagnóstico de la Falla Cognitiva Previa en el Proyecto `wifi`**:
+  - *Comportamiento Pasivo de Chatbot*: Ante la solicitud del usuario de ejecutar e implementar la arquitectura WPA2 KRACK en `/home/saghet/Documents/wifi`, Kodara respondió pasivamente con un tutorial en texto plano sin crear archivos ni aprovisionar el software en el workspace.
+  - *Alucinaciones de Entorno*: Kodara indicó comandos para `wlan0` (cuando la tarjeta física real de red en Linux es `wlp2s0`) y sugirió usar el obsoleto `python2`, en vez del entorno moderno con **Python 3.14.8**.
+  - *Riesgo Operativo en Linux*: Poner la tarjeta de red activa en modo monitor interrumpiría la conexión a Internet del usuario sin un entorno de laboratorio simulado seguro.
+- **Capacitación Cognitiva y Memoria de Proyecto Aislada**:
+  - *Kodara Project Memory (`proj_DfEi6_LP`)*: Registro de las firmas `WPA2_KRACK_HANDSHAKE_REPLAY_PARSER` y `WIFI_ACTIVE_NIC_MONITOR_PREVENTION`, enseñando a Kodara que ante requerimientos de ciberseguridad inalámbrica debe generar soluciones completas y ejecutables.
+  - *Dynamic Context Router & Cybersecurity Academy (Semestre VIII)*: Incorporación de directivas marciales Pai Mei para el Módulo 8 (`wireless-iot`), prohibiendo el rol de chatbot pasivo y activando automáticamente el motor `WirelessSecurityEngine` ante términos como `wifi`, `krack`, `wpa2` o `handshake`.
+- **Implementación Física Tangible en `/home/saghet/Documents/wifi`**:
+  - `config.json`: Configuración general del proyecto, interfaz `wlp2s0`, base de datos SQLite y escenarios de prueba.
+  - `database.py`: Modelo relacional en SQLite (`wifi_audit.db`) con tablas para `audit_sessions`, `scanned_devices`, `handshake_events` y `vulnerability_findings`.
+  - `lab_simulator.py`: Simulador de 4-way handshake en Python 3 que evalúa clientes tanto vulnerables (CVE-2017-13077 con reinicio de Nonce a 0) como parcheados, de forma 100% segura y sin derribar la conexión del host.
+  - `krack_engine.py`: Motor de auditoría con soporte de modo dual (`simulated` y `monitor`).
+  - `log_parser.py`: Ingestor de eventos y trazas de handshakes hacia la base de datos local.
+  - `api_server.py`: Servidor REST ligero en Python (`http://127.0.0.1:4888`) con endpoints `/api/status`, `/api/results` y `/api/audit/run`.
+  - `static/index.html`: Dashboard visual táctico con métricas de seguridad, inventario de dispositivos, tarjetas CVE y trazas de handshakes en vivo.
+  - `run.sh`: Orquestador ejecutable maestro (`./run.sh demo`, `./run.sh server`, `./run.sh audit`).
+- **Certificación de la Suite de Pruebas**:
+  - Validado integralmente por la nueva suite `wifi-krack-orchestrator.test.ts`, alcanzando **23 suites de prueba y 115/115 pruebas unitarias aprobadas al 100% (839 aserciones)**.
+
 
 
 

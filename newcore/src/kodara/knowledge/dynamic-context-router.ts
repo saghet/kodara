@@ -79,6 +79,16 @@ export class DynamicContextRouter {
       text.includes('pentest') ||
       text.includes('red team') ||
       text.includes('blue team') ||
+      text.includes('wifi') ||
+      text.includes('wi-fi') ||
+      text.includes('krack') ||
+      text.includes('wpa2') ||
+      text.includes('wpa3') ||
+      text.includes('handshake') ||
+      text.includes('aircrack') ||
+      text.includes('scapy') ||
+      text.includes('wlp2s0') ||
+      text.includes('802.11') ||
       text.includes('overthewire') ||
       text.includes('over the wire') ||
       text.includes('bandit') ||
@@ -236,8 +246,26 @@ export class DynamicContextRouter {
           );
         }
 
+        // Directiva de Auditoría Inalámbrica WPA2/KRACK y Seguridad Wi-Fi
+        if (
+          lowerMsg.includes('wifi') ||
+          lowerMsg.includes('wi-fi') ||
+          lowerMsg.includes('krack') ||
+          lowerMsg.includes('wpa2') ||
+          lowerMsg.includes('handshake')
+        ) {
+          activeModules.push('WirelessSecurityEngine (KRACK WPA2 & Lab Simulator)');
+          promptSegments.push(
+            `=== DIRECTRIZ MARCIAL PAI MEI: AUDITORÍA INALÁMBRICA WPA2 / KRACK & LABORATORIO SEGURO ===\n` +
+            `1. PROHIBICIÓN DE PASIVIDAD DE CHATBOT: Ante órdenes como "ejecuta el proyecto" o "implementa la auditoría", NO proporciones un tutorial de texto pidiendo al usuario que abra su terminal. Construye la solución directamente con el motor de ejecución en el workspace.\n` +
+            `2. REALIDAD DEL HARDWARE EN LINUX: La interfaz física del sistema es 'wlp2s0', NO 'wlan0'. Está terminantemente prohibido sugerir 'python2' (obsoleto). Todo script se ejecuta con Python 3.14+ o Rust nativo.\n` +
+            `3. MODO DUAL DE EJECUCIÓN SEGURA: Para no derribar la conexión a Internet del host al cambiar a modo monitor, provee un Modo Laboratorio Simulado (tráfico 802.11 sintético de 4-way handshake para probar CVE-2017-13077/PTK replay de forma inmediata y segura) y un Modo Interfaz Real para 'wlp2s0'.\n` +
+            `4. PIPELINE DE PERSISTENCIA Y VISUALIZACIÓN: Los resultados deben guardarse en SQLite ('wifi_audit.db') con sesiones, dispositivos, trazas de handshakes y veredicto de vulnerabilidad, visualizándose en el dashboard web interactivo.`
+          );
+        }
+
         // Agregar también programación autónoma si requiere implementar la herramienta
-        if (userMessage.toLowerCase().includes('program') || userMessage.toLowerCase().includes('código') || userMessage.toLowerCase().includes('rust')) {
+        if (userMessage.toLowerCase().includes('program') || userMessage.toLowerCase().includes('código') || userMessage.toLowerCase().includes('rust') || userMessage.toLowerCase().includes('ejecuta') || userMessage.toLowerCase().includes('implement')) {
           activeModules.push('AutonomousProgrammingEngine (Code Generator)');
           promptSegments.push(AutonomousProgrammingEngine.buildAutonomousProgrammingPromptBlock(userMessage));
         }
