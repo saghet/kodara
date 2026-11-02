@@ -744,6 +744,36 @@ Kodara está instalado como aplicación nativa de escritorio en tu sistema Linux
 - **Certificación de la Suite de Pruebas**:
   - Validado y blindado por la nueva suite unitaria `src/planning/__tests__/autonomous-planning.test.ts`, consolidando **29 suites de prueba y 160/160 pruebas unitarias aprobadas al 100% (1,041 aserciones)** con cero fallos y cero regresiones.
 
+---
+
+## 41. Fase 6: Multi-Agent System — Enjambre de 10 Agentes Especializados y Aislamiento Git Worktrees
+- **Creación del Módulo Maestro `KodaraMultiAgent` (`newcore/src/agents/`)**:
+  - **Catálogo de 10 Agentes Especializados ([`roles/profiles.ts`](file:///home/saghet/Documents/Ollama/Velocity/newcore/src/agents/roles/profiles.ts))**:
+    - **`ORCHESTRATOR`**: Coordinador general del enjambre, distribución de tareas DAG y monitoreo.
+    - **`ARCHITECT`**: Análisis de estructura, modelado de interfaces y diseño de modularidad sin dependencias circulares.
+    - **`PLANNER`**: Descomposición de objetivos en DAG, cálculo de riesgos y criterios de aceptación.
+    - **`DEVELOPER`**: Forja de código de producción, refactorización y tipado estricto.
+    - **`DEBUGGER`**: Análisis forense de fallos, diagnóstico de excepciones y parches correctivos mínimos.
+    - **`TESTER`**: Diseño y ejecución de suites de pruebas unitarias, de integración y regresión en sandbox.
+    - **`SECURITY`**: Auditoría SAST, verificación Zero-Bleed y principio de mínimo privilegio.
+    - **`REVIEWER`**: Inspección de calidad de diffs, estándares de código y erradicación de código provisional.
+    - **`DOCUMENTATION`**: Redacción de manuales pedagógicos, APIs, diagramas y changelogs.
+    - **`SYSTEM_OPERATOR`**: Ejecución de comandos del SO, gestión de servicios y paquetes bajo supervisión estricta.
+  - **Confinamiento de Herramientas y Mínimo Privilegio ([`specialized-agent.ts`](file:///home/saghet/Documents/Ollama/Velocity/newcore/src/agents/specialized-agent.ts))**:
+    - Cada rol tiene permisos binarios explícitos (`readFiles`, `writeFiles`, `executeCommands`, `commitGit`, `accessNetwork`) y lista blanca de herramientas.
+    - Bloqueo preventivo de operaciones: por ejemplo, `REVIEWER` no puede ejecutar comandos ni modificar archivos; `SECURITY` no puede mutar código; `DEVELOPER` tiene acceso completo de escritura y ejecución.
+  - **Aislamiento Físico mediante Git Worktrees ([`isolation/git-worktree.manager.ts`](file:///home/saghet/Documents/Ollama/Velocity/newcore/src/agents/isolation/git-worktree.manager.ts))**:
+    - Creación de árboles de trabajo aislados en ramas temporales (`kodara-agent/...`) para tareas concurrentes que mutan archivos.
+    - Fusión automatizada libre de conflictos (`mergeWorktree`) y limpieza forzosa post-ejecución (`removeWorktree`).
+  - **Pizarra de Coordinación y Bloqueo de Archivos ([`coordination/agent-whiteboard.ts`](file:///home/saghet/Documents/Ollama/Velocity/newcore/src/agents/coordination/agent-whiteboard.ts))**:
+    - Bus Pub/Sub de paso de notas inter-agente persistido en memoria y replicado a `CoreEventHub`.
+    - Bloqueos exclusivos de archivos (`acquireFileLock` / `releaseFileLock`) con expiración automática (TTL) para prevenir escrituras simultáneas incompatibles.
+  - **Fachada del Coordinador de Enjambre ([`swarm-coordinator.ts`](file:///home/saghet/Documents/Ollama/Velocity/newcore/src/agents/swarm-coordinator.ts))**:
+    - Singleton `SwarmCoordinator`: Spawneo y orquestación de agentes, despacho de tareas en ondas paralelas y recolección de artefactos.
+- **Certificación de la Suite de Pruebas**:
+  - Validado y blindado por la nueva suite unitaria `src/agents/__tests__/multi-agent-system.test.ts`, consolidando **30 suites de prueba y 165/165 pruebas unitarias aprobadas al 100% (1,159 aserciones)** con cero fallos y cero regresiones.
+
+
 
 
 
