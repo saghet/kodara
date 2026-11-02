@@ -22,7 +22,7 @@ export class OllamaAIProvider implements AIProvider {
     if (typeof options === 'string') {
       this.baseUrl = options.replace(/\/$/, '');
     } else {
-      this.baseUrl = (options?.baseUrl || 'http://localhost:11434').replace(/\/$/, '');
+      this.baseUrl = (options?.baseUrl || 'http://127.0.0.1:11434').replace(/\/$/, '');
     }
   }
 

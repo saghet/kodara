@@ -48,9 +48,33 @@
       width: 100vw;
       overflow: hidden;
       display: grid;
-      grid-template-columns: 255px 1fr 470px;
+      grid-template-columns: 255px 1fr 390px;
       font-size: 13px;
       -webkit-font-smoothing: antialiased;
+      transition: grid-template-columns 0.2s ease;
+    }
+
+    body.workbench-collapsed {
+      grid-template-columns: 255px 1fr 0px;
+    }
+
+    body.workbench-collapsed .ag-workbench {
+      display: none !important;
+    }
+
+    @media (max-width: 1366px) {
+      body {
+        grid-template-columns: 240px 1fr 350px;
+      }
+    }
+
+    @media (max-width: 1100px) {
+      body {
+        grid-template-columns: 230px 1fr 0px;
+      }
+      .ag-workbench {
+        display: none !important;
+      }
     }
 
     ::-webkit-scrollbar { width: 5px; height: 5px; }
@@ -883,6 +907,10 @@
       font-weight: 500;
       cursor: pointer;
       outline: none;
+      max-width: 260px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      overflow: hidden;
     }
 
     .ag-inline-select:hover {
@@ -1445,11 +1473,20 @@
        COLUMNA 2: CHAT DE PROYECTO & MODO TURBO SIN IMPEDIMENTOS (FLECHA 3)
        ═══════════════════════════════════════════════════════════════ -->
   <main class="ag-center">
-    <header class="ag-center-header">
+    <header class="ag-center-header" style="display:flex;align-items:center;justify-content:space-between">
       <div class="ag-breadcrumb" id="centerBreadcrumb">
         <span>Kodara</span>
         <span>/</span>
         <b>Workspace Activo</b>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px">
+        <span id="backendStatusPip" style="font-size:0.68rem;color:#34d399;display:flex;align-items:center;gap:4px">
+          <span style="width:7px;height:7px;border-radius:50%;background:#10b981;box-shadow:0 0 6px #10b981;display:inline-block"></span>
+          <span>Online</span>
+        </span>
+        <button class="ag-icon-btn" onclick="toggleWorkbenchCollapse()" id="btnToggleWorkbench" title="Contraer/Expandir Workbench (Alt+B)" style="padding:4px 8px;font-size:0.8rem">
+          ◨
+        </button>
       </div>
     </header>
 
@@ -1503,7 +1540,7 @@
           <div class="ag-prompt-left-controls">
             <button class="ag-plus-btn" onclick="triggerImagePicker()" title="Adjuntar captura o imagen para diagnosticar fallas (también puedes usar Ctrl+V o arrastrar)">+</button>
             <button class="ag-chip-btn" style="padding:0.22rem 0.5rem;font-size:0.71rem;color:#38bdf8;border-color:rgba(56,189,248,0.35)" onclick="triggerImagePicker()" title="Subir captura de pantalla para análisis visual + OCR + Codebase Grounding">🖼️ Imagen</button>
-            <select id="modelSelect" class="ag-inline-select" onchange="onModelProfileChange()">
+            <select id="modelSelect" class="ag-inline-select" onchange="onModelProfileChange()" title="Seleccionar Motor IA">
               <option value="deepseek-r1" selected>🧠 DeepSeek-R1 (Razonamiento Lógico Profundo & Agente Autónomo) — Predeterminado</option>
               <option value="glm-4.7-flash">🚀 GLM-4.7-Flash (Lenguaje Natural & Arquitectura Antivirus)</option>
               <option value="qwen3-coder-30b-a3b">⚡ Qwen2.5-Coder 7B / Qwen3-Coder (Desarrollo & MCP)</option>
@@ -1985,6 +2022,37 @@
         notice.textContent = '🔒 Modo Supervisado: Solicita confirmación previa';
       }
     }
+
+    function toggleWorkbenchCollapse() {
+      document.body.classList.toggle('workbench-collapsed');
+      const btn = document.getElementById('btnToggleWorkbench');
+      if (btn) {
+        btn.textContent = document.body.classList.contains('workbench-collapsed') ? '◧' : '◨';
+      }
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.altKey && (e.key === 'b' || e.key === 'B')) {
+        e.preventDefault();
+        toggleWorkbenchCollapse();
+      }
+    });
+
+    async function checkBackendConnectivity() {
+      const pip = document.getElementById('backendStatusPip');
+      if (!pip) return;
+      try {
+        const res = await fetch('/health', { signal: AbortSignal.timeout(3000) });
+        if (res.ok) {
+          pip.innerHTML = '<span style="width:7px;height:7px;border-radius:50%;background:#10b981;box-shadow:0 0 6px #10b981;display:inline-block"></span><span>Online</span>';
+        } else {
+          pip.innerHTML = '<span style="width:7px;height:7px;border-radius:50%;background:#f59e0b;box-shadow:0 0 6px #f59e0b;display:inline-block"></span><span>Degradado</span>';
+        }
+      } catch {
+        pip.innerHTML = '<span style="width:7px;height:7px;border-radius:50%;background:#ef4444;box-shadow:0 0 6px #ef4444;display:inline-block"></span><span>Reconectando</span>';
+      }
+    }
+    setInterval(checkBackendConnectivity, 10000);
 
     function switchWorkbenchTab(tabName) {
       ['projectMemory', 'coreMemory', 'arsenal', 'autonomousPlan', 'agentSwarm'].forEach(t => {
@@ -3968,12 +4036,41 @@
         if (e.name === 'AbortError') {
           aiNode.innerHTML = reasoningAccordionHtml + `<span style="color:#ef4444;font-weight:600">⏹ Ejecución detenida por el usuario.</span>`;
         } else {
-          aiNode.innerHTML = `<span style="color:#ef4444">Error: ${e.message}</span>`;
+          console.error('[Kodara] Chat stream error:', e);
+          const isLoadFailed = e.message && (e.message.includes('Load failed') || e.message.includes('Failed to fetch') || e.message.includes('NetworkError'));
+          aiNode.innerHTML = reasoningAccordionHtml + `
+            <div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.3);border-radius:8px;padding:0.75rem 1rem;margin-top:0.5rem">
+              <div style="display:flex;align-items:center;gap:8px;color:#ef4444;font-weight:600;font-size:0.85rem">
+                <span>⚠️ ${isLoadFailed ? 'Falla de Flujo (Load failed / Red)' : 'Error en Flujo de Asistente'}</span>
+              </div>
+              <div style="color:var(--text-secondary);font-size:0.78rem;margin:0.4rem 0 0.6rem 0;line-height:1.4">
+                ${isLoadFailed 
+                  ? 'El cliente WebKit o la red interrumpió el stream HTTP antes de recibir tokens. El backend ahora emite un heartbeat keepalive cada 2.5s mientras DeepSeek-R1 computa en VRAM.' 
+                  : escapeHtml(e.message)}
+              </div>
+              <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+                <button class="ag-chip-btn" onclick="retryLastOrder('${escapeHtml(text.replace(/'/g, "\\'"))}')" style="background:#ef4444;color:#fff;border-color:#dc2626;padding:4px 10px;font-size:0.75rem;cursor:pointer">
+                  🔄 Reintentar Orden
+                </button>
+                <button class="ag-chip-btn" onclick="checkBackendConnectivity()" style="padding:4px 10px;font-size:0.75rem">
+                  📡 Probar Backend
+                </button>
+              </div>
+            </div>
+          `;
         }
       } finally {
         activeChatAbortController = null;
         if (abortBtn) abortBtn.style.display = 'none';
         if (sendBtn) sendBtn.style.display = 'flex';
+      }
+    }
+
+    function retryLastOrder(orderText) {
+      const input = document.getElementById('promptInput');
+      if (input) {
+        input.value = orderText;
+        sendChatMessage();
       }
     }
 

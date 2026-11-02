@@ -1215,11 +1215,28 @@ export async function startServer(orchestrator?: AgentOrchestrator) {
 
     const getNow = () => new Date().toLocaleTimeString('es-ES', { hour12: false });
 
-    // Preparar encabezados SSE
+    // Preparar encabezados SSE y enviar inmediatamente a la red (evita 'Load failed' en WebKit2GTK)
     reply.raw.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
     reply.raw.setHeader('Cache-Control', 'no-cache');
     reply.raw.setHeader('Connection', 'keep-alive');
     reply.raw.setHeader('Access-Control-Allow-Origin', '*');
+    reply.raw.writeHead(200);
+    reply.raw.flushHeaders?.();
+    reply.raw.write(': connected\n\n');
+
+    const sseHeartbeat = setInterval(() => {
+      try {
+        reply.raw.write(': ping\n\n');
+      } catch {
+        clearInterval(sseHeartbeat);
+      }
+    }, 2500);
+
+    const cleanupHeartbeat = () => {
+      clearInterval(sseHeartbeat);
+    };
+    reply.raw.on('close', cleanupHeartbeat);
+    reply.raw.on('error', cleanupHeartbeat);
 
     // 1. Comando de aprendizaje rápido (/recordar o /learn)
     if (message.startsWith('/recordar ') || message.startsWith('/learn ')) {
@@ -1509,8 +1526,10 @@ ${compiledOrders.orders.length > 0 ? `${compiledOrders.history_ledger_prompt_blo
 
       reply.raw.write(`data: ${JSON.stringify({ log: { time: getNow(), text: `✅ Tarea completada exitosamente. Modelo en reposo.`, level: 'success' } })}\n\n`);
       reply.raw.write(`data: ${JSON.stringify({ done: true })}\n\n`);
+      cleanupHeartbeat();
       reply.raw.end();
     } catch (err: any) {
+      cleanupHeartbeat();
       reply.raw.write(`data: ${JSON.stringify({ log: { time: getNow(), text: `❌ Error en el procesamiento: ${err.message}`, level: 'error' } })}\n\n`);
       reply.raw.write(`data: ${JSON.stringify({ error: err.message || 'Error de comunicación local' })}\n\n`);
       reply.raw.end();

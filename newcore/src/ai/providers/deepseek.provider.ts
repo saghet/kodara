@@ -24,7 +24,7 @@ export class DeepSeekR1Provider implements AIProvider {
   private apiEndpoint: string;
 
   constructor(options?: { ollamaBaseUrl?: string; apiKey?: string; apiEndpoint?: string }) {
-    this.localOllama = new OllamaAIProvider(options?.ollamaBaseUrl || 'http://localhost:11434');
+    this.localOllama = new OllamaAIProvider(options?.ollamaBaseUrl || 'http://127.0.0.1:11434');
     this.apiKey = options?.apiKey || process.env.DEEPSEEK_API_KEY;
     this.apiEndpoint = options?.apiEndpoint || 'https://api.deepseek.com/chat/completions';
   }
