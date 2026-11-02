@@ -29,6 +29,7 @@ import { GoldenExemplarsEngine } from './kodara/knowledge/golden-exemplars.js';
 import { KodaraPhilosophyEngine } from './kodara/knowledge/kodara-philosophy.js';
 import { PaiMeiLinguisticEngine } from './kodara/knowledge/pai-mei-linguistic-engine.js';
 import { ProjectBoundaryGuard } from './kodara/security/project-boundary-guard.js';
+import { AIProviderEngine } from './ai/index.js';
 import {
   KodaraEvolutionEngine,
   KodaraEvolutionDB,
@@ -1404,103 +1405,54 @@ ${compiledOrders.orders.length > 0 ? `${compiledOrders.history_ledger_prompt_blo
     reply.raw.write(`data: ${JSON.stringify({ log: { time: getNow(), text: `🚀 Motor local (${actualModel}) • Inferencia en lenguaje natural • num_ctx: ${numCtx}`, level: 'info' } })}\n\n`);
 
     try {
-      const ollamaResp = await fetch(`${config.ollamaBaseUrl}/api/chat`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: actualModel,
-          messages: chatMessages,
-          stream: true,
-          options: {
-            temperature: 0.42,
-            repeat_penalty: 1.15,
-            repeat_last_n: 128,
-            top_p: 0.92,
-            num_ctx: numCtx,
-            num_threads: numThreads
-          }
-        })
+      reply.raw.write(`data: ${JSON.stringify({ log: { time: getNow(), text: `📡 Inferencia iniciada con AIProviderEngine (${actualModel}). Transmitiendo tokens...`, level: 'success' } })}\n\n`);
+
+      const aiEngine = AIProviderEngine.getInstance();
+      const stream = aiEngine.chatStream({
+        model: actualModel,
+        messages: chatMessages as any[],
+        temperature: 0.42,
+        options: {
+          numCtx,
+          numThreads,
+          repeatPenalty: 1.15,
+          topP: 0.92,
+        },
       });
 
-      if (!ollamaResp.ok || !ollamaResp.body) {
-        reply.raw.write(`data: ${JSON.stringify({ log: { time: getNow(), text: `⚠️ Respuesta inesperada de Ollama, activando motor alternativo...`, level: 'warning' } })}\n\n`);
-        const fallback = await engine.getGateway().complete({
-          model: model ?? config.defaultModel,
-          messages: [{ role: 'user', content: message }]
-        });
-        const cleanFallback = KodaraPlanExecutor.stripSymbolicButtonHallucinations(fallback.content);
-        reply.raw.write(`data: ${JSON.stringify({ chunk: cleanFallback, done: false })}\n\n`);
-        if (KodaraPlanExecutor.shouldAttachExecutablePlan(message, cleanFallback)) {
-          const fallbackPlan = await KodaraPlanExecutor.createExecutablePlan({
-            projectId: projectId || 'proj_samulibre',
-            projectName: projectName || 'SamulibreLinux',
-            projectPath: effectiveProjectPath,
-            title: `Plan de Acción Ejecutable — ${projectName || 'SamulibreLinux'}`,
-            summary: 'Plan de 4 fases listo para ejecutarse físicamente en Linux (Indexación, SAST, Compilación/Tests en Sandbox y consolidación en Kodara Project Memory).',
-            markdownContent: cleanFallback,
-          });
-          reply.raw.write(`data: ${JSON.stringify({ executablePlan: { ...fallbackPlan, markdown_content: '' } })}\n\n`);
-        }
-        reply.raw.write(`data: ${JSON.stringify({ done: true })}\n\n`);
-        reply.raw.end();
-        return;
-      }
-
-      reply.raw.write(`data: ${JSON.stringify({ log: { time: getNow(), text: `📡 Inferencia iniciada. Transmitiendo tokens en tiempo real...`, level: 'success' } })}\n\n`);
-
-      const reader = ollamaResp.body.getReader();
-      const decoder = new TextDecoder();
-      let buffer = '';
       let accumulatedResponse = '';
       const recentLines: string[] = [];
       let loopStopped = false;
 
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split('\n');
-        buffer = lines.pop() || '';
-
-        for (const line of lines) {
-          if (!line.trim()) continue;
-          try {
-            const parsed = JSON.parse(line);
-            const chunk = parsed.message?.content || parsed.response || '';
-            accumulatedResponse += chunk;
-
-            // Detector anti-bucles y anti-basura en el stream
-            if (chunk.includes('\n')) {
-              const sublines = chunk.split('\n').map((s: string) => s.trim()).filter((s: string) => s.length > 8);
-              for (const sl of sublines) {
-                if (recentLines.length >= 2 && recentLines[recentLines.length - 1] === sl && recentLines[recentLines.length - 2] === sl) {
-                  loopStopped = true;
-                  break;
-                }
-                recentLines.push(sl);
-                if (recentLines.length > 20) recentLines.shift();
-              }
-            }
-
-            if (loopStopped) {
-              reply.raw.write(`data: ${JSON.stringify({ log: { time: getNow(), text: `🛡️ Filtro anti-bucles activado: detenido texto redundante.`, level: 'warning' } })}\n\n`);
-              reply.raw.write(`data: ${JSON.stringify({ chunk: '\n\n*(Análisis estructurado finalizado)*', done: true })}\n\n`);
-              break;
-            }
-
-            reply.raw.write(`data: ${JSON.stringify({ chunk, done: false })}\n\n`);
-          } catch {}
+      for await (const chunk of stream) {
+        if (chunk.reasoningContent) {
+          reply.raw.write(`data: ${JSON.stringify({ reasoningChunk: chunk.reasoningContent, done: false })}\n\n`);
         }
-        if (loopStopped) break;
-      }
 
-      if (buffer.trim() && !loopStopped) {
-        try {
-          const parsed = JSON.parse(buffer);
-          const extra = parsed.message?.content || parsed.response || '';
-          accumulatedResponse += extra;
-          reply.raw.write(`data: ${JSON.stringify({ chunk: extra, done: false })}\n\n`);
-        } catch {}
+        if (chunk.content) {
+          accumulatedResponse += chunk.content;
+
+          // Detector anti-bucles y anti-basura en el stream
+          if (chunk.content.includes('\n')) {
+            const sublines = chunk.content.split('\n').map((s: string) => s.trim()).filter((s: string) => s.length > 8);
+            for (const sl of sublines) {
+              if (recentLines.length >= 2 && recentLines[recentLines.length - 1] === sl && recentLines[recentLines.length - 2] === sl) {
+                loopStopped = true;
+                break;
+              }
+              recentLines.push(sl);
+              if (recentLines.length > 20) recentLines.shift();
+            }
+          }
+
+          if (loopStopped) {
+            reply.raw.write(`data: ${JSON.stringify({ log: { time: getNow(), text: `🛡️ Filtro anti-bucles activado: detenido texto redundante.`, level: 'warning' } })}\n\n`);
+            reply.raw.write(`data: ${JSON.stringify({ chunk: '\n\n*(Análisis estructurado finalizado)*', done: true })}\n\n`);
+            break;
+          }
+
+          reply.raw.write(`data: ${JSON.stringify({ chunk: chunk.content, done: false })}\n\n`);
+        }
       }
 
       // Si el usuario pidió un plan, mejora o auditoría, crear y adjuntar un Artefacto de Plan Ejecutable Real con botón [▶ Proceed]

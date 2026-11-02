@@ -665,6 +665,32 @@ Kodara está instalado como aplicación nativa de escritorio en tu sistema Linux
 - **Certificación de la Suite de Pruebas**:
   - Validado y blindado por la nueva suite unitaria `core-foundation.test.ts`, consolidando **26 suites de prueba y 134/134 pruebas unitarias aprobadas al 100% (913 aserciones)** con cero fallos y cero regresiones.
 
+---
+
+## 38. Fase 3: AI Provider Engine — Estandarización Universal de Modelos y Razonamiento DeepSeek-R1
+- **Creación del Módulo Maestro `AIProviderEngine` (`newcore/src/ai/`)**:
+  - **Contrato Universal Estandarizado (`provider.interface.ts`)**:
+    - Definición de interfaces tipadas: `AIProvider`, `AICapabilities`, `AIChatMessage`, `AIChatRequest`, `AIStreamChunk` y `AIChatResponse`.
+    - Detección normalizada de capacidades por modelo: `toolCalling`, `streaming`, `reasoning` (deliberación profunda), `longContext` (>=32K), `multimodal` (visión Base64) y `structuredOutput` (JSON schema).
+  - **Extractor y Parser Progresivo de Razonamiento (`reasoning-parser.ts`)**:
+    - `StreamingReasoningParser`: Filtra y separa en tiempo real los bloques `<think>...</think>` generados por DeepSeek-R1 u otros modelos deliberativos.
+    - Soporta tags fragmentados a través de límites arbitrarios de paquetes de red (`<th` + `ink>`) sin perder tokens ni desalinear el flujo visible de markdown.
+    - Emite fragmentos estructurados con bandera `isReasoning: true` y preserva contadores acumulados de deliberación técnica.
+  - **Adaptadores Especializados de Proveedores (`newcore/src/ai/providers/`)**:
+    - **`DeepSeekR1Provider` (`deepseek.provider.ts`)**: Proveedor predeterminado de Kodara. Prioriza la inferencia local sobre GPU NVIDIA GeForce RTX 4060 vía Ollama (`deepseek-r1:latest`), con failover transparente a la API remota de DeepSeek (`deepseek-reasoner`) si se configura clave de API.
+    - **`OllamaAIProvider` (`ollama.provider.ts`)**: Conector local universal con streaming NDJSON, opciones de hardware configurables (`num_ctx`, `num_threads`), soporte multimodal para modelos de visión (`vl`, `llava`, `minicpm`) y detección heurística de capacidades.
+    - **`OpenAICompatibleProvider` (`openai-compatible.provider.ts`)**: Adaptador SSE para cualquier proveedor compatible con OpenAI API (OpenAI, Groq, Mistral, Together, vLLM, LMStudio, LocalAI).
+    - **`AnthropicProvider` (`anthropic.provider.ts`)**: Integración con Anthropic Messages API con soporte nativo de prompts de sistema, imágenes Base64 y extended thinking.
+  - **Fachada Central del Motor (`index.ts`)**:
+    - `AIProviderEngine`: Singleton con registro dinámico de proveedores (`registerProvider`, `getProvider`), ruteo automático inteligente por nombre de modelo (`resolveProviderForModel`) y ejecución unificada de `chatStream` y `chatComplete`.
+- **Integración en la Capa del Servidor (`newcore/src/server.ts`)**:
+    - Se erradicó el bypass crudo directo de `fetch()` a Ollama en el endpoint `/chat/stream`.
+    - La inferencia y el streaming SSE ahora fluyen a través de `AIProviderEngine.getInstance().chatStream(...)`.
+    - Los tokens de pensamiento de DeepSeek-R1 se envían en vivo a la interfaz de usuario como eventos `{ reasoningChunk: "...", done: false }`.
+- **Certificación de la Suite de Pruebas**:
+  - Validado y blindado por la nueva suite unitaria `src/ai/__tests__/ai-provider-engine.test.ts`, consolidando **27 suites de prueba y 141/141 pruebas unitarias aprobadas al 100% (958 aserciones)** con cero fallos y cero regresiones.
+
+
 
 
 
