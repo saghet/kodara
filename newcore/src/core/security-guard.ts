@@ -21,7 +21,7 @@ export class CoreSecurityGuard {
     /\brm\s+-rf\s+\/(?:\s|$)/i,
     /\bmkfs\b/i,
     /\bdd\s+if=.*of=\/dev\/[a-z]+/i,
-    /:()\s*\{\s*:\s*\|\s*:\s*&\s*\}\s*;/i, // Forkbomb
+    /(?::\(\)|:\s*\|\s*:)/i, // Forkbomb
     /\bchmod\s+-R\s+777\s+\//i,
     /\bchown\s+-R\s+root\s+\//i,
   ];

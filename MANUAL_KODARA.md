@@ -690,6 +690,35 @@ Kodara está instalado como aplicación nativa de escritorio en tu sistema Linux
 - **Certificación de la Suite de Pruebas**:
   - Validado y blindado por la nueva suite unitaria `src/ai/__tests__/ai-provider-engine.test.ts`, consolidando **27 suites de prueba y 141/141 pruebas unitarias aprobadas al 100% (958 aserciones)** con cero fallos y cero regresiones.
 
+---
+
+## 39. Fase 4: System Runtime Engine — OSAdapter Multiplataforma (Linux / Windows) y Autorización Central
+- **Creación del Módulo Maestro `SystemRuntimeEngine` (`newcore/src/runtime/`)**:
+  - **Contrato Universal de Interacción con el SO (`os-adapter.interface.ts`)**:
+    - Definición de interfaces tipadas: `OSAdapter`, `EnvironmentInspection`, `CommandExecutionOptions`, `CommandExecutionResult`, `ProcessInfo`, `ServiceStatus` y `ShellType`.
+    - Soporte formal para plataformas `linux` y `win32`, con shells `bash`, `sh`, `powershell`, `cmd` y `wsl`.
+  - **Adaptador Nativo de Linux (`adapters/linux.adapter.ts`)**:
+    - Ejecución asíncrona no bloqueante mediante `spawn` (erradicando bloqueos del Event Loop de Node/Bun).
+    - Monitoreo y captura de salida en streaming (`onChunk`), control de timeouts con escalado de señales (`SIGTERM` -> `SIGKILL`) y soporte de cancelación reactiva vía `AbortSignal`.
+    - Inspección de procesos mediante `ps` / procfs y consulta de estado de servicios del sistema y de usuario (`systemctl --user`).
+    - Detección automática de WSL y verificación de privilegios `root` (`process.getuid() === 0`).
+  - **Adaptador Nativo de Windows (`adapters/windows.adapter.ts`)**:
+    - Ejecución asíncrona mediante `powershell.exe` (`-NoProfile -NonInteractive -ExecutionPolicy Bypass`) o `cmd.exe`.
+    - Cancelación forzosa de árboles de procesos con `taskkill /F /T /PID`.
+    - Detección de elevación administrativa con `net session` y consulta de servicios con `Get-Service` / JSON.
+  - **Autorizador Central de Seguridad (`security-authorizer.ts`)**:
+    - Confinamiento estricto en el workspace activo (Zero-Bleed) con bloqueo preventivo de *path traversal*.
+    - Matriz de bloqueo de comandos destructivos catastróficos (`rm -rf /`, forkbombs, `mkfs`, escritura cruda en `/dev/sd*`).
+    - Clasificación de comandos sensibles que requieren confirmación explícita del usuario en modo supervisado (`sudo`, `git reset --hard`, `systemctl`).
+    - Registro inmutable de auditoría en memoria (`RuntimeAuditEntry`) publicado automáticamente en `CoreEventHub`.
+  - **Fachada Central del Runtime (`system-runtime.ts` e `index.ts`)**:
+    - `SystemRuntimeEngine`: Singleton que detecta la plataforma host, despacha al adaptador correspondiente y garantiza que ningún comando se ejecute sin pasar antes por `SecurityAuthorizer`.
+- **Evolución de las Herramientas del Sistema (`newcore/src/tools/terminal.ts`)**:
+    - Se refactorizó `TerminalTool` (`run_command`), sustituyendo la llamada bloqueante síncrona `execSync` por la ejecución asíncrona protegida `SystemRuntimeEngine.getInstance().executeCommandSafe(...)`.
+- **Certificación de la Suite de Pruebas**:
+  - Validado y blindado por la nueva suite unitaria `src/runtime/__tests__/system-runtime.test.ts`, consolidando **28 suites de prueba y 151/151 pruebas unitarias aprobadas al 100% (993 aserciones)** con cero fallos y cero regresiones.
+
+
 
 
 

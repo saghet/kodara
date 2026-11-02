@@ -1,11 +1,11 @@
 // ═══════════════════════════════════════════════════════════════
-// OpenCentravity — Terminal Tool
-// Safe command execution with timeout, output capture, and policy.
+// OpenCentravity / Kodara — Terminal Tool
+// Safe asynchronous command execution via SystemRuntimeEngine.
 // ═══════════════════════════════════════════════════════════════
 
-import { execSync } from 'child_process';
 import type { Tool, ToolInput, ToolResult, ToolContext } from '../types/index.js';
 import { getConfig } from '../config/index.js';
+import { SystemRuntimeEngine } from '../runtime/index.js';
 
 export class TerminalTool implements Tool {
   name = 'run_command';
@@ -24,37 +24,48 @@ export class TerminalTool implements Tool {
     const command = input.command as string;
     const config = getConfig();
 
-    // Policy check
+    // 1. Policy check existente del contexto
     const decision = context.policyEngine.check({
-      type: 'command_exec', target: command, agentId: context.agentId, workspaceDir: context.workspaceDir,
+      type: 'command_exec',
+      target: command,
+      agentId: context.agentId,
+      workspaceDir: context.workspaceDir,
     });
     if (!decision.allowed) {
       return { success: false, output: '', error: `Policy blocked: ${decision.reason}` };
     }
 
-    const cwd = input.cwd
-      ? `${context.workspaceDir}/${input.cwd}`
-      : context.workspaceDir;
-    const timeout = (input.timeoutMs as number) || config.maxCommandTimeoutMs;
+    const cwd = input.cwd ? String(input.cwd) : undefined;
+    const timeoutMs = (input.timeoutMs as number) || config.maxCommandTimeoutMs || 30000;
 
     try {
-      const output = execSync(command, {
+      // 2. Ejecución asíncrona no bloqueante a través de SystemRuntimeEngine
+      const runtime = SystemRuntimeEngine.getInstance();
+      const res = await runtime.executeCommandSafe({
+        command,
         cwd,
-        timeout,
-        encoding: 'utf-8',
-        maxBuffer: 5 * 1024 * 1024,
-        stdio: ['pipe', 'pipe', 'pipe'],
-        shell: process.platform === 'win32' ? 'powershell.exe' : '/bin/sh',
+        workspaceDir: context.workspaceDir,
+        timeoutMs,
+        agentId: context.agentId,
       });
-      return { success: true, output: output.trim() };
+
+      if (res.exitCode !== 0) {
+        return {
+          success: false,
+          output: res.stdout,
+          error: `Exit code ${res.exitCode}: ${res.stderr || (res.timedOut ? 'Execution timed out' : 'Command failed')}`,
+        };
+      }
+
+      return {
+        success: true,
+        output: res.stdout.trim(),
+      };
     } catch (err: any) {
-      const stdout = err.stdout?.toString() ?? '';
-      const stderr = err.stderr?.toString() ?? '';
-      const exitCode = err.status ?? -1;
       return {
         success: false,
-        output: stdout,
-        error: `Exit code ${exitCode}: ${stderr || err.message}`,
+        output: '',
+        error: `Runtime execution error: ${err.message}`,
       };
     }
   }
