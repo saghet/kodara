@@ -796,6 +796,26 @@ Kodara está instalado como aplicación nativa de escritorio en tu sistema Linux
 - **Certificación de la Suite de Pruebas**:
   - Validado y blindado por la nueva suite unitaria `src/project-memory/__tests__/project-memory-engine.test.ts`, consolidando **31 suites de prueba y 171/171 pruebas unitarias aprobadas al 100% (1,185 aserciones)** con cero fallos y cero regresiones.
 
+---
+
+## 43. Fase 8: Verification Engine & Auto-Repair — Pipeline de 4 Fases y Bucle de Auto-Reparación
+- **Creación del Módulo Maestro `VerificationEngine` (`newcore/src/verification/`)**:
+  - **Pipeline de Verificación Autónoma en 4 Fases ([`verification.interface.ts`](file:///home/saghet/Documents/Ollama/Velocity/newcore/src/verification/verification.interface.ts))**:
+    1. **`FILE_INTEGRITY` (Integridad de Archivos)**: Comprobación de existencia física, detección de archivos vacíos de 0 bytes, balance léxico de llaves `{}` y paréntesis `()` y validación sintáctica JSON/código.
+    2. **`STATIC_ANALYSIS` (SAST & Seguridad Defensiva)**: Escaneo estático en busca de inyecciones de código (`eval`, `new Function`), secretos o tokens hardcodeados (`sk-`, `ghp_`, certificados PEM) y concatenaciones SQL/comandos vulnerables.
+    3. **`BUILD_AND_TEST` (Compilación y Pruebas Unitarias)**: Ejecución asíncrona no bloqueante de compilación y suites de prueba mediante `SystemRuntimeEngine` con captura de salida y verificación de `exitCode === 0`.
+    4. **`RUNTIME_HEALTH` (Salud en Tiempo de Ejecución)**: Sonda de servicios activos en el sistema operativo y telemetría de estabilidad del runtime.
+  - **Bucle de Auto-Reparación Adaptativa ([`auto-repair-loop.ts`](file:///home/saghet/Documents/Ollama/Velocity/newcore/src/verification/auto-repair-loop.ts))**:
+    - **Diagnóstico Basado en Memoria**: Ante una falla, consulta primero a `ProjectMemoryEngine` si existe una solución previamente aprendida y verificada con la misma firma de error para reutilizarla de inmediato.
+    - **Protección con Snapshots**: Captura puntos de control vía `CoreCheckpointer` antes de cualquier modificación física para permitir rollback seguro en caso de fallos secundarios.
+    - **Límite de Reintentos Configurable**: Prevención estricta de bucles infinitos (`maxRepairAttempts`, por defecto 3).
+    - **Consolidación en Memoria**: Si la corrección culmina con éxito y el pipeline re-verificado aprueba al 100%, persiste automáticamente la solución aprendida en `ProjectMemoryEngine` como un nuevo registro `ERROR_SOLUTION`.
+  - **Fachada Central del Motor ([`verification-engine.ts`](file:///home/saghet/Documents/Ollama/Velocity/newcore/src/verification/verification-engine.ts) e [`index.ts`](file:///home/saghet/Documents/Ollama/Velocity/newcore/src/verification/index.ts))**:
+    - Singleton `VerificationEngine`: Ejecuta el pipeline completo (`verifyWorkspace`) y el bucle iterativo de reparación (`verifyAndAutoRepair`), emitiendo telemetría en tiempo real a `CoreEventHub`.
+- **Certificación de la Suite de Pruebas**:
+  - Validado y blindado por la nueva suite unitaria `src/verification/__tests__/verification-engine.test.ts`, consolidando **32 suites de prueba y 177/177 pruebas unitarias aprobadas al 100% (1,210 aserciones)** con cero fallos y cero regresiones.
+
+
 
 
 
