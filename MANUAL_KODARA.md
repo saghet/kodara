@@ -718,6 +718,33 @@ Kodara está instalado como aplicación nativa de escritorio en tu sistema Linux
 - **Certificación de la Suite de Pruebas**:
   - Validado y blindado por la nueva suite unitaria `src/runtime/__tests__/system-runtime.test.ts`, consolidando **28 suites de prueba y 151/151 pruebas unitarias aprobadas al 100% (993 aserciones)** con cero fallos y cero regresiones.
 
+---
+
+## 40. Fase 5: Autonomous Planning Engine — Modelo Jerárquico DAG, Replanificación Adaptativa y Estados Dinámicos
+- **Creación del Módulo Maestro `AutonomousPlanningEngine` (`newcore/src/planning/`)**:
+  - **Modelo Jerárquico Formal de Planes (`plan.interface.ts`)**:
+    - Definición de interfaces tipadas: `HierarchicalPlan`, `PlanTask`, `PlanSubtask`, `ReplanningEvent` y `AgentRole`.
+    - Estructura enriquecida por plan: Objetivo, Explicación y Justificación Técnica, Análisis del Proyecto, Requisitos, Arquitectura Propuesta, Tareas con dependencias DAG, Agentes responsables (`ORCHESTRATOR`, `ARCHITECT`, `PLANNER`, `DEVELOPER`, `DEBUGGER`, `TESTER`, `SECURITY`, `REVIEWER`, `SYSTEM_OPERATOR`), Archivos afectados, Riesgos, Criterios de aceptación, Pruebas requeridas y Estimación de complejidad.
+    - Soporte completo para los **9 estados dinámicos**: `PENDING`, `ANALYZING`, `PLANNED`, `AWAITING_APPROVAL`, `IN_PROGRESS`, `TESTING`, `COMPLETED`, `FAILED` y `BLOCKED`.
+  - **Orquestador de Dependencias DAG (`dag-orchestrator.ts`)**:
+    - Validación formal de Grafos Acíclicos Dirigidos con detección de ciclos mediante coloración DFS (Blanco/Gris/Negro) y control de dependencias inexistentes.
+    - Ordenamiento topológico determinista mediante el algoritmo de Kahn.
+    - Cálculo dinámico de tareas listas (`getReadyTasks`) activadas automáticamente una vez satisfechas sus dependencias.
+    - Programación de ondas paralelas concurrentes con aislamiento de colisiones en archivos afectados (`scheduleParallelWaves`).
+    - Propagación reactiva del estado `BLOCKED` a tareas dependientes tras fallos upstream.
+  - **Motor de Replanificación Adaptativa (`replanning-engine.ts`)**:
+    - Diagnóstico de excepciones y fallas durante la ejecución de tareas.
+    - Inyección automática de tareas de remediación (`REMEDIATION-...`) asignadas al agente `DEBUGGER`.
+    - Reconexión dinámica de aristas en el grafo DAG: re-enruta las dependencias de tareas downstream para esperar a que la remediación culmine con éxito antes de reanudarse.
+    - Registro inmutable de eventos de replanificación en `replanningHistory`.
+  - **Persistencia en SQLite y API REST (`autonomous-planner.ts` y `plans.controller.ts`)**:
+    - Tabla dedicada `kodara_hierarchical_plans` con indexación por proyecto.
+    - Endpoints REST para creación, listado, transición de estados, consulta de tareas listas, replanificación y exportación a Markdown.
+    - Publicación de eventos en tiempo real (`PLAN_CREATED`, `PLAN_STATUS_CHANGED`) en `CoreEventHub`.
+- **Certificación de la Suite de Pruebas**:
+  - Validado y blindado por la nueva suite unitaria `src/planning/__tests__/autonomous-planning.test.ts`, consolidando **29 suites de prueba y 160/160 pruebas unitarias aprobadas al 100% (1,041 aserciones)** con cero fallos y cero regresiones.
+
+
 
 
 

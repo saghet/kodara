@@ -8,9 +8,66 @@
 import { FastifyInstance } from 'fastify';
 import { KodaraPlanExecutor } from '../../kodara/plan-executor.js';
 import { KodaraCoreMemory } from '../../kodara/evolution/core-memory.js';
+import { AutonomousPlanningEngine, PlanStatus } from '../../planning/index.js';
 
 export function registerPlanRoutes(app: FastifyInstance): void {
-  // ── Listar y Crear Planes Ejecutables ──
+  // ── Módulo Autónomo de Planificación Jerárquica DAG (Fase 5) ──
+  app.get<{ Querystring: { projectId?: string } }>('/api/kodara/hierarchical-plans', async (req) => {
+    const planner = AutonomousPlanningEngine.getInstance();
+    return await planner.listPlans(req.query?.projectId);
+  });
+
+  app.get<{ Params: { id: string } }>('/api/kodara/hierarchical-plans/:id', async (req, reply) => {
+    const planner = AutonomousPlanningEngine.getInstance();
+    const plan = await planner.getPlan(req.params.id);
+    if (!plan) return reply.code(404).send({ error: 'Plan no encontrado' });
+    return plan;
+  });
+
+  app.get<{ Params: { id: string } }>('/api/kodara/hierarchical-plans/:id/markdown', async (req, reply) => {
+    const planner = AutonomousPlanningEngine.getInstance();
+    const plan = await planner.getPlan(req.params.id);
+    if (!plan) return reply.code(404).send({ error: 'Plan no encontrado' });
+    return { markdown: planner.renderPlanMarkdown(plan) };
+  });
+
+  app.get<{ Params: { id: string } }>('/api/kodara/hierarchical-plans/:id/ready-tasks', async (req, reply) => {
+    const planner = AutonomousPlanningEngine.getInstance();
+    try {
+      const tasks = await planner.getReadyTasks(req.params.id);
+      return { ok: true, readyTasks: tasks };
+    } catch (err: any) {
+      return reply.code(400).send({ error: err.message });
+    }
+  });
+
+  app.post<{ Body: any }>('/api/kodara/hierarchical-plans', async (req) => {
+    const planner = AutonomousPlanningEngine.getInstance();
+    const plan = await planner.createPlan(req.body);
+    return { ok: true, plan };
+  });
+
+  app.post<{ Params: { id: string }; Body: { status: PlanStatus } }>('/api/kodara/hierarchical-plans/:id/transition', async (req, reply) => {
+    const planner = AutonomousPlanningEngine.getInstance();
+    try {
+      const plan = await planner.transitionStatus(req.params.id, req.body.status);
+      return { ok: true, plan };
+    } catch (err: any) {
+      return reply.code(400).send({ error: err.message });
+    }
+  });
+
+  app.post<{ Params: { id: string }; Body: { failedTaskId: string; errorReason: string } }>('/api/kodara/hierarchical-plans/:id/replan', async (req, reply) => {
+    const planner = AutonomousPlanningEngine.getInstance();
+    try {
+      const plan = await planner.replanOnFailure(req.params.id, req.body.failedTaskId, req.body.errorReason);
+      return { ok: true, plan };
+    } catch (err: any) {
+      return reply.code(400).send({ error: err.message });
+    }
+  });
+
+  // ── Listar y Crear Planes Ejecutables (Legacy & Compatibility) ──
   app.get<{ Querystring: { projectId?: string } }>('/api/kodara/plans', async (req) => {
     return await KodaraPlanExecutor.listPlans(req.query?.projectId);
   });
