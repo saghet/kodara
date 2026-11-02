@@ -68,7 +68,8 @@ export function registerPlanRoutes(app: FastifyInstance): void {
   });
 
   // ── Listar y Crear Planes Ejecutables (Legacy & Compatibility) ──
-  app.get<{ Querystring: { projectId?: string } }>('/api/kodara/plans', async (req) => {
+  if (!(app as any).hasRoute?.({ method: 'GET', url: '/api/kodara/plans' })) {
+    app.get<{ Querystring: { projectId?: string } }>('/api/kodara/plans', async (req) => {
     return await KodaraPlanExecutor.listPlans(req.query?.projectId);
   });
 
@@ -185,4 +186,5 @@ export function registerPlanRoutes(app: FastifyInstance): void {
       plan: executedPlan,
     };
   });
+  }
 }

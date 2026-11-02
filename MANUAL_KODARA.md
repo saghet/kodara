@@ -815,6 +815,38 @@ Kodara está instalado como aplicación nativa de escritorio en tu sistema Linux
 - **Certificación de la Suite de Pruebas**:
   - Validado y blindado por la nueva suite unitaria `src/verification/__tests__/verification-engine.test.ts`, consolidando **32 suites de prueba y 177/177 pruebas unitarias aprobadas al 100% (1,210 aserciones)** con cero fallos y cero regresiones.
 
+---
+
+## 44. Fase 9: Experiencia de Usuario Agentic, Streaming CoT DeepSeek-R1 y Monitor de Enjambre
+- **Evolución del Frontend Sovereign y la Cabina Visual (`newcore/src/web/dashboard.html`)**:
+  - **Visualizador de Grafos de Planes DAG**:
+    - Pestaña dedicada `wbTab_autonomousPlan` ("📋 Plan DAG") integrada sin fisuras en la franja de pestañas del Workbench de Antigravity.
+    - Carga dinámica y visualización reactiva de planes jerárquicos desde `/api/kodara/hierarchical-plans`, renderizando cada nodo de tarea con su identificador, agente asignado, archivos afectados y dependencias topológicas.
+    - Filtro instantáneo por estados (`ALL`, `PLANNED`, `IN_PROGRESS`, `COMPLETED`, `FAILED`).
+    - Botón para instanciar nuevos planes autónomos con descomposición en fases libres de ciclos.
+  - **Consola de Razonamiento Profundo en Streaming (DeepSeek-R1 CoT)**:
+    - Acordeón colapsable con diseño dark glassmorphism (`.ag-reasoning-accordion`) que procesa eventos SSE `{ reasoningChunk: "..." }`.
+    - Animación de pulso morado con conteo de tokens de pensamiento aproximados y cronómetro en vivo de inferencia analítica.
+    - Separación nítida entre el proceso reflexivo de la IA y el código ejecutable final entregado al usuario.
+  - **Selector de Modo de Interacción y Confirmación HITL**:
+    - Selector dual: **Modo Autónomo Continuo (Turbo)** vs **Modo Supervisado (HITL)**.
+    - Modal de confirmación previa (`#agHitlConfirmationModal`) con diseño Antigravity IDE que bloquea y solicita autorización explícita para operaciones críticas del sistema o cambios destructivos en modo supervisado.
+  - **Monitor del Enjambre de 10 Agentes y Pizarra Colaborativa**:
+    - Pestaña dedicada `wbTab_agentSwarm` ("🤖 Enjambre (10)") en el Workbench.
+    - Tarjetas de estado y matriz de mínimo privilegio para los 10 agentes especializados (`ORCHESTRATOR`, `ARCHITECT`, `PLANNER`, `DEVELOPER`, `DEBUGGER`, `TESTER`, `SECURITY`, `REVIEWER`, `DOCUMENTATION`, `SYSTEM_OPERATOR`).
+    - Visor de eventos en vivo de la pizarra colaborativa (`AgentWhiteboard`) y monitor de bloqueos exclusivos de archivos.
+  - **Modal Visor Interactivo de Diffs de Código**:
+    - Modal flotante (`#agDiffViewerModal`) con vista unificada de diferencias sintácticas: líneas eliminadas (`-`) en carmesí y líneas añadidas (`+`) en verde esmeralda con numeración exacta.
+    - Permite inspeccionar y auditar las propuestas de parche antes de confirmarlas en disco.
+  - **Botón de Detención de Emergencia / Aborto Reactivo**:
+    - Botón reactivo `#abortExecutionBtn` vinculado a un `AbortController` en la barra de prompts.
+    - Interrumpe de inmediato el stream HTTP, aborta la inferencia y restablece la interfaz sin dejar procesos zombies.
+  - **Controlador REST del Enjambre ([`agents.controller.ts`](file:///home/saghet/Documents/Ollama/Velocity/newcore/src/server/controllers/agents.controller.ts))**:
+    - Rutas Fastify montadas en `server.ts`: `GET /api/kodara/swarm/agents`, `GET /api/kodara/swarm/whiteboard` y `POST /api/kodara/swarm/whiteboard`.
+- **Certificación de la Suite de Pruebas**:
+  - Validado y blindado por la nueva suite unitaria `src/web/__tests__/dashboard-ux.test.ts`, consolidando **37 suites de prueba y 194/194 pruebas unitarias aprobadas al 100% (1,334 aserciones)** con cero fallos y cero regresiones bajo Bun v1.4.4.
+
+
 
 
 

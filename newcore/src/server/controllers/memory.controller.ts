@@ -82,49 +82,51 @@ export function registerMemoryRoutes(app: FastifyInstance): void {
     return { ok: true, compacted };
   });
 
-  // ── Kodara Project Memory (Legacy & Evolution) ──
-  app.get<{ Querystring: { projectId?: string } }>('/api/kodara/memory/project', async (req) => {
-    return await KodaraProjectMemory.listMemories(req.query?.projectId);
-  });
+  // ── Kodara Project Memory (Legacy & Evolution - Solo si no están registrados) ──
+  if (!(app as any).hasRoute?.({ method: 'GET', url: '/api/kodara/memory/project' })) {
+    app.get<{ Querystring: { projectId?: string } }>('/api/kodara/memory/project', async (req) => {
+      return await KodaraProjectMemory.listMemories(req.query?.projectId);
+    });
 
-  app.post<{
-    Body: {
-      projectId: string;
-      projectName: string;
-      language?: 'rust' | 'typescript' | 'python' | 'security' | 'general' | 'go';
-      errorSignature: string;
-      errorContext: string;
-      rootCause: string;
-      verifiedFix: string;
-    };
-  }>('/api/kodara/memory/project', async (req) => {
-    const entry = await KodaraProjectMemory.recordApplicationLearning(req.body as any);
-    return { ok: true, entry };
-  });
+    app.post<{
+      Body: {
+        projectId: string;
+        projectName: string;
+        language?: 'rust' | 'typescript' | 'python' | 'security' | 'general' | 'go';
+        errorSignature: string;
+        errorContext: string;
+        rootCause: string;
+        verifiedFix: string;
+      };
+    }>('/api/kodara/memory/project', async (req) => {
+      const entry = await KodaraProjectMemory.recordApplicationLearning(req.body as any);
+      return { ok: true, entry };
+    });
 
-  // ── Kodara Core Memory ──
-  app.get('/api/kodara/memory/core', async () => {
-    return await KodaraCoreMemory.listCoreMemories();
-  });
+    // ── Kodara Core Memory ──
+    app.get('/api/kodara/memory/core', async () => {
+      return await KodaraCoreMemory.listCoreMemories();
+    });
 
-  app.post<{
-    Body: {
-      ideComponent: string;
-      issueSignature: string;
-      telemetrySummary: string;
-      rootCause: string;
-      supervisedProposal: string;
-    };
-  }>('/api/kodara/memory/core', async (req) => {
-    const entry = await KodaraCoreMemory.recordInternalIdeIssue(req.body);
-    return { ok: true, entry };
-  });
+    app.post<{
+      Body: {
+        ideComponent: string;
+        issueSignature: string;
+        telemetrySummary: string;
+        rootCause: string;
+        supervisedProposal: string;
+      };
+    }>('/api/kodara/memory/core', async (req) => {
+      const entry = await KodaraCoreMemory.recordInternalIdeIssue(req.body);
+      return { ok: true, entry };
+    });
 
-  app.post<{
-    Params: { id: string };
-    Body: { status: 'APPROVED' | 'REJECTED' };
-  }>('/api/kodara/memory/core/:id/decision', async (req) => {
-    await KodaraCoreMemory.updateApprovalStatus(req.params.id, req.body.status);
-    return { ok: true, entries: await KodaraCoreMemory.listCoreMemories() };
-  });
+    app.post<{
+      Params: { id: string };
+      Body: { status: 'APPROVED' | 'REJECTED' };
+    }>('/api/kodara/memory/core/:id/decision', async (req) => {
+      await KodaraCoreMemory.updateApprovalStatus(req.params.id, req.body.status);
+      return { ok: true, entries: await KodaraCoreMemory.listCoreMemories() };
+    });
+  }
 }

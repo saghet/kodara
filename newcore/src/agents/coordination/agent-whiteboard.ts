@@ -119,6 +119,17 @@ export class AgentWhiteboard {
     return { locked: true, heldBy: existing.agentId };
   }
 
+  public getAllLocks(): Array<{ filePath: string; agentId: string; lockedAt: number }> {
+    const list: Array<{ filePath: string; agentId: string; lockedAt: number }> = [];
+    const now = Date.now();
+    for (const [filePath, info] of this.fileLocks.entries()) {
+      if (now - info.lockedAt <= 120000) {
+        list.push({ filePath, agentId: info.agentId, lockedAt: info.lockedAt });
+      }
+    }
+    return list;
+  }
+
   public clearNotes(): void {
     this.notes = [];
     this.fileLocks.clear();

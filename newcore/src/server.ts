@@ -37,6 +37,9 @@ import {
   KodaraProjectMemory,
   KodaraCoreMemory,
 } from './kodara/evolution/index.js';
+import { registerPlanRoutes } from './server/controllers/plans.controller.js';
+import { registerMemoryRoutes } from './server/controllers/memory.controller.js';
+import { registerAgentSwarmControllers } from './server/controllers/agents.controller.js';
 
 // ── Detector de Intención Táctica MCP (Genera tarjeta HITL automáticamente) ──
 function detectTacticalToolIntent(userMessage: string) {
@@ -1729,6 +1732,11 @@ ${compiledOrders.orders.length > 0 ? `${compiledOrders.history_ledger_prompt_blo
     reply.raw.on('close', cleanup);
     reply.raw.on('error', cleanup);
   });
+
+  // ── Registrar Controladores Modulares de Kodara (Fases 5, 6, 7) ──
+  registerPlanRoutes(app);
+  registerMemoryRoutes(app);
+  registerAgentSwarmControllers(app);
 
   // ── Start ──
   try {

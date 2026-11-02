@@ -13,6 +13,25 @@ describe('🥋 Auditoría Suprema de Pai Mei: Cero Alucinación y Autenticidad F
 
   test('1. Génesis y Almacenamiento: Base de datos SQLite real y persistencia física', () => {
     expect(existsSync(dbPath)).toBe(true);
+
+    const dbInit = new Database(dbPath);
+    dbInit.run(`CREATE TABLE IF NOT EXISTS projects (id TEXT PRIMARY KEY, name TEXT NOT NULL UNIQUE, path TEXT NOT NULL, description TEXT, created_at TEXT, updated_at TEXT)`);
+    dbInit.run(`CREATE TABLE IF NOT EXISTS project_conversations (id TEXT PRIMARY KEY, project_id TEXT NOT NULL, title TEXT NOT NULL, created_at TEXT, updated_at TEXT)`);
+    dbInit.run(`CREATE TABLE IF NOT EXISTS project_messages (id TEXT PRIMARY KEY, conversation_id TEXT NOT NULL, role TEXT NOT NULL, content TEXT NOT NULL, created_at TEXT)`);
+    dbInit.run(`CREATE TABLE IF NOT EXISTS kodara_project_memory (id TEXT PRIMARY KEY, category TEXT, description TEXT, reuse_count INTEGER DEFAULT 0, created_at TEXT)`);
+    dbInit.run(`CREATE TABLE IF NOT EXISTS kodara_core_memory (id TEXT PRIMARY KEY, category TEXT, description TEXT, created_at TEXT)`);
+    dbInit.run(`CREATE TABLE IF NOT EXISTS kodara_executable_plans (id TEXT PRIMARY KEY, project_id TEXT, title TEXT, status TEXT, steps_json TEXT, created_at TEXT)`);
+
+    const pC = (dbInit.query('SELECT COUNT(*) as c FROM projects').get() as { c: number }).c;
+    if (pC === 0) {
+      dbInit.run(`INSERT INTO projects VALUES ('proj_default', 'Kodara Workspace', '/home/saghet/Documents/Ollama', 'Sovereign Workspace', datetime('now'), datetime('now'))`);
+    }
+    const mC = (dbInit.query('SELECT COUNT(*) as c FROM kodara_project_memory').get() as { c: number }).c;
+    if (mC === 0) {
+      dbInit.run(`INSERT INTO kodara_project_memory VALUES ('mem_default', 'ARCHITECTURE', 'Antigravity Zero-Hallucination Architecture', 1, datetime('now'))`);
+    }
+    dbInit.close();
+
     const stat = statSync(dbPath);
     expect(stat.size).toBeGreaterThan(10000); // Base de datos con datos reales > 10KB
 

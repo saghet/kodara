@@ -1071,6 +1071,221 @@
       overflow-x: auto;
       margin: 0.35rem 0;
     }
+
+    /* ═══════════════════════════════════════════════════════════════
+       FASE 9: AGENTIC UX & VISUAL WORKBENCH ESTILOS
+       ═══════════════════════════════════════════════════════════════ */
+    /* Acordeón de Razonamiento Profundo DeepSeek-R1 */
+    .ag-reasoning-accordion {
+      background: rgba(147, 51, 234, 0.05);
+      border: 1px solid rgba(168, 85, 247, 0.28);
+      border-radius: 8px;
+      margin: 0.6rem 0;
+      padding: 0;
+      overflow: hidden;
+      transition: all 0.2s ease;
+    }
+    .ag-reasoning-accordion[open] {
+      background: rgba(147, 51, 234, 0.08);
+      border-color: rgba(168, 85, 247, 0.45);
+    }
+    .ag-reasoning-summary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.5rem 0.75rem;
+      cursor: pointer;
+      user-select: none;
+      font-size: 0.76rem;
+      background: rgba(147, 51, 234, 0.12);
+      border-bottom: 1px solid rgba(168, 85, 247, 0.15);
+      color: #d8b4fe;
+    }
+    .ag-reasoning-summary:hover {
+      background: rgba(147, 51, 234, 0.18);
+    }
+    .ag-reasoning-title {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      font-weight: 600;
+    }
+    .ag-reasoning-pip {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #c084fc;
+      box-shadow: 0 0 8px #a855f7;
+      display: inline-block;
+      animation: reasoningPulse 1.8s infinite ease-in-out;
+    }
+    @keyframes reasoningPulse {
+      0%, 100% { opacity: 0.4; transform: scale(0.9); }
+      50% { opacity: 1; transform: scale(1.2); }
+    }
+    .ag-reasoning-badge {
+      font-size: 0.68rem;
+      font-family: var(--font-mono);
+      color: #e9d5ff;
+      background: rgba(168, 85, 247, 0.2);
+      padding: 2px 7px;
+      border-radius: 4px;
+      border: 1px solid rgba(168, 85, 247, 0.35);
+    }
+    .ag-reasoning-body {
+      padding: 0.75rem;
+      font-family: var(--font-mono);
+      font-size: 0.73rem;
+      color: #cbd5e1;
+      line-height: 1.5;
+      max-height: 280px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+      background: rgba(10, 10, 15, 0.5);
+    }
+
+    /* Botón de Aborto Reactivo */
+    .ag-abort-circle-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: rgba(239, 68, 68, 0.2);
+      border: 1.5px solid #ef4444;
+      color: #f87171;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+    .ag-abort-circle-btn:hover {
+      background: #ef4444;
+      color: #ffffff;
+      box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+    }
+
+    /* DAG Graph Visualizer & Nodes */
+    .dag-node-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 0.75rem 0.85rem;
+      margin-bottom: 0.6rem;
+      position: relative;
+      transition: all 0.15s ease;
+    }
+    .dag-node-card:hover {
+      border-color: var(--accent-blue);
+      transform: translateY(-1px);
+    }
+    .dag-node-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.4rem;
+    }
+    .dag-node-id {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: #93c5fd;
+    }
+    .dag-badge-status {
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+    .dag-status-COMPLETED { background: rgba(16, 185, 129, 0.18); color: #34d399; border: 1px solid #10b981; }
+    .dag-status-IN_PROGRESS { background: rgba(59, 130, 246, 0.2); color: #60a5fa; border: 1px solid #3b82f6; animation: reasoningPulse 1.5s infinite; }
+    .dag-status-PLANNED { background: rgba(148, 163, 184, 0.12); color: #94a3b8; border: 1px solid #64748b; }
+    .dag-status-FAILED { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid #ef4444; }
+    .dag-status-PENDING { background: rgba(100, 116, 139, 0.15); color: #cbd5e1; border: 1px solid #475569; }
+
+    /* Enjambre de Agentes Grid */
+    .swarm-agent-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 7px;
+      padding: 0.65rem 0.8rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      transition: border 0.12s;
+    }
+    .swarm-agent-card:hover {
+      border-color: var(--accent-purple);
+    }
+    .swarm-agent-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .swarm-agent-name {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #f1f5f9;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .swarm-perm-pip {
+      font-size: 0.64rem;
+      font-family: var(--font-mono);
+      background: rgba(255, 255, 255, 0.05);
+      padding: 1px 5px;
+      border-radius: 3px;
+      color: #94a3b8;
+    }
+    .swarm-perm-pip.active {
+      background: rgba(16, 185, 129, 0.15);
+      color: #6ee7b7;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    /* Modal Visor de Diffs */
+    .diff-modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+    }
+    .diff-modal-container {
+      background: #141419;
+      border: 1px solid var(--border-light);
+      border-radius: 10px;
+      width: 90vw;
+      max-width: 900px;
+      max-height: 85vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.6);
+    }
+    .diff-line-del {
+      background: rgba(239, 68, 68, 0.16);
+      color: #fca5a5;
+      padding: 2px 8px;
+    }
+    .diff-line-add {
+      background: rgba(16, 185, 129, 0.16);
+      color: #86efac;
+      padding: 2px 8px;
+    }
+    .diff-line-info {
+      background: rgba(59, 130, 246, 0.1);
+      color: #93c5fd;
+      padding: 2px 8px;
+      font-weight: 600;
+    }
   </style>
 </head>
 <body>
@@ -1297,14 +1512,18 @@
             </select>
           </div>
 
-          <!-- Controles Derechos: Selector 🛡️ Turbo ^ (Flecha 3) y Botón Enviar → -->
+          <!-- Controles Derechos: Selector 🛡️ Turbo ^, Botón Abortar ⏹ y Botón Enviar → -->
           <div class="ag-prompt-right-controls">
             <select id="executionModeSelect" class="ag-turbo-select" onchange="onExecutionModeChange()" title="Modo de ejecución en ambientes autorizados">
               <option value="turbo" selected>🛡️ Turbo ⌄</option>
               <option value="supervised">🔒 Supervisado ⌄</option>
             </select>
 
-            <button class="ag-send-circle-btn" onclick="sendChatMessage()" title="Enviar orden (Enter)">
+            <button id="abortExecutionBtn" class="ag-abort-circle-btn" onclick="abortCurrentExecution()" title="Detener generación / Cancelar ejecución inmediatamente">
+              ⏹
+            </button>
+
+            <button id="sendChatMessageBtn" class="ag-send-circle-btn" onclick="sendChatMessage()" title="Enviar orden (Enter)">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                 <line x1="5" y1="12" x2="19" y2="12"></line>
                 <polyline points="12 5 19 12 12 19"></polyline>
@@ -1317,21 +1536,29 @@
   </main>
 
   <!-- ═══════════════════════════════════════════════════════════════
-       COLUMNA 3: WORKBENCH CON LAS DOS MEMORIAS INDEPENDIENTES
+       COLUMNA 3: WORKBENCH CON MEMORIAS, PLAN DAG Y ENJAMBRE DE AGENTES
        ═══════════════════════════════════════════════════════════════ -->
   <aside class="ag-workbench">
     <div class="ag-tab-strip">
       <div class="ag-tab active" id="wbTab_projectMemory" onclick="switchWorkbenchTab('projectMemory')">
         <span>🧠</span>
-        <span>Kodara Project Memory</span>
+        <span>Memoria Proyecto</span>
       </div>
       <div class="ag-tab" id="wbTab_coreMemory" onclick="switchWorkbenchTab('coreMemory')">
         <span>⚙️</span>
-        <span>Kodara Core Memory</span>
+        <span>Core Memory</span>
       </div>
       <div class="ag-tab" id="wbTab_arsenal" onclick="switchWorkbenchTab('arsenal')">
         <span>🛡️</span>
-        <span>Arsenal & Activos</span>
+        <span>Arsenal</span>
+      </div>
+      <div class="ag-tab" id="wbTab_autonomousPlan" onclick="switchWorkbenchTab('autonomousPlan')">
+        <span>📋</span>
+        <span>Plan DAG</span>
+      </div>
+      <div class="ag-tab" id="wbTab_agentSwarm" onclick="switchWorkbenchTab('agentSwarm')">
+        <span>🤖</span>
+        <span>Enjambre (10)</span>
       </div>
     </div>
 
@@ -1407,6 +1634,74 @@
         <div class="wb-title" style="font-size:0.8rem">🎯 Mapa de Activos y Hallazgos en Vivo</div>
       </div>
       <div id="targetTreeContainer" style="display:flex;flex-direction:column;gap:0.6rem"></div>
+    </div>
+
+    <!-- VISTA 4: VISUALIZADOR DE GRAFOS DE PLANES DAG (FASE 9) -->
+    <div class="ag-workbench-body" id="wbPane_autonomousPlan" style="display:none">
+      <div class="wb-section-header">
+        <div>
+          <div class="wb-title">📋 Planes Jerárquicos DAG</div>
+          <div class="wb-subtitle">Grafo Acíclico Dirigido con orden topológico Kahn, paralelismo sin colisión y ciclo de 9 estados.</div>
+        </div>
+        <div style="display:flex;gap:4px">
+          <button class="ag-chip-btn" style="color:#38bdf8" onclick="loadAutonomousDAGPlans()">🔄 Refrescar</button>
+          <button class="ag-chip-btn" style="color:#34d399" onclick="promptCreateNewPlan()">+ Nuevo Plan</button>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;margin:0.2rem 0">
+        <span style="font-size:0.72rem;color:var(--text-tertiary)">Filtrar Tareas por Estado:</span>
+        <select id="dagStatusFilterSelect" class="ag-inline-select" style="font-size:0.72rem;padding:2px 6px" onchange="filterDagTasksByStatus(this.value)">
+          <option value="ALL">Todas las Tareas</option>
+          <option value="PLANNED">Planned</option>
+          <option value="IN_PROGRESS">In Progress</option>
+          <option value="COMPLETED">Completed</option>
+          <option value="FAILED">Failed</option>
+        </select>
+      </div>
+
+      <div id="dagPlanSummaryCard" style="background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:8px;padding:0.75rem 0.85rem">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.4rem">
+          <div id="dagActivePlanTitle" style="font-weight:700;font-size:0.84rem;color:#fff">Cargando Plan DAG...</div>
+          <span id="dagActivePlanBadge" class="dag-badge-status dag-status-PLANNED">STANDBY</span>
+        </div>
+        <div id="dagActivePlanMeta" style="font-size:0.74rem;color:var(--text-secondary);line-height:1.4">
+          Selecciona un plan o crea un nuevo objetivo para visualizar las ondas de ejecución.
+        </div>
+      </div>
+
+      <div class="wb-section-header" style="margin-top:0.4rem">
+        <div class="wb-title" style="font-size:0.8rem">🔗 Grafo de Nodos de Ejecución (Topológico)</div>
+        <span id="dagTaskCounterBadge" style="font-size:0.68rem;color:#38bdf8;font-family:var(--font-mono)">0 tareas</span>
+      </div>
+
+      <div id="dagNodesContainer" style="display:flex;flex-direction:column;gap:0.45rem">
+        <!-- Renderizado dinámico vía loadAutonomousDAGPlans() -->
+      </div>
+    </div>
+
+    <!-- VISTA 5: MONITOR DEL ENJAMBRE DE 10 AGENTES ESPECIALIZADOS (FASE 9) -->
+    <div class="ag-workbench-body" id="wbPane_agentSwarm" style="display:none">
+      <div class="wb-section-header">
+        <div>
+          <div class="wb-title">🤖 Enjambre de 10 Agentes Especializados</div>
+          <div class="wb-subtitle">Matriz de mínimo privilegio, roles dedicados, aislamiento Git worktree y feed colaborativo.</div>
+        </div>
+        <button class="ag-chip-btn" style="color:#a855f7" onclick="loadAgentSwarmState()">🔄 Sincronizar</button>
+      </div>
+
+      <div id="swarmAgentsGrid" style="display:grid;grid-template-columns:1fr;gap:0.5rem">
+        <!-- Renderizado dinámico vía loadAgentSwarmState() -->
+      </div>
+
+      <div class="wb-section-header" style="margin-top:0.6rem">
+        <div class="wb-title" style="font-size:0.8rem">📢 Pizarra Colaborativa (Whiteboard Feed)</div>
+        <button class="ag-chip-btn" style="color:#22d3ee;font-size:0.68rem" onclick="openPostWhiteboardNotePrompt()">+ Escribir Nota</button>
+      </div>
+
+      <div id="swarmWhiteboardFeed" style="display:flex;flex-direction:column;gap:0.45rem">
+        <!-- Notas colaborativas del enjambre -->
+      </div>
     </div>
   </aside>
 
@@ -1606,6 +1901,55 @@
     </div>
   </div>
 
+  <!-- Modal: Visor Interactivo de Diffs (Fase 9) -->
+  <div id="agDiffViewerModal" class="ag-modal-backdrop" onclick="if(event.target===this)closeDiffViewerModal()">
+    <div class="diff-modal-container" style="display:flex;flex-direction:column">
+      <div class="ag-modal-header" style="padding:0.75rem 1.1rem;border-bottom:1px solid var(--border-subtle);display:flex;align-items:center;justify-content:space-between">
+        <div style="display:flex;align-items:center;gap:0.5rem">
+          <span style="font-size:1.1rem">🔍</span>
+          <span class="ag-modal-title" id="diffModalFilename">Inspección de Cambios de Código (Diff)</span>
+        </div>
+        <button class="ag-icon-btn" onclick="closeDiffViewerModal()">✕</button>
+      </div>
+      <div style="padding:0.5rem 1.1rem;background:#0d0d12;border-bottom:1px solid var(--border-subtle);font-size:0.75rem;color:var(--text-secondary);display:flex;justify-content:space-between">
+        <span>Líneas eliminadas (<span style="color:#f87171">-</span>) / Líneas añadidas (<span style="color:#4ade80">+</span>)</span>
+        <span id="diffModalStats" style="font-family:var(--font-mono);color:#93c5fd">0 additions, 0 deletions</span>
+      </div>
+      <div id="diffModalBody" style="flex:1;overflow-y:auto;max-height:60vh;padding:0.75rem;font-family:var(--font-mono);font-size:0.74rem;background:#09090c;line-height:1.45">
+        <!-- Renderizado dinámico vía renderUnifiedDiff() -->
+      </div>
+      <div class="ag-modal-actions" style="padding:0.75rem 1.1rem;border-top:1px solid var(--border-subtle);display:flex;justify-content:flex-end;gap:0.5rem">
+        <button class="ag-modal-btn secondary" onclick="closeDiffViewerModal()">Cerrar</button>
+        <button class="ag-modal-btn primary" id="diffModalApplyBtn" onclick="applyInspectedDiff()">✓ Confirmar & Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Confirmación HITL de Operaciones Críticas (Modo Supervisado) -->
+  <div id="agHitlConfirmationModal" class="ag-modal-backdrop" style="z-index:10001">
+    <div class="ag-modal-box" style="max-width:440px;border:1.5px solid #f59e0b;box-shadow:0 12px 30px rgba(245,158,11,0.25)">
+      <div class="ag-modal-header" style="border-bottom:1px solid rgba(245,158,11,0.3)">
+        <span class="ag-modal-title" style="color:#fbbf24;display:flex;align-items:center;gap:0.4rem">
+          <span>⚠️</span>
+          <span id="hitlModalTitle">Autorización HITL Requerida</span>
+        </span>
+      </div>
+      <div class="ag-modal-body">
+        <p style="font-size:0.78rem;color:#f1f5f9;line-height:1.45" id="hitlModalActionDesc">
+          El agente autónomo solicita permiso para ejecutar una operación sensible sobre el sistema.
+        </p>
+        <div id="hitlModalDetails" class="code-block" style="margin-top:0.5rem;max-height:140px;overflow-y:auto"></div>
+        <div style="font-size:0.72rem;color:var(--text-tertiary);margin-top:0.4rem">
+          Modo Supervisado activo. Puedes aprobar la ejecución o abortarla inmediatamente.
+        </div>
+      </div>
+      <div class="ag-modal-actions">
+        <button class="ag-modal-btn secondary" id="hitlRejectBtn" onclick="handleHitlDecision(false)">✕ Rechazar & Cancelar</button>
+        <button class="ag-modal-btn primary" id="hitlApproveBtn" style="background:#f59e0b;color:#000;font-weight:700" onclick="handleHitlDecision(true)">✓ Autorizar Operación</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     let activeProjectId = '';
     let activeProjectName = '';
@@ -1643,9 +1987,11 @@
     }
 
     function switchWorkbenchTab(tabName) {
-      ['projectMemory', 'coreMemory', 'arsenal'].forEach(t => {
-        document.getElementById('wbTab_' + t).classList.toggle('active', t === tabName);
-        document.getElementById('wbPane_' + t).style.display = (t === tabName) ? 'flex' : 'none';
+      ['projectMemory', 'coreMemory', 'arsenal', 'autonomousPlan', 'agentSwarm'].forEach(t => {
+        const tabEl = document.getElementById('wbTab_' + t);
+        const paneEl = document.getElementById('wbPane_' + t);
+        if (tabEl) tabEl.classList.toggle('active', t === tabName);
+        if (paneEl) paneEl.style.display = (t === tabName) ? 'flex' : 'none';
       });
       if (tabName === 'projectMemory') loadProjectMemory();
       if (tabName === 'coreMemory') loadCoreMemory();
@@ -1653,6 +1999,8 @@
         loadArsenalTools();
         loadTargetTree();
       }
+      if (tabName === 'autonomousPlan') loadAutonomousDAGPlans();
+      if (tabName === 'agentSwarm') loadAgentSwarmState();
     }
 
     // ── 1. Árbol de Proyectos y Conversaciones Estándar Antigravity (Columna Izquierda) ──
@@ -3326,6 +3674,111 @@
       `;
     }
 
+    // ── Fase 9: Aborto Reactivo, Streaming de Razonamiento CoT & Modales HITL ──
+    let activeChatAbortController = null;
+    let pendingHitlCallback = null;
+
+    function abortCurrentExecution() {
+      if (activeChatAbortController) {
+        activeChatAbortController.abort();
+        activeChatAbortController = null;
+      }
+      const abortBtn = document.getElementById('abortExecutionBtn');
+      const sendBtn = document.getElementById('sendChatMessageBtn');
+      if (abortBtn) abortBtn.style.display = 'none';
+      if (sendBtn) sendBtn.style.display = 'flex';
+      appendAiBlock('<span style="color:#ef4444;font-weight:600">⏹ Ejecución abortada inmediatamente por el usuario.</span>');
+    }
+
+    function showHitlConfirmationModal(actionTitle, actionDetails, onApprove, onReject) {
+      const modal = document.getElementById('agHitlConfirmationModal');
+      const titleEl = document.getElementById('hitlModalTitle');
+      const descEl = document.getElementById('hitlModalActionDesc');
+      const detailsEl = document.getElementById('hitlModalDetails');
+      if (!modal) return;
+
+      if (titleEl) titleEl.textContent = 'Autorización HITL: ' + actionTitle;
+      if (descEl) descEl.textContent = `El agente solicita autorización para: ${actionTitle}`;
+      if (detailsEl) detailsEl.textContent = typeof actionDetails === 'object' ? JSON.stringify(actionDetails, null, 2) : String(actionDetails);
+
+      pendingHitlCallback = { onApprove, onReject };
+      modal.classList.add('open');
+    }
+
+    function handleHitlDecision(approved) {
+      const modal = document.getElementById('agHitlConfirmationModal');
+      if (modal) modal.classList.remove('open');
+      if (pendingHitlCallback) {
+        if (approved && pendingHitlCallback.onApprove) pendingHitlCallback.onApprove();
+        if (!approved && pendingHitlCallback.onReject) pendingHitlCallback.onReject();
+        pendingHitlCallback = null;
+      }
+    }
+
+    // ── Visor Interactivo de Diffs (Fase 9) ──
+    let activeInspectedDiffData = null;
+
+    function showDiffModal(filename, oldCode, newCode, onConfirm) {
+      const modal = document.getElementById('agDiffViewerModal');
+      const fnEl = document.getElementById('diffModalFilename');
+      const bodyEl = document.getElementById('diffModalBody');
+      const statsEl = document.getElementById('diffModalStats');
+      if (!modal || !bodyEl) return;
+
+      if (fnEl) fnEl.textContent = filename || 'Inspección de Cambios';
+      activeInspectedDiffData = { filename, oldCode, newCode, onConfirm };
+
+      const diffResult = renderUnifiedDiff(oldCode || '', newCode || '');
+      bodyEl.innerHTML = diffResult.html;
+      if (statsEl) statsEl.textContent = `+${diffResult.additions} adiciones, -${diffResult.deletions} eliminaciones`;
+
+      modal.classList.add('open');
+    }
+
+    function closeDiffViewerModal() {
+      const modal = document.getElementById('agDiffViewerModal');
+      if (modal) modal.classList.remove('open');
+      activeInspectedDiffData = null;
+    }
+
+    function applyInspectedDiff() {
+      if (activeInspectedDiffData && activeInspectedDiffData.onConfirm) {
+        activeInspectedDiffData.onConfirm(activeInspectedDiffData);
+      }
+      closeDiffViewerModal();
+    }
+
+    function renderUnifiedDiff(oldStr, newStr) {
+      const oldLines = oldStr.split('\n');
+      const newLines = newStr.split('\n');
+      let additions = 0;
+      let deletions = 0;
+      let outHtml = '';
+
+      const maxLen = Math.max(oldLines.length, newLines.length);
+      for (let i = 0; i < maxLen; i++) {
+        const oL = oldLines[i];
+        const nL = newLines[i];
+
+        if (oL === undefined) {
+          additions++;
+          outHtml += `<div class="diff-line-add">+ [L${i+1}] ${escapeHtml(nL)}</div>`;
+        } else if (nL === undefined) {
+          deletions++;
+          outHtml += `<div class="diff-line-del">- [L${i+1}] ${escapeHtml(oL)}</div>`;
+        } else if (oL !== nL) {
+          deletions++;
+          additions++;
+          outHtml += `<div class="diff-line-del">- [L${i+1}] ${escapeHtml(oL)}</div>`;
+          outHtml += `<div class="diff-line-add">+ [L${i+1}] ${escapeHtml(nL)}</div>`;
+        } else {
+          outHtml += `<div style="padding:1px 8px;color:#64748b">  [L${i+1}] ${escapeHtml(oL)}</div>`;
+        }
+      }
+
+      return { html: outHtml || '<div style="color:#64748b">Sin cambios detectados</div>', additions, deletions };
+    }
+
     async function sendChatMessage() {
       const input = document.getElementById('promptInput');
       const rawText = input.value.trim();
@@ -3338,15 +3791,26 @@
       renderAttachedImagesTray();
 
       appendUserBubble(text, imagesToSend);
-      const aiNode = appendAiBlock(`<span style="color:var(--text-tertiary)">${imagesToSend.length > 0 ? '🖼️ Analizando captura con Kodara Vision Engine (OCR bilingüe + Codebase Grounding)...' : 'Procesando en modo Turbo (num_ctx: 32768, num_threads: 8)...'}</span>`);
+      const aiNode = appendAiBlock(`<span style="color:var(--text-tertiary)">${imagesToSend.length > 0 ? '🖼️ Analizando captura con Kodara Vision Engine (OCR bilingüe + Codebase Grounding)...' : 'Procesando en modo Turbo con DeepSeek-R1 (num_ctx: 32768, num_threads: 8)...'}</span>`);
 
       const model = document.getElementById('modelSelect').value;
       const executionMode = document.getElementById('executionModeSelect').value;
+
+      activeChatAbortController = new AbortController();
+      const abortBtn = document.getElementById('abortExecutionBtn');
+      const sendBtn = document.getElementById('sendChatMessageBtn');
+      if (abortBtn) abortBtn.style.display = 'flex';
+      if (sendBtn) sendBtn.style.display = 'none';
+
+      const streamStartTime = Date.now();
+      let reasoningText = '';
+      let reasoningAccordionHtml = '';
 
       try {
         const resp = await fetch('/chat/stream', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          signal: activeChatAbortController.signal,
           body: JSON.stringify({
             model,
             message: text,
@@ -3380,29 +3844,63 @@
               }
               loadProjectsSidebar();
             }
+            if (data.reasoningChunk) {
+              reasoningText += data.reasoningChunk;
+              const reasoningTokens = Math.ceil(reasoningText.length / 4);
+              const elapsedSec = ((Date.now() - streamStartTime) / 1000).toFixed(1);
+              reasoningAccordionHtml = `
+                <details class="ag-reasoning-accordion" open>
+                  <summary class="ag-reasoning-summary">
+                    <div class="ag-reasoning-title">
+                      <span class="ag-reasoning-pip"></span>
+                      <span>Razonamiento Lógico Profundo (DeepSeek-R1 CoT)</span>
+                    </div>
+                    <span class="ag-reasoning-badge">~${reasoningTokens} tokens · ${elapsedSec}s</span>
+                  </summary>
+                  <div class="ag-reasoning-body">${escapeHtml(reasoningText)}</div>
+                </details>
+              `;
+              aiNode.innerHTML = reasoningAccordionHtml + visionCardHtml + formatMarkdown(stripSymbolicDisclaimersClient(fullText)) + attachedSandboxHtml + attachedPlanHtml;
+              scrollChatBottom();
+            }
+            if (data.requiresConfirmation) {
+              showHitlConfirmationModal(data.action || 'Modificación del Sistema', data.details || {}, () => {
+                fetch('/api/kodara/security/approve', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ actionId: data.actionId || 'act_' + Date.now() })
+                });
+              }, () => {
+                fetch('/api/kodara/security/reject', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ actionId: data.actionId || 'act_' + Date.now() })
+                });
+              });
+            }
             if (data.sandboxAction) {
               attachedSandboxHtml = renderSandboxActionCardHTML(data.sandboxAction);
-              aiNode.innerHTML = visionCardHtml + formatMarkdown(stripSymbolicDisclaimersClient(fullText)) + attachedSandboxHtml + attachedPlanHtml;
+              aiNode.innerHTML = reasoningAccordionHtml + visionCardHtml + formatMarkdown(stripSymbolicDisclaimersClient(fullText)) + attachedSandboxHtml + attachedPlanHtml;
               scrollChatBottom();
             }
             if (data.visionReport) {
               visionCardHtml = renderVisionReportCardHTML(data.visionReport);
-              aiNode.innerHTML = visionCardHtml + formatMarkdown(stripSymbolicDisclaimersClient(fullText)) + attachedSandboxHtml + attachedPlanHtml;
+              aiNode.innerHTML = reasoningAccordionHtml + visionCardHtml + formatMarkdown(stripSymbolicDisclaimersClient(fullText)) + attachedSandboxHtml + attachedPlanHtml;
               scrollChatBottom();
             }
             if (data.turboExecuted) {
               fullText += data.turboExecuted.parsed.llmDigest + '\n\n---\n\n';
-              aiNode.innerHTML = visionCardHtml + formatMarkdown(stripSymbolicDisclaimersClient(fullText)) + attachedSandboxHtml + attachedPlanHtml;
+              aiNode.innerHTML = reasoningAccordionHtml + visionCardHtml + formatMarkdown(stripSymbolicDisclaimersClient(fullText)) + attachedSandboxHtml + attachedPlanHtml;
               loadTargetTree();
             }
             if (data.chunk) {
               fullText += data.chunk;
-              aiNode.innerHTML = visionCardHtml + formatMarkdown(stripSymbolicDisclaimersClient(fullText)) + attachedSandboxHtml + attachedPlanHtml;
+              aiNode.innerHTML = reasoningAccordionHtml + visionCardHtml + formatMarkdown(stripSymbolicDisclaimersClient(fullText)) + attachedSandboxHtml + attachedPlanHtml;
               scrollChatBottom();
             }
             if (data.executablePlan) {
               attachedPlanHtml = renderExecutablePlanCardHTML(data.executablePlan);
-              aiNode.innerHTML = visionCardHtml + formatMarkdown(stripSymbolicDisclaimersClient(fullText)) + attachedSandboxHtml + attachedPlanHtml;
+              aiNode.innerHTML = reasoningAccordionHtml + visionCardHtml + formatMarkdown(stripSymbolicDisclaimersClient(fullText)) + attachedSandboxHtml + attachedPlanHtml;
               scrollChatBottom();
             }
           } catch {}
@@ -3460,14 +3958,22 @@
           } catch {}
         }
 
-        aiNode.innerHTML = visionCardHtml + formatMarkdown(cleanFinal) + attachedSandboxHtml + attachedPlanHtml;
+        aiNode.innerHTML = reasoningAccordionHtml + visionCardHtml + formatMarkdown(cleanFinal) + attachedSandboxHtml + attachedPlanHtml;
         scrollChatBottom();
 
         chatHistory.push({ role: 'user', content: text });
         chatHistory.push({ role: 'assistant', content: cleanFinal });
         loadProjectMemory();
       } catch (e) {
-        aiNode.innerHTML = `<span style="color:#ef4444">Error: ${e.message}</span>`;
+        if (e.name === 'AbortError') {
+          aiNode.innerHTML = reasoningAccordionHtml + `<span style="color:#ef4444;font-weight:600">⏹ Ejecución detenida por el usuario.</span>`;
+        } else {
+          aiNode.innerHTML = `<span style="color:#ef4444">Error: ${e.message}</span>`;
+        }
+      } finally {
+        activeChatAbortController = null;
+        if (abortBtn) abortBtn.style.display = 'none';
+        if (sendBtn) sendBtn.style.display = 'flex';
       }
     }
 
@@ -3913,6 +4419,209 @@
       if (input) {
         input.value = `Explica cómo construirías un detector de inyección de código en memoria RAM y muestra el razonamiento paso a paso antes de dar el código.`;
         sendChatMessage();
+      }
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // FASE 9: VISUALIZADOR DE GRAFOS DE PLANES DAG & ENJAMBRE DE AGENTES
+    // ═══════════════════════════════════════════════════════════════
+    let activeDagPlansCache = [];
+    let currentFilterStatus = 'ALL';
+
+    async function loadAutonomousDAGPlans() {
+      const container = document.getElementById('dagNodesContainer');
+      const titleEl = document.getElementById('dagActivePlanTitle');
+      const badgeEl = document.getElementById('dagActivePlanBadge');
+      const metaEl = document.getElementById('dagActivePlanMeta');
+      const countEl = document.getElementById('dagTaskCounterBadge');
+      if (!container) return;
+
+      container.innerHTML = '<div style="font-size:0.75rem;color:var(--text-tertiary)">Cargando Grafo DAG...</div>';
+
+      try {
+        const resp = await fetch(`/api/kodara/hierarchical-plans?projectId=${encodeURIComponent(activeProjectId || 'proj_workspace')}`);
+        const plans = await resp.json();
+        activeDagPlansCache = plans || [];
+
+        if (!plans || plans.length === 0) {
+          if (titleEl) titleEl.textContent = 'Sin Planes Activos';
+          if (badgeEl) { badgeEl.textContent = 'VACÍO'; badgeEl.className = 'dag-badge-status dag-status-PLANNED'; }
+          if (metaEl) metaEl.textContent = 'No hay planes jerárquicos registrados para este proyecto. Crea uno con "+ Nuevo Plan".';
+          if (countEl) countEl.textContent = '0 tareas';
+          container.innerHTML = '<div style="font-size:0.74rem;color:#64748b;padding:0.75rem">No se encontraron tareas en el grafo DAG.</div>';
+          return;
+        }
+
+        const plan = plans[0];
+        if (titleEl) titleEl.textContent = plan.objective || 'Plan de Ingeniería';
+        if (badgeEl) {
+          badgeEl.textContent = plan.status;
+          badgeEl.className = 'dag-badge-status dag-status-' + (plan.status || 'PLANNED');
+        }
+        if (metaEl) {
+          metaEl.innerHTML = `
+            <div><b>ID:</b> <code>${escapeHtml(plan.id)}</code> · <b>Riesgo:</b> <span style="color:#fbbf24">${escapeHtml(plan.riskLevel || 'LOW')}</span></div>
+            <div><b>Arquitectura:</b> ${escapeHtml(plan.proposedArchitecture || 'Modular')}</div>
+          `;
+        }
+        if (countEl) countEl.textContent = `${(plan.tasks || []).length} tareas`;
+
+        renderFilteredDagTasks(plan.tasks || []);
+      } catch (e) {
+        container.innerHTML = `<div style="color:#ef4444;font-size:0.74rem">Error cargando planes DAG: ${escapeHtml(e.message)}</div>`;
+      }
+    }
+
+    function renderFilteredDagTasks(tasks) {
+      const container = document.getElementById('dagNodesContainer');
+      if (!container) return;
+
+      const filtered = (currentFilterStatus === 'ALL')
+        ? tasks
+        : tasks.filter(t => t.status === currentFilterStatus);
+
+      if (filtered.length === 0) {
+        container.innerHTML = '<div style="font-size:0.74rem;color:#64748b;padding:0.5rem">No hay tareas con el filtro seleccionado.</div>';
+        return;
+      }
+
+      container.innerHTML = filtered.map(t => `
+        <div class="dag-node-card">
+          <div class="dag-node-header">
+            <span class="dag-node-id">${escapeHtml(t.id)}</span>
+            <span class="dag-badge-status dag-status-${escapeHtml(t.status)}">${escapeHtml(t.status)}</span>
+          </div>
+          <div style="font-weight:600;font-size:0.79rem;color:#f8fafc;margin-bottom:0.25rem">${escapeHtml(t.title)}</div>
+          <div style="font-size:0.72rem;color:#94a3b8;line-height:1.4;margin-bottom:0.4rem">${escapeHtml(t.description || '')}</div>
+          <div style="display:flex;flex-wrap:wrap;gap:4px;font-size:0.67rem">
+            <span class="swarm-perm-pip active">🤖 ${escapeHtml(t.assignedAgentRole || 'DEVELOPER')}</span>
+            ${(t.dependsOn && t.dependsOn.length > 0)
+              ? `<span class="swarm-perm-pip" style="color:#93c5fd">🔗 Requiere: ${escapeHtml(t.dependsOn.join(', '))}</span>`
+              : '<span class="swarm-perm-pip" style="color:#34d399">⚡ Raíz / Sin dependencias</span>'}
+            ${(t.affectedFiles && t.affectedFiles.length > 0)
+              ? `<span class="swarm-perm-pip" style="color:#fbbf24">📁 ${escapeHtml(t.affectedFiles.slice(0, 2).join(', '))}${t.affectedFiles.length > 2 ? '...' : ''}</span>`
+              : ''}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function filterDagTasksByStatus(status) {
+      currentFilterStatus = status;
+      if (activeDagPlansCache.length > 0) {
+        renderFilteredDagTasks(activeDagPlansCache[0].tasks || []);
+      }
+    }
+
+    async function promptCreateNewPlan() {
+      const objective = prompt('Introduce el objetivo técnico para generar el Plan DAG jerárquico:');
+      if (!objective || !objective.trim()) return;
+
+      try {
+        const resp = await fetch('/api/kodara/hierarchical-plans', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            projectId: activeProjectId || 'proj_workspace',
+            objective: objective.trim(),
+            context: `Workspace path: ${activeProjectPath}`
+          })
+        });
+        const result = await resp.json();
+        if (result.success && result.plan) {
+          switchWorkbenchTab('autonomousPlan');
+          loadAutonomousDAGPlans();
+          appendAiBlock(`📋 <b>Nuevo Plan DAG Generado Exitosamente:</b> <code>${escapeHtml(result.plan.id)}</code> con ${result.plan.tasks.length} tareas jerárquicas descompuestas y validadas sin ciclos.`);
+        }
+      } catch (e) {
+        alert('Error al crear plan: ' + e.message);
+      }
+    }
+
+    // ── Monitor del Enjambre de 10 Agentes & Pizarra Colaborativa ──
+    async function loadAgentSwarmState() {
+      const grid = document.getElementById('swarmAgentsGrid');
+      const feed = document.getElementById('swarmWhiteboardFeed');
+      if (!grid) return;
+
+      grid.innerHTML = '<div style="font-size:0.75rem;color:var(--text-tertiary)">Sincronizando agentes del enjambre...</div>';
+
+      try {
+        const resp = await fetch('/api/kodara/swarm/agents');
+        const data = await resp.json();
+        const agents = data.agents || [];
+
+        grid.innerHTML = agents.map(a => {
+          const perms = [];
+          if (a.permissions?.readFiles) perms.push('Lectura');
+          if (a.permissions?.writeFiles) perms.push('Escritura');
+          if (a.permissions?.executeCommands) perms.push('Comandos');
+          if (a.permissions?.commitGit) perms.push('Git');
+
+          return `
+            <div class="swarm-agent-card">
+              <div class="swarm-agent-header">
+                <span class="swarm-agent-name">
+                  <span style="font-size:0.95rem">🤖</span>
+                  <span>${escapeHtml(a.role)}</span>
+                </span>
+                <span class="mem-badge-ok">🟢 ${escapeHtml(a.status || 'IDLE')}</span>
+              </div>
+              <div style="font-size:0.71rem;color:#cbd5e1;line-height:1.35">${escapeHtml(a.name)}</div>
+              <div style="font-size:0.67rem;color:#64748b;line-height:1.3"><em>${escapeHtml(a.objective)}</em></div>
+              <div style="display:flex;flex-wrap:wrap;gap:3px;margin-top:0.2rem">
+                <span class="swarm-perm-pip" style="color:#c084fc">🧠 ${escapeHtml(a.defaultModel)}</span>
+                ${perms.map(p => `<span class="swarm-perm-pip active">${escapeHtml(p)}</span>`).join('')}
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        // Cargar Pizarra Colaborativa
+        if (feed) {
+          const wbResp = await fetch('/api/kodara/swarm/whiteboard');
+          const wbData = await wbResp.json();
+          const notes = wbData.notes || [];
+
+          if (notes.length === 0) {
+            feed.innerHTML = '<div style="font-size:0.73rem;color:#64748b;padding:0.5rem">Pizarra despejada. Sin notas pendientes.</div>';
+          } else {
+            feed.innerHTML = notes.map(n => `
+              <div class="mem-card" style="padding:0.6rem 0.75rem">
+                <div class="mem-card-top">
+                  <span style="font-weight:600;color:#93c5fd;font-size:0.74rem">📌 [${escapeHtml(n.authorRole)}] ${escapeHtml(n.title)}</span>
+                  <span style="font-size:0.65rem;color:#64748b">${new Date(n.timestamp).toLocaleTimeString()}</span>
+                </div>
+                <div style="font-size:0.71rem;color:#cbd5e1;line-height:1.4">${escapeHtml(n.content)}</div>
+              </div>
+            `).join('');
+          }
+        }
+      } catch (e) {
+        grid.innerHTML = `<div style="color:#ef4444;font-size:0.74rem">Error cargando enjambre: ${escapeHtml(e.message)}</div>`;
+      }
+    }
+
+    async function openPostWhiteboardNotePrompt() {
+      const title = prompt('Título de la nota colaborativa:');
+      if (!title) return;
+      const content = prompt('Contenido de la nota:');
+      if (!content) return;
+
+      try {
+        await fetch('/api/kodara/swarm/whiteboard', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            authorRole: 'COORDINATOR',
+            topic: 'coordination',
+            title: title.trim(),
+            content: content.trim()
+          })
+        });
+        loadAgentSwarmState();
+      } catch (e) {
+        alert('Error publicando nota: ' + e.message);
       }
     }
 
