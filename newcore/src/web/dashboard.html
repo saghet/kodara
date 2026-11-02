@@ -3946,7 +3946,7 @@
                 });
               });
             }
-            if (data.sandboxAction) {
+            if (data.sandboxAction && !attachedPlanHtml) {
               attachedSandboxHtml = renderSandboxActionCardHTML(data.sandboxAction);
               aiNode.innerHTML = reasoningAccordionHtml + visionCardHtml + formatMarkdown(stripSymbolicDisclaimersClient(fullText)) + attachedSandboxHtml + attachedPlanHtml;
               scrollChatBottom();
@@ -3968,7 +3968,8 @@
             }
             if (data.executablePlan) {
               attachedPlanHtml = renderExecutablePlanCardHTML(data.executablePlan);
-              aiNode.innerHTML = reasoningAccordionHtml + visionCardHtml + formatMarkdown(stripSymbolicDisclaimersClient(fullText)) + attachedSandboxHtml + attachedPlanHtml;
+              attachedSandboxHtml = '';
+              aiNode.innerHTML = reasoningAccordionHtml + visionCardHtml + formatMarkdown(stripSymbolicDisclaimersClient(fullText)) + attachedPlanHtml;
               scrollChatBottom();
             }
           } catch {}
@@ -3990,17 +3991,6 @@
 
         const cleanFinal = stripSymbolicDisclaimersClient(fullText);
 
-        // Capa de Acción en Vivo para Diagnósticos / Red / Scanners si no se envió en el stream
-        if (!attachedSandboxHtml && (text.toLowerCase().includes('puerto') || text.toLowerCase().includes('escan') || text.toLowerCase().includes('scanner') || cleanFinal.includes('verify_port_auditor'))) {
-          attachedSandboxHtml = renderSandboxActionCardHTML({
-            id: 'sbx_' + Date.now().toString(36),
-            title: '⚡ Auditor de Puertos en Sandbox (verify_port_auditor.py)',
-            scriptPath: 'scratch/verify_port_auditor.py',
-            target: '127.0.0.1',
-            description: 'Script de escaneo y banner-grab verificado con timeout y aislamiento seguro en localhost.'
-          });
-        }
-
         // Capa 3 (Garantía Infalible): Si adjuntó imagen o pidió un plan/mejora
         // y aún no se adjuntó la tarjeta por cualquier razón, crearla e inyectarla siempre
         if (!attachedPlanHtml && (imagesToSend.length > 0 || isPlanOrActionResponse(text, cleanFinal))) {
@@ -4015,15 +4005,28 @@
                 title: imagesToSend.length > 0
                   ? `Plan de Reparación de Falla Visual — ${activeProjectName}`
                   : `Plan de Acción Ejecutable — ${activeProjectName}`,
-                summary: `Plan de 4 fases listo para ejecutarse físicamente en Linux sobre ${activeProjectPath} (Indexación, SAST, Compilación/Tests en Sandbox y Kodara Project Memory).`,
+                summary: `Plan de trabajo contextualizado para ${activeProjectName} listo para ejecutarse físicamente en Linux (Fases dinámicas, SAST, Compilación/Sandbox y consolidación en Project Memory).`,
                 markdownContent: cleanFinal
               })
             });
             const planData = await planResp.json();
             if (planData && planData.plan) {
               attachedPlanHtml = renderExecutablePlanCardHTML(planData.plan);
+              attachedSandboxHtml = '';
             }
           } catch {}
+        }
+
+        // Capa de Acción en Vivo para Diagnósticos / Red / Scanners:
+        // SOLO si no se adjuntó un plan Y la orden solicita deliberadamente probar scripts/red/puertos locales
+        if (!attachedPlanHtml && !attachedSandboxHtml && (text.toLowerCase().includes('puerto') || text.toLowerCase().includes('scanner') || text.toLowerCase().includes('escan de red')) && !text.toLowerCase().includes('plan')) {
+          attachedSandboxHtml = renderSandboxActionCardHTML({
+            id: 'sbx_' + Date.now().toString(36),
+            title: '⚡ Auditor de Puertos en Sandbox (verify_port_auditor.py)',
+            scriptPath: 'scratch/verify_port_auditor.py',
+            target: '127.0.0.1',
+            description: 'Script de escaneo y banner-grab verificado con timeout y aislamiento seguro en localhost.'
+          });
         }
 
         aiNode.innerHTML = reasoningAccordionHtml + visionCardHtml + formatMarkdown(cleanFinal) + attachedSandboxHtml + attachedPlanHtml;

@@ -1484,6 +1484,7 @@ ${compiledOrders.orders.length > 0 ? `${compiledOrders.history_ledger_prompt_blo
       try {
         await projectsTable.saveProjectMessage(effectiveConvId, 'assistant', cleanedFinal);
       } catch {}
+      let planAttached = false;
       if (KodaraPlanExecutor.shouldAttachExecutablePlan(message, cleanedFinal)) {
         const targetProjId = effectiveProjectId || 'proj_workspace';
         const targetProjName = effectiveProjectName || 'Workspace Activo';
@@ -1497,21 +1498,28 @@ ${compiledOrders.orders.length > 0 ? `${compiledOrders.history_ledger_prompt_blo
             : `Plan de Acción Ejecutable — ${targetProjName}`,
           summary: attachedImages.length > 0
             ? `Plan generado a partir de ${attachedImages.length} captura(s) analizada(s) con Kodara Vision Engine (OCR + Codebase Grounding) listo para ejecutarse con [▶ Proceed].`
-            : 'Plan de 4 fases listo para ejecutarse físicamente en Linux (Indexación, SAST, Compilación/Tests en Sandbox y consolidación en Kodara Project Memory).',
+            : `Plan de trabajo contextualizado para ${targetProjName} listo para ejecutarse físicamente en Linux (Fases dinámicas, SAST, Compilación/Sandbox y consolidación en Project Memory).`,
           markdownContent: cleanedFinal,
         });
         // Enviar payload SSE compacto (< 600 bytes) para evitar fragmentación TCP en respuestas extensas
         reply.raw.write(`data: ${JSON.stringify({ executablePlan: { ...planArtifact, markdown_content: '' } })}\n\n`);
+        planAttached = true;
       }
 
-      // Si la respuesta incluye código o auditoría de red, adjuntar la tarjeta de acción física en sandbox
+      // Acción física en sandbox: SOLO si no se adjuntó un plan Y la orden solicita deliberadamente probar scripts/red/puertos locales
       const isCodeOrNetworkAudit =
-        routed.primaryDomain === 'CODING_AUTONOMOUS' ||
-        routed.primaryDomain === 'CYBERSECURITY_TACTICAL' ||
-        cleanedFinal.includes('DefensivePortAuditor') ||
-        cleanedFinal.includes('class DefensivePortAuditor') ||
-        cleanedFinal.includes('async def ') ||
-        cleanedFinal.includes('fn main');
+        !planAttached &&
+        (message.toLowerCase().includes('puerto') ||
+         message.toLowerCase().includes('scanner') ||
+         message.toLowerCase().includes('banner') ||
+         cleanedFinal.includes('DefensivePortAuditor') ||
+         cleanedFinal.includes('verify_port_auditor.py')) &&
+        (routed.primaryDomain === 'CODING_AUTONOMOUS' ||
+         routed.primaryDomain === 'CYBERSECURITY_TACTICAL' ||
+         cleanedFinal.includes('DefensivePortAuditor') ||
+         cleanedFinal.includes('class DefensivePortAuditor') ||
+         cleanedFinal.includes('async def ') ||
+         cleanedFinal.includes('fn main'));
 
       if (isCodeOrNetworkAudit) {
         reply.raw.write(
