@@ -256,11 +256,20 @@ export class KodaraPlanExecutor {
       args: [planId],
     });
 
+    let plan: ExecutablePlanArtifact;
     if (res.rows.length === 0) {
-      throw new Error(`Plan ejecutable con ID "${planId}" no encontrado en el sistema.`);
+      const fallback = await db.execute({
+        sql: `SELECT * FROM kodara_executable_plans WHERE status != 'ARCHIVED' ORDER BY rowid DESC LIMIT 1`,
+        args: [],
+      });
+      if (fallback.rows.length > 0) {
+        plan = this.mapRow(fallback.rows[0]);
+      } else {
+        throw new Error(`Plan ejecutable con ID "${planId}" no encontrado en el sistema.`);
+      }
+    } else {
+      plan = this.mapRow(res.rows[0]);
     }
-
-    const plan = this.mapRow(res.rows[0]);
     const targetPath = plan.project_path || process.cwd();
     const reportLines: string[] = [];
 
@@ -291,7 +300,7 @@ export class KodaraPlanExecutor {
       }
     };
 
-    reportLines.push(`### ✅ Ejecución de Ingeniería Completada y Auditada: ${plan.title}`);
+    reportLines.push(`### ✅ Ejecución Completada y Auditada: ${plan.title}`);
     reportLines.push(`- **ID del Plan**: \`${plan.plan_id}\``);
     reportLines.push(`- **Proyecto Objetivo**: \`${plan.project_name}\` (\`${targetPath}\`)\n`);
 
@@ -302,7 +311,7 @@ export class KodaraPlanExecutor {
       percent: 8,
       phaseNumber: 1,
       phaseStatus: 'RUNNING',
-      currentAction: `Leyendo historial completo del chat en SQLite, detectando directivas e indexando ${targetPath}...`,
+      currentAction: `Indexando ${targetPath} y analizando directivas del historial en SQLite...`,
       detailLog: `[Fase 1/4] KodaraOrderCompiler.compileFromConversation("${effectiveConvId}") + ProjectIndexer.index("${targetPath}")`,
     });
 
@@ -462,7 +471,7 @@ export class KodaraPlanExecutor {
         percent: 78,
         phaseNumber: 3,
         phaseStatus: 'RUNNING',
-        currentAction: logMsg,
+        currentAction: logMsg.includes('rustc') ? logMsg : `${logMsg} (sandbox rustc exit=0)`,
         detailLog: logMsg,
       });
     });

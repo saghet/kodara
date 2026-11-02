@@ -183,10 +183,12 @@ import * as lwmTable from './db/tables/lwm-snapshots.js';
 import * as whiteboardTable from './db/tables/whiteboard.js';
 import * as locksTable from './db/tables/locks.js';
 import * as artifactsTable from './db/tables/artifacts.js';
+import { KodaraCore } from './core/index.js';
 
 export async function startServer(orchestrator?: AgentOrchestrator) {
   const config = loadConfig();
   const engine = orchestrator ?? new AgentOrchestrator();
+  const core = KodaraCore.getInstance();
 
   const app = Fastify({
     logger: { level: config.logLevel },

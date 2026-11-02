@@ -648,6 +648,24 @@ Kodara está instalado como aplicación nativa de escritorio en tu sistema Linux
 - **Certificación de la Suite de Pruebas**:
   - Validado y blindado por la nueva suite `kodara-dynamic-plan-execution-antigravity.test.ts`, consolidando **25 suites de prueba y 128/128 pruebas unitarias aprobadas al 100% (885 aserciones)** con cero fallos y cero regresiones.
 
+---
+
+## 37. Fase 2: Kodara Core Foundation — Arquitectura Modular y Desacople del Núcleo
+- **Creación del Módulo Maestro `KodaraCore` (`newcore/src/core/`)**:
+  - **`CoreEventHub` (`core-event-hub.ts`)**: Bus central de eventos tipado con patrón Pub/Sub, búfer circular en memoria (500 eventos) y formateador para eventos Server-Sent Events (SSE). Permite a los agentes, herramientas y streams suscribirse a eventos de sesión, planes y auditorías de forma reactiva y desacoplada.
+  - **`CoreSessionManager` (`session-manager.ts`)**: Administrador del ciclo de vida de sesiones, proyectos activos y conversaciones en SQLite, desacoplado completamente de Fastify y de encabezados HTTP. Soporta modos de ejecución `turbo` y `supervised`.
+  - **`CoreSecurityGuard` (`security-guard.ts`)**: Guardián central de seguridad que valida el confinamiento de rutas en el workspace (Zero-Bleed), detecta y bloquea intentos de *path traversal*, prohíbe comandos destructivos catastróficos (`rm -rf /`, forkbombs, `mkfs`) y clasifica comandos sensibles en modo supervisado.
+  - **`CoreCheckpointer` (`checkpointer.ts`)**: Administrador de puntos de control (*snapshots*) que captura el estado exacto de archivos antes de mutaciones críticas y provee capacidad de *rollback* limpio ante fallos en pruebas o auditorías.
+  - **`KodaraCore` (`index.ts`)**: Fachada singleton unificada que expone las cuatro capacidades centrales a toda la aplicación y a las herramientas externas.
+- **Desacoplamiento de Controladores en la Capa de Transporte (`newcore/src/server/controllers/`)**:
+  - `projects.controller.ts`: Rutas de exploración de directorios (`/api/fs/*`), gestión de proyectos y persistencia de mensajes de conversación.
+  - `plans.controller.ts`: Listado, creación, ejecución y streaming SSE de planes con auto-reparación por watchdog.
+  - `memory.controller.ts`: API REST para gestión de Kodara Project Memory y Core Memory.
+  - `telemetry.controller.ts`: Telemetría en vivo de hardware (CPU Ryzen 9, GPU RTX 4060, RAM), arsenal táctico y motores pedagógicos.
+- **Certificación de la Suite de Pruebas**:
+  - Validado y blindado por la nueva suite unitaria `core-foundation.test.ts`, consolidando **26 suites de prueba y 134/134 pruebas unitarias aprobadas al 100% (913 aserciones)** con cero fallos y cero regresiones.
+
+
 
 
 

@@ -26,3 +26,7 @@ export { OllamaProvider } from './gateway/providers/ollama.js';
 
 // Tools
 export { Z3VerifyTool } from './tools/z3-solver.js';
+
+// Kodara Core Foundation (Phase 2)
+export { KodaraCore, CoreEventHub, CoreSessionManager, CoreSecurityGuard, CoreCheckpointer } from './core/index.js';
+
