@@ -67,6 +67,13 @@ export class KodaraPlanExecutor {
     if (this.initialized) return;
     const db = await getDb();
 
+    // Migración dinámica: Validar si la tabla existe con esquema heredado sin plan_id
+    const tableInfo = await db.execute(`PRAGMA table_info(kodara_executable_plans)`);
+    const hasPlanId = tableInfo.rows.some((r: any) => r.name === 'plan_id');
+    if (tableInfo.rows.length > 0 && !hasPlanId) {
+      await db.execute(`DROP TABLE kodara_executable_plans`);
+    }
+
     await db.execute(`
       CREATE TABLE IF NOT EXISTS kodara_executable_plans (
         plan_id TEXT PRIMARY KEY,

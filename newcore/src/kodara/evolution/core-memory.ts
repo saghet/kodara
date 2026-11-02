@@ -37,6 +37,13 @@ export class KodaraCoreMemory {
     if (this.initialized) return;
     const db = await getDb();
 
+    // Migración dinámica: Validar si la tabla existe con esquema heredado sin core_entry_id
+    const tableInfo = await db.execute(`PRAGMA table_info(kodara_core_memory)`);
+    const hasCoreEntryId = tableInfo.rows.some((r: any) => r.name === 'core_entry_id');
+    if (tableInfo.rows.length > 0 && !hasCoreEntryId) {
+      await db.execute(`DROP TABLE kodara_core_memory`);
+    }
+
     await db.execute(`
       CREATE TABLE IF NOT EXISTS kodara_core_memory (
         core_entry_id TEXT PRIMARY KEY,

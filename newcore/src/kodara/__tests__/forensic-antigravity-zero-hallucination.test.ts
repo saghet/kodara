@@ -18,9 +18,9 @@ describe('🥋 Auditoría Suprema de Pai Mei: Cero Alucinación y Autenticidad F
     dbInit.run(`CREATE TABLE IF NOT EXISTS projects (id TEXT PRIMARY KEY, name TEXT NOT NULL UNIQUE, path TEXT NOT NULL, description TEXT, created_at TEXT, updated_at TEXT)`);
     dbInit.run(`CREATE TABLE IF NOT EXISTS project_conversations (id TEXT PRIMARY KEY, project_id TEXT NOT NULL, title TEXT NOT NULL, created_at TEXT, updated_at TEXT)`);
     dbInit.run(`CREATE TABLE IF NOT EXISTS project_messages (id TEXT PRIMARY KEY, conversation_id TEXT NOT NULL, role TEXT NOT NULL, content TEXT NOT NULL, created_at TEXT)`);
-    dbInit.run(`CREATE TABLE IF NOT EXISTS kodara_project_memory (id TEXT PRIMARY KEY, category TEXT, description TEXT, reuse_count INTEGER DEFAULT 0, created_at TEXT)`);
-    dbInit.run(`CREATE TABLE IF NOT EXISTS kodara_core_memory (id TEXT PRIMARY KEY, category TEXT, description TEXT, created_at TEXT)`);
-    dbInit.run(`CREATE TABLE IF NOT EXISTS kodara_executable_plans (id TEXT PRIMARY KEY, project_id TEXT, title TEXT, status TEXT, steps_json TEXT, created_at TEXT)`);
+    dbInit.run(`CREATE TABLE IF NOT EXISTS kodara_project_memory (memory_id TEXT PRIMARY KEY, project_id TEXT NOT NULL, project_name TEXT NOT NULL, language TEXT NOT NULL, error_signature TEXT NOT NULL, error_context TEXT NOT NULL, root_cause TEXT NOT NULL, verified_fix TEXT NOT NULL, compile_status TEXT NOT NULL DEFAULT 'PASS', test_status TEXT NOT NULL DEFAULT 'PASS', times_reused INTEGER NOT NULL DEFAULT 1, confidence REAL NOT NULL DEFAULT 0.95, verification_status TEXT NOT NULL DEFAULT 'VERIFIED', updated_at TEXT NOT NULL)`);
+    dbInit.run(`CREATE TABLE IF NOT EXISTS kodara_core_memory (core_entry_id TEXT PRIMARY KEY, ide_component TEXT NOT NULL, issue_signature TEXT NOT NULL, telemetry_summary TEXT NOT NULL, root_cause TEXT NOT NULL, supervised_proposal TEXT NOT NULL, candidate_patch_diff TEXT NOT NULL, isolated_branch TEXT NOT NULL, metrics_before_json TEXT NOT NULL, metrics_after_json TEXT NOT NULL, approval_status TEXT NOT NULL DEFAULT 'SUPERVISED_PENDING', created_at TEXT NOT NULL)`);
+    dbInit.run(`CREATE TABLE IF NOT EXISTS kodara_executable_plans (plan_id TEXT PRIMARY KEY, project_id TEXT NOT NULL, project_name TEXT NOT NULL, project_path TEXT NOT NULL, title TEXT NOT NULL, summary TEXT NOT NULL, markdown_content TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'READY_TO_PROCEED', phases_json TEXT NOT NULL, execution_report_md TEXT NOT NULL DEFAULT '', created_at TEXT NOT NULL, executed_at TEXT)`);
 
     const pC = (dbInit.query('SELECT COUNT(*) as c FROM projects').get() as { c: number }).c;
     if (pC === 0) {
@@ -28,7 +28,7 @@ describe('🥋 Auditoría Suprema de Pai Mei: Cero Alucinación y Autenticidad F
     }
     const mC = (dbInit.query('SELECT COUNT(*) as c FROM kodara_project_memory').get() as { c: number }).c;
     if (mC === 0) {
-      dbInit.run(`INSERT INTO kodara_project_memory VALUES ('mem_default', 'ARCHITECTURE', 'Antigravity Zero-Hallucination Architecture', 1, datetime('now'))`);
+      dbInit.run(`INSERT INTO kodara_project_memory VALUES ('mem_default', 'proj_default', 'Kodara Workspace', 'typescript', 'ZERO_HALLUCINATION', 'Architecture audit', 'Verified root cause', 'Antigravity Zero-Hallucination Architecture', 'PASS', 'PASS', 1, 0.99, 'VERIFIED', datetime('now'))`);
     }
     dbInit.close();
 

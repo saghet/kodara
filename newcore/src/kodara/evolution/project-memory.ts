@@ -32,6 +32,13 @@ export class KodaraProjectMemory {
     if (this.initialized) return;
     const db = await getDb();
 
+    // Migración dinámica: Validar si la tabla existe con esquema heredado sin project_id
+    const tableInfo = await db.execute(`PRAGMA table_info(kodara_project_memory)`);
+    const hasProjectId = tableInfo.rows.some((r: any) => r.name === 'project_id');
+    if (tableInfo.rows.length > 0 && !hasProjectId) {
+      await db.execute(`DROP TABLE kodara_project_memory`);
+    }
+
     await db.execute(`
       CREATE TABLE IF NOT EXISTS kodara_project_memory (
         memory_id TEXT PRIMARY KEY,

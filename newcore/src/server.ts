@@ -1238,7 +1238,8 @@ export async function startServer(orchestrator?: AgentOrchestrator) {
     reply.raw.on('close', cleanupHeartbeat);
     reply.raw.on('error', cleanupHeartbeat);
 
-    // 1. Comando de aprendizaje rápido (/recordar o /learn)
+    try {
+      // 1. Comando de aprendizaje rápido (/recordar o /learn)
     if (message.startsWith('/recordar ') || message.startsWith('/learn ')) {
       const rule = message.replace(/^\/(?:recordar|learn)\s+/, '').trim();
       memoryManager.addRule(rule);
@@ -1342,7 +1343,12 @@ export async function startServer(orchestrator?: AgentOrchestrator) {
 
     // 3. Inyección de Kodara Project Memory + Memoria de Ingeniería + Historial Completo desde SQLite
     const memoryContext = memoryManager.generateSystemContext(effectiveProjectPath);
-    const projectMemoryBlock = await KodaraProjectMemory.buildProjectMemoryPromptBlock(effectiveProjectId);
+    let projectMemoryBlock = '';
+    try {
+      projectMemoryBlock = await KodaraProjectMemory.buildProjectMemoryPromptBlock(effectiveProjectId);
+    } catch (e: any) {
+      reply.log.warn({ err: e }, '[Kodara] Project memory prompt block warning');
+    }
     const { mergedMessages } = await KodaraOrderCompiler.loadFullConversationHistory(
       effectiveConvId,
       (history as any[]) || []
@@ -1423,11 +1429,9 @@ ${compiledOrders.orders.length > 0 ? `${compiledOrders.history_ledger_prompt_blo
     ];
 
     reply.raw.write(`data: ${JSON.stringify({ log: { time: getNow(), text: `🚀 Motor local (${actualModel}) • Inferencia en lenguaje natural • num_ctx: ${numCtx}`, level: 'info' } })}\n\n`);
+    reply.raw.write(`data: ${JSON.stringify({ log: { time: getNow(), text: `📡 Inferencia iniciada con AIProviderEngine (${actualModel}). Transmitiendo tokens...`, level: 'success' } })}\n\n`);
 
-    try {
-      reply.raw.write(`data: ${JSON.stringify({ log: { time: getNow(), text: `📡 Inferencia iniciada con AIProviderEngine (${actualModel}). Transmitiendo tokens...`, level: 'success' } })}\n\n`);
-
-      const aiEngine = AIProviderEngine.getInstance();
+    const aiEngine = AIProviderEngine.getInstance();
       const stream = aiEngine.chatStream({
         model: actualModel,
         messages: chatMessages as any[],
@@ -1530,9 +1534,12 @@ ${compiledOrders.orders.length > 0 ? `${compiledOrders.history_ledger_prompt_blo
       reply.raw.end();
     } catch (err: any) {
       cleanupHeartbeat();
-      reply.raw.write(`data: ${JSON.stringify({ log: { time: getNow(), text: `❌ Error en el procesamiento: ${err.message}`, level: 'error' } })}\n\n`);
-      reply.raw.write(`data: ${JSON.stringify({ error: err.message || 'Error de comunicación local' })}\n\n`);
-      reply.raw.end();
+      req.log.error({ err }, '[Kodara Chat Stream Error]');
+      try {
+        reply.raw.write(`data: ${JSON.stringify({ log: { time: getNow(), text: `❌ Error en el procesamiento: ${err.message}`, level: 'error' } })}\n\n`);
+        reply.raw.write(`data: ${JSON.stringify({ error: err.message || 'Error de comunicación local' })}\n\n`);
+        reply.raw.end();
+      } catch {}
     }
   });
 
