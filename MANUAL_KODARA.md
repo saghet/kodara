@@ -773,6 +773,30 @@ Kodara está instalado como aplicación nativa de escritorio en tu sistema Linux
 - **Certificación de la Suite de Pruebas**:
   - Validado y blindado por la nueva suite unitaria `src/agents/__tests__/multi-agent-system.test.ts`, consolidando **30 suites de prueba y 165/165 pruebas unitarias aprobadas al 100% (1,159 aserciones)** con cero fallos y cero regresiones.
 
+---
+
+## 42. Fase 7: Project Memory Engine — Memoria Persistente en 6 Dimensiones, ADRs y RAG Compactado
+- **Creación del Módulo Maestro `ProjectMemoryEngine` (`newcore/src/project-memory/`)**:
+  - **Arquitectura de Memoria en 6 Niveles ([`memory.interface.ts`](file:///home/saghet/Documents/Ollama/Velocity/newcore/src/project-memory/memory.interface.ts))**:
+    1. **`SESSION` (Memoria de Sesión)**: Intenciones activas, objetivos inmediatos y contexto efímero del diálogo en curso.
+    2. **`PROJECT` (Memoria de Proyecto)**: Contexto global del repositorio, stack tecnológico, archivos clave y reglas `.kodararules`.
+    3. **`TECHNICAL` (Memoria Técnica)**: Comandos de build/test (`cargo build`, `bun test`), estándares de codificación, puertos locales y variables de entorno.
+    4. **`ARCHITECTURAL_DECISION` (Memoria de Decisiones / ADRs)**: Architectural Decision Records persistentes (`PROPOSED`, `ACCEPTED`, `REJECTED`, `SUPERSEDED`) con contexto, decisión, consecuencias y agente autor.
+    5. **`TASK` (Memoria de Tareas)**: Historial detallado de tareas ejecutadas, estado final, agentes intervinientes y tiempos de respuesta.
+    6. **`ERROR_SOLUTION` (Memoria de Errores y Soluciones)**: Catálogo de errores resueltos con firma única, síntoma, causa raíz analizada, solución verificada y contador de reutilización adaptativa.
+  - **Indexador Semántico Ligero y RAG Dirigido ([`context-indexer.ts`](file:///home/saghet/Documents/Ollama/Velocity/newcore/src/project-memory/context-indexer.ts))**:
+    - Motor TF-IDF con ponderación por tags (5.0x), títulos (3.0x) y contenido (1.0x).
+    - Selección estricta bajo presupuesto de tokens (`maxTokens` budget), erradicando el volcado indiscriminado del repositorio al context window.
+  - **Compactador de Contexto y Respaldo Cognitivo ([`context-compactor.ts`](file:///home/saghet/Documents/Ollama/Velocity/newcore/src/project-memory/context-compactor.ts))**:
+    - Detector de saturación de ventana de contexto (`shouldCompact`).
+    - Generación de resumen ejecutivo estructurado con intenciones abordadas, hitos logrados y tareas pendientes, preservando *verbatim* los últimos 4 mensajes para asegurar continuidad conversacional impecable.
+  - **Persistencia en SQLite y API REST ([`project-memory-engine.ts`](file:///home/saghet/Documents/Ollama/Velocity/newcore/src/project-memory/project-memory-engine.ts) y [`memory.controller.ts`](file:///home/saghet/Documents/Ollama/Velocity/newcore/src/server/controllers/memory.controller.ts))**:
+    - Tablas indexadas: `kodara_project_memory_entries`, `kodara_adrs` y `kodara_error_solutions`.
+    - Endpoints REST para consulta/registro por tier, gestión del ciclo de vida de ADRs, RAG contextual y compactación de sesiones.
+- **Certificación de la Suite de Pruebas**:
+  - Validado y blindado por la nueva suite unitaria `src/project-memory/__tests__/project-memory-engine.test.ts`, consolidando **31 suites de prueba y 171/171 pruebas unitarias aprobadas al 100% (1,185 aserciones)** con cero fallos y cero regresiones.
+
+
 
 
 
